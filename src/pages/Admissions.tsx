@@ -1,4 +1,4 @@
-Warning: truncated output (original token count: 22140)
+Warning: truncated output (original token count: 22138)
 Total output lines: 1655
 
 import React, { useState, useEffect } from 'react';
@@ -367,13 +367,13 @@ export const Admissions: React.FC = () => {
   // Delete Student wrapper
   const handleDelete = (studentId: string, studentName: string) => {
     confirmAction({
-      title: 'Delete Student Profile',
-      message: `Are you sure you want to permanently delete ${studentName}'s profile? All payment receipts and reminders logs will be deleted. This cannot be undone.`,
-      confirmText: 'Delete Profile',
+      title: 'Deactivate Student',
+      message: `Deactivate ${studentName}'s student profile? The student will be marked inactive and their payment, receipt, and reminder history will be preserved.`,
+      confirmText: 'Deactivate Student',
       type: 'danger',
       onConfirm: () => {
         deleteStudent(studentId);
-        showToast(`Student ${studentName} was removed from the database.`, 'success');
+        showToast(`Student ${studentName} was marked inactive.`, 'success');
         setSelectedStudentId(null);
         setIsEditing(false);
       }
@@ -893,7 +893,7 @@ export const Admissions: React.FC = () => {
                     <input
                       type="date"
                       value={firstDueDate}
-                      onChange={(e) => handleFirstDueDateCha…2140 tokens truncated…
+                      onChange={(e) => handleFirstDueDateChange(e.targe…2138 tokens truncated…
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-600">Academic Remarks / Profile Notes</label>
               <textarea 
