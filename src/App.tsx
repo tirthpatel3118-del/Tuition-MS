@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './pages/Dashboard';
-import { Admissions } from './pages/Admissions';
-import { Payments } from './pages/Payments';
-import { Receipts } from './pages/Receipts';
-import { Reminders } from './pages/Reminders';
-import { Courses } from './pages/Courses';
-import { Settings } from './pages/Settings';
 import { Menu, RotateCcw, Bell, LogOut } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
-import { isSupabaseConfigured } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, SelectInstitutePage } from './pages/AuthPages';
-import { TeacherWorkspace } from './pages/TeacherWorkspace';
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Admissions = lazy(() => import('./pages/Admissions').then(module => ({ default: module.Admissions })));
+const Payments = lazy(() => import('./pages/Payments').then(module => ({ default: module.Payments })));
+const Receipts = lazy(() => import('./pages/Receipts').then(module => ({ default: module.Receipts })));
+const Reminders = lazy(() => import('./pages/Reminders').then(module => ({ default: module.Reminders })));
+const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: module.Courses })));
+const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
@@ -103,15 +103,17 @@ function AppContent() {
 
         {/* Page Router Body */}
         <main className="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/admissions" element={<Admissions />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/receipts" element={<Receipts />} />
-            <Route path="/reminders" element={<Reminders />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={<div className="py-12 text-center text-sm text-slate-500">Loading workspace…</div>}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/admissions" element={<Admissions />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/receipts" element={<Receipts />} />
+              <Route path="/reminders" element={<Reminders />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </main>
 
         {/* Global Layout Footer */}
@@ -168,7 +170,9 @@ function AppEntry() {
 
   if (auth.memberships.length === 0) return <CreateInstitutePage />;
   if (!auth.activeMembership) return <SelectInstitutePage />;
-  if (auth.activeMembership.role === 'teacher') return <TeacherWorkspace />;
+  if (auth.activeMembership.role === 'teacher') {
+    return <Suspense fallback={<AuthLoading />}><TeacherWorkspace /></Suspense>;
+  }
 
   return <DataProvider key={auth.activeMembership.instituteId}><AppContent /></DataProvider>;
 }
