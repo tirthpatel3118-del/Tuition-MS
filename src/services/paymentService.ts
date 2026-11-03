@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Payment } from '../types';
-import { Student as UiStudent, Payment as UiPayment, getStoredData, saveStoredData } from '../data/mockData';
+import { Student as UiStudent, Installment as UiInstallment, Payment as UiPayment, getStoredData, saveStoredData } from '../data/mockData';
 import { requireActiveInstituteId } from '../lib/tenant';
 
 const useSupabase = isSupabaseConfigured;
@@ -107,7 +107,7 @@ export const paymentService = {
         saveStoredData({
           ...mockData,
           students: updatedStudents,
-          installments: (mockData.installments || []).map(installment => installment.id === input.installmentId && input.amount >= installment.amount
+          installments: ((mockData.installments || []) as UiInstallment[]).map(installment => installment.id === input.installmentId && input.amount >= installment.amount
             ? { ...installment, status: 'Paid' as const, paymentId: newId }
             : installment),
           payments: [uiPayment, ...mockData.payments]
