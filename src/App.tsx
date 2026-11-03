@@ -132,6 +132,18 @@ function AppEntry() {
   const auth = useAuth();
 
   if (!auth.configured) {
+    if (import.meta.env.PROD) {
+      return (
+        <main className="min-h-screen bg-slate-50 px-4 flex items-center justify-center">
+          <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h1 className="text-xl font-bold text-slate-900">Workspace setup required</h1>
+            <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">
+              EduLedger is not connected to its authentication and database service. Please contact your administrator.
+            </p>
+          </section>
+        </main>
+      );
+    }
     return <DataProvider><AppContent /></DataProvider>;
   }
 
