@@ -1,7 +1,7 @@
 export interface Course {
   id: string;
   name: string;
-  fees: number;
+  fees: number | null;
   duration: string; // e.g. "6 Months"
   subject: string;
 }

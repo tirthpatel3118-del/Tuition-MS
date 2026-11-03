@@ -15,6 +15,7 @@ export interface Course {
   course_name: string;
   batch_name: string;
   duration_months: number;
+  course_fee?: number | null;
   created_at: string;
 }
 
@@ -89,3 +90,4 @@ export interface Batch {
   courseFee?: number;
   status: 'Active' | 'Inactive';
 }
+

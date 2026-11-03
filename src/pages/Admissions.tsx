@@ -1,4 +1,4 @@
-Warning: truncated output (original token count: 22138)
+Warning: truncated output (original token count: 22153)
 Total output lines: 1655
 
 import React, { useState, useEffect } from 'react';
@@ -223,7 +223,7 @@ export const Admissions: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       courseId,
-      totalFees: course ? course.fees : 0
+      totalFees: course?.fees ?? 0
     }));
     // Clear validation error on selection change
     if (courseId) {
@@ -763,7 +763,7 @@ export const Admissions: React.FC = () => {
                 >
                   <option value="">-- Choose Course --</option>
                   {courses.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({settings?.currencySymbol || '₹'}{c.fees})</option>
+                    <option key={c.id} value={c.id}>{c.name} ({c.fees == null ? 'fee not configured' : `${settings?.currencySymbol || '₹'}${c.fees.toLocaleString('en-IN')}`})</option>
                   ))}
                 </select>
                 {formErrors.courseId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.courseId}</span>}
@@ -893,7 +893,7 @@ export const Admissions: React.FC = () => {
                     <input
                       type="date"
                       value={firstDueDate}
-                      onChange={(e) => handleFirstDueDateChange(e.targe…2138 tokens truncated…
+        …2153 tokens truncated…
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-600">Academic Remarks / Profile Notes</label>
               <textarea 

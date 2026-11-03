@@ -23,6 +23,7 @@ export const courseService = {
         course_name: c.name,
         batch_name: 'Morning - Batch A (08:00 AM)',
         duration_months: parseInt(c.duration) || 6,
+        course_fee: c.fees,
         created_at: new Date().toISOString()
       }));
     }
@@ -50,7 +51,7 @@ export const courseService = {
       const uiCourse: UiCourse = {
         id: newId,
         name: course.course_name,
-        fees: 15000, // placeholder default fee config
+        fees: course.course_fee ?? null,
         duration: `${course.duration_months} Months`,
         subject: course.course_name.split(' ')[0] || 'General'
       };

@@ -406,7 +406,7 @@ export const Courses: React.FC = () => {
                 <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Course Fee</span>
-                    <span className="text-sm font-bold text-blue-600">{settings?.currencySymbol || '₹'}{course.fees.toLocaleString('en-IN')}</span>
+                    <span className="text-sm font-bold text-blue-600">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
                   </div>
                   
                   <div className="text-right">

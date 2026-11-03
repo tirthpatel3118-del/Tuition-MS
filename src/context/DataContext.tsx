@@ -128,7 +128,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const mappedCourses: Course[] = dbCourses.map(c => ({
         id: c.id,
         name: c.course_name,
-        fees: dbCourseFees?.[c.id] || 15000,
+        fees: dbCourseFees?.[c.id] ?? c.course_fee ?? null,
         duration: `${c.duration_months} Months`,
         subject: c.course_name.split(' ')[0] || 'General'
       }));
@@ -591,7 +591,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const dbCourse = await courseService.createCourse({
           course_name: courseData.name,
           batch_name: 'Morning - Batch A (08:00 AM)',
-          duration_months: parseInt(courseData.duration) || 6
+          duration_months: parseInt(courseData.duration) || 6,
+          course_fee: courseData.fees
         });
 
         // Save course fee to settings
