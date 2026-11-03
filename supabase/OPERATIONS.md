@@ -31,7 +31,7 @@ Keep the production export, restore, and test environment on a machine and accou
 
 Run [`preflight/202611_v2_4_baseline.sql`](preflight/202611_v2_4_baseline.sql) against both the source and isolated restore. Compare its aggregate counts, integrity checks, payment-link classifications, installment status counts, and policy definitions. It does not return student or payment rows. Stop if any count or financial total differs; restore again from a consistent export and investigate before proceeding.
 
-The last read-only production check found 3 courses, 2 students, 2 payments, 2 receipts, and 9 installments. Both payments had one exact installment match totaling 7,500.00. Seven installments had no linked payment, one past due. It also found no `public.settings`, no migration history, and no Storage buckets or objects. Re-run the report; these figures are a prior snapshot, not a substitute for current verification.
+A previous read-only production check found legacy application tables and no migration history. Keep all live row counts, financial totals, and student-level details in access-controlled audit records; do not commit production-specific data to this repository. Re-run the aggregate baseline report against both source and isolated restore, and compare the results privately before proceeding.
 
 ## 4. Reconcile the migration baseline on the isolated copy
 
