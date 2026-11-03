@@ -51,6 +51,9 @@ function clearAppData() {
   for (const key of Object.keys(localStorage)) {
     if (key.startsWith('eduledger_')) localStorage.removeItem(key);
   }
+  for (const key of Object.keys(sessionStorage)) {
+    if (key.startsWith('eduledger.pendingPayment:')) sessionStorage.removeItem(key);
+  }
   sessionStorage.removeItem(ACTIVE_INSTITUTE_KEY);
 }
 
