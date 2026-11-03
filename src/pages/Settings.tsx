@@ -12,8 +12,8 @@ import {
   FileText, 
   Sparkles, 
   RefreshCw,
-  HelpCircle
-  ,Users
+  HelpCircle,
+  Users,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { TeamSettings } from '../components/TeamSettings';

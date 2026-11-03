@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Check, Copy, RefreshCw, Shield, UserPlus, Users } from 'lucide-react';
 import { useAuth, type InstituteRole } from '../context/AuthContext';
 import {
@@ -47,8 +47,8 @@ export function TeamSettings() {
     finally { setBusy(false); }
   };
 
-  const submitInvite = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitInvite = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     setBusy(true); setError(''); setNotice(''); setInviteUrl('');
     try {
       const invitation = await inviteInstituteMember(email, role);
@@ -77,15 +77,15 @@ export function TeamSettings() {
       {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {notice && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</p>}
 
-      <form onSubmit={submitInvite} className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800"><UserPlus className="h-4 w-4 text-blue-600" />Invite a team member</h3>
         <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
           <label className="text-xs font-semibold text-slate-600">Email address<input type="email" required value={email} onChange={event => setEmail(event.target.value)} className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-normal" /></label>
           <label className="text-xs font-semibold text-slate-600">Access role<select value={role} onChange={event => setRole(event.target.value as InstituteRole)} className="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-normal">{roles.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
-          <button disabled={busy} className="self-end rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">Create invite</button>
+          <button type="button" onClick={() => void submitInvite()} disabled={busy || !email.trim()} className="self-end rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">Create invite</button>
         </div>
         {inviteUrl && <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3"><label className="text-xs font-semibold text-blue-900">One-time invitation link (expires in 7 days)<input readOnly value={inviteUrl} onFocus={event => event.currentTarget.select()} className="mt-1 block w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-normal text-slate-700" /></label><button type="button" onClick={() => void copyLink()} className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-blue-700">{copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}{copied ? 'Copied' : 'Copy link'}</button></div>}
-      </form>
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <div className="border-b border-slate-100 px-4 py-3"><h3 className="flex items-center gap-2 text-sm font-bold text-slate-800"><Shield className="h-4 w-4 text-blue-600" />Current members</h3></div>
