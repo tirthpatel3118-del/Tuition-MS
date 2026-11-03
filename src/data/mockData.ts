@@ -58,7 +58,7 @@ export interface Reminder {
   amountDue: number;
   sentDate: string;
   type: 'WhatsApp' | 'SMS' | 'Email';
-  status: 'Sent' | 'Failed';
+  status: 'queued' | 'manual_opened' | 'sent' | 'delivered' | 'failed';
 }
 
 // Initial Mock Data
@@ -370,7 +370,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 10000,
     sentDate: '2026-06-15 10:30 AM',
     type: 'WhatsApp',
-    status: 'Sent'
+    status: 'manual_opened'
   },
   {
     id: 'r2',
@@ -379,7 +379,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 12000,
     sentDate: '2026-06-15 10:32 AM',
     type: 'Email',
-    status: 'Sent'
+    status: 'manual_opened'
   },
   {
     id: 'r3',
@@ -388,7 +388,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 25000,
     sentDate: '2026-06-20 11:15 AM',
     type: 'SMS',
-    status: 'Sent'
+    status: 'manual_opened'
   }
 ];
 
@@ -486,3 +486,4 @@ export const resetToDefault = () => {
   localStorage.setItem('eduledger_batches', JSON.stringify(INITIAL_BATCHES));
   window.location.reload();
 };
+
