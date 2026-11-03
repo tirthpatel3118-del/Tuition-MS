@@ -21,6 +21,16 @@ BEGIN
         RAISE EXCEPTION 'Precondition Failed: Student discount exceeds course fee.';
     END IF;
 
+    IF EXISTS (
+        SELECT 1
+        FROM public.installments i
+        LEFT JOIN public.payments p ON p.id = i.payment_id
+        WHERE i.payment_id IS NOT NULL
+          AND (p.id IS NULL OR p.institute_id IS DISTINCT FROM i.institute_id)
+    ) THEN
+        RAISE EXCEPTION 'Precondition Failed: Installment payment links are missing or cross-institute.';
+    END IF;
+
     -- Check for duplicate receipt numbers within tenant
     IF EXISTS (
         SELECT institute_id, receipt_number FROM public.receipts 
@@ -108,6 +118,16 @@ BEGIN
             FOREIGN KEY (institute_id, student_id) REFERENCES public.students(institute_id, id) ON DELETE RESTRICT;
     END IF;
 
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_installments_payment') THEN
+        ALTER TABLE public.installments ADD CONSTRAINT fk_installments_payment
+            FOREIGN KEY (institute_id, payment_id) REFERENCES public.payments(institute_id, id) ON DELETE RESTRICT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_reminders_student') THEN
+        ALTER TABLE public.reminders ADD CONSTRAINT fk_reminders_student
+            FOREIGN KEY (institute_id, student_id) REFERENCES public.students(institute_id, id) ON DELETE RESTRICT;
+    END IF;
+
     -- 6. Generated net_fee column and check constraints
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'students' AND column_name = 'net_fee') THEN
         ALTER TABLE public.students ADD COLUMN net_fee NUMERIC(10, 2) GENERATED ALWAYS AS (course_fee - discount) STORED;
@@ -117,6 +137,26 @@ BEGIN
         ALTER TABLE public.students ADD CONSTRAINT chk_discount_not_exceed_fee CHECK (discount <= course_fee);
     END IF;
 END $$;
+
+-- Cover tenant-scoped foreign keys and the common per-institute list filters.
+CREATE INDEX IF NOT EXISTS idx_batches_tenant_course
+    ON public.batches (institute_id, course_id);
+CREATE INDEX IF NOT EXISTS idx_students_tenant_course
+    ON public.students (institute_id, course_id);
+CREATE INDEX IF NOT EXISTS idx_students_tenant_batch
+    ON public.students (institute_id, batch_id);
+CREATE INDEX IF NOT EXISTS idx_payments_tenant_student
+    ON public.payments (institute_id, student_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_tenant_payment
+    ON public.receipts (institute_id, payment_id);
+CREATE INDEX IF NOT EXISTS idx_installments_tenant_student
+    ON public.installments (institute_id, student_id);
+CREATE INDEX IF NOT EXISTS idx_installments_tenant_payment
+    ON public.installments (institute_id, payment_id);
+CREATE INDEX IF NOT EXISTS idx_installments_tenant_due_date
+    ON public.installments (institute_id, due_date);
+CREATE INDEX IF NOT EXISTS idx_reminders_tenant_student
+    ON public.reminders (institute_id, student_id);
 
 INSERT INTO public.schema_migrations (version, description)
 VALUES ('20261104000004', 'Enforce composite tenant unique constraints and foreign keys')

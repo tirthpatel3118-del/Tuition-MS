@@ -52,6 +52,18 @@ CREATE TABLE IF NOT EXISTS public.financial_audit_logs (
     CONSTRAINT uq_audit_logs_tenant UNIQUE (institute_id, id)
 );
 
+-- Index the leading tenant keys on each composite foreign-key relation.
+CREATE INDEX IF NOT EXISTS idx_allocations_tenant_payment
+    ON public.payment_allocations (institute_id, payment_id);
+CREATE INDEX IF NOT EXISTS idx_allocations_tenant_installment
+    ON public.payment_allocations (institute_id, installment_id);
+CREATE INDEX IF NOT EXISTS idx_allocations_tenant_reversal
+    ON public.payment_allocations (institute_id, reversal_of_id) WHERE reversal_of_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_reversals_tenant_original_payment
+    ON public.payment_reversals (institute_id, original_payment_id);
+CREATE INDEX IF NOT EXISTS idx_reversals_tenant_reversal_payment
+    ON public.payment_reversals (institute_id, reversal_payment_id);
+
 -- 4. Installment Status Calculation Function
 CREATE OR REPLACE FUNCTION public.calculate_installment_status(
     p_scheduled NUMERIC,
