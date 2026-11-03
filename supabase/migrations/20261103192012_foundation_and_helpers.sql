@@ -55,6 +55,29 @@ CREATE TABLE IF NOT EXISTS public.institute_members (
     CONSTRAINT uq_institute_members_membership UNIQUE (institute_id, user_id)
 );
 
+-- Define the role checker before any privileged RPC bodies reference it.
+CREATE SCHEMA IF NOT EXISTS private AUTHORIZATION postgres;
+REVOKE ALL ON SCHEMA private FROM PUBLIC, anon;
+CREATE OR REPLACE FUNCTION private.is_member_of(
+    _institute_id UUID,
+    _required_roles TEXT[] DEFAULT ARRAY['owner', 'accountant', 'teacher']
+)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT auth.uid() IS NOT NULL AND EXISTS (
+        SELECT 1 FROM public.institute_members m
+        WHERE m.institute_id = _institute_id
+          AND m.user_id = auth.uid()
+          AND m.role = ANY(_required_roles)
+    );
+$$;
+ALTER FUNCTION private.is_member_of(UUID, TEXT[]) OWNER TO postgres;
+REVOKE ALL ON FUNCTION private.is_member_of(UUID, TEXT[]) FROM PUBLIC, anon, authenticated;
+
 -- Seed Default Development Institute
 INSERT INTO public.institutes (id, name, slug)
 VALUES ('00000000-0000-0000-0000-000000000001', 'EduLedger Academy (Dev)', 'dev-institute')
