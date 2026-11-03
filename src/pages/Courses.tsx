@@ -8,13 +8,11 @@ import {
   Flame, 
   BookMarked, 
   Code,
-  AlertCircle,
   PlusCircle,
   Loader2,
   Trash2,
   X,
   Edit3,
-  Users
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { Batch } from '../types';
@@ -625,3 +623,4 @@ export const Courses: React.FC = () => {
     </div>
   );
 };
+
