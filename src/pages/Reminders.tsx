@@ -20,7 +20,7 @@ import { TableSkeleton } from '../components/TableSkeleton';
 
 export const Reminders: React.FC = () => {
   const { students, reminders, installments, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Loading states
@@ -78,7 +78,7 @@ export const Reminders: React.FC = () => {
       }
       setActiveTab('dues');
     }
-  }, [searchParams, installments]);
+  }, [searchParams, installments, selectedInstallmentIds]);
 
   // Installments that are Pending or Overdue
   const dueInstallments = (installments || [])
@@ -188,7 +188,6 @@ export const Reminders: React.FC = () => {
       inst = dueInstallments[0];
     }
     if (!inst) {
-      const symbol = settings?.currencySymbol || '₹';
       const mockInst = {
         studentName: 'John Doe',
         parentName: 'Robert Doe',
@@ -238,11 +237,6 @@ export const Reminders: React.FC = () => {
         });
       }
     });
-  };
-
-  const getLastReminderDate = (studentId: string) => {
-    const lastReminder = reminders.find(r => r.studentId === studentId);
-    return lastReminder ? lastReminder.sentDate : 'Never';
   };
 
   return (
