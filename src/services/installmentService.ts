@@ -1,18 +1,18 @@
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Installment } from '../types';
 import { Installment as UiInstallment, getStoredData, saveStoredData } from '../data/mockData';
+import { requireActiveInstituteId } from '../lib/tenant';
 
-// Determine if we should use Supabase
-const useSupabase = 
-  !!import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
+const useSupabase = isSupabaseConfigured;
 
 export const installmentService = {
   async getInstallments(): Promise<Installment[]> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('installments')
         .select('*')
+        .eq('institute_id', instituteId)
         .order('due_date', { ascending: true });
       if (error) throw error;
       return data as Installment[];
@@ -34,10 +34,12 @@ export const installmentService = {
 
   async getInstallmentsByStudentId(studentId: string): Promise<Installment[]> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('installments')
         .select('*')
         .eq('student_id', studentId)
+        .eq('institute_id', instituteId)
         .order('installment_number', { ascending: true });
       if (error) throw error;
       return data as Installment[];
@@ -49,9 +51,10 @@ export const installmentService = {
 
   async createInstallments(installments: Omit<Installment, 'id' | 'created_at'>[]): Promise<Installment[]> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('installments')
-        .insert(installments)
+        .insert(installments.map(installment => ({ ...installment, institute_id: instituteId })))
         .select();
       if (error) throw error;
       return data as Installment[];
@@ -94,10 +97,12 @@ export const installmentService = {
 
   async updateInstallment(id: string, updates: Partial<Installment>): Promise<Installment> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('installments')
         .update(updates)
         .eq('id', id)
+        .eq('institute_id', instituteId)
         .select()
         .single();
       if (error) throw error;
@@ -133,19 +138,79 @@ export const installmentService = {
     }
   },
 
-  async deleteInstallmentsByStudentId(studentId: string): Promise<void> {
+  async reconcilePendingInstallmentsByStudentId(
+    studentId: string,
+    desired: Array<{ installment_number: number; due_date: string; amount: number; remarks?: string | null }>
+  ): Promise<void> {
     if (useSupabase) {
-      const { error } = await supabase
+      const instituteId = requireActiveInstituteId();
+      const { data, error } = await supabase
         .from('installments')
-        .delete()
-        .eq('student_id', studentId);
+        .select('id, installment_number, status')
+        .eq('student_id', studentId)
+        .eq('institute_id', instituteId);
       if (error) throw error;
+
+      const existingPending = (data ?? []).filter(row => row.status === 'Pending');
+      const desiredByNumber = new Map(desired.map(item => [item.installment_number, item]));
+      for (const existing of existingPending) {
+        const replacement = desiredByNumber.get(existing.installment_number);
+        if (!replacement) {
+          const { error: deleteError } = await supabase.from('installments').delete()
+            .eq('id', existing.id).eq('institute_id', instituteId).eq('status', 'Pending');
+          if (deleteError) throw deleteError;
+          continue;
+        }
+        const { error: updateError } = await supabase.from('installments').update({
+          due_date: replacement.due_date,
+          amount: replacement.amount,
+          remarks: replacement.remarks ?? null,
+        }).eq('id', existing.id).eq('institute_id', instituteId).eq('status', 'Pending');
+        if (updateError) throw updateError;
+        desiredByNumber.delete(existing.installment_number);
+      }
+      const additions = [...desiredByNumber.values()];
+      if (additions.length) {
+        const { error: insertError } = await supabase.from('installments').insert(additions.map(item => ({
+          institute_id: instituteId,
+          student_id: studentId,
+          installment_number: item.installment_number,
+          due_date: item.due_date,
+          amount: item.amount,
+          status: 'Pending',
+          payment_id: null,
+          remarks: item.remarks ?? null,
+        })));
+        if (insertError) throw insertError;
+      }
     } else {
       const mockData = getStoredData();
-      saveStoredData({
-        ...mockData,
-        installments: (mockData.installments || []).filter((i: UiInstallment) => i.studentId !== studentId)
-      });
+      const all = mockData.installments || [];
+      const desiredByNumber = new Map(desired.map(item => [item.installment_number, item]));
+      const preserved = all.filter(item => item.studentId !== studentId || item.status !== 'Pending');
+      const reconciled: UiInstallment[] = [];
+      for (const item of all.filter(item => item.studentId === studentId && item.status === 'Pending')) {
+        const replacement = desiredByNumber.get(item.installmentNumber);
+        if (replacement) {
+          reconciled.push({ ...item, dueDate: replacement.due_date, amount: replacement.amount, remarks: replacement.remarks ?? undefined });
+          desiredByNumber.delete(item.installmentNumber);
+        }
+      }
+      for (const item of desiredByNumber.values()) {
+        reconciled.push({
+          id: `inst_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          studentId,
+          installmentNumber: item.installment_number,
+          dueDate: item.due_date,
+          amount: item.amount,
+          status: 'Pending',
+          remarks: item.remarks ?? undefined,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      saveStoredData({ ...mockData, installments: [...preserved, ...reconciled] });
+    }
     }
   }
 };
+
