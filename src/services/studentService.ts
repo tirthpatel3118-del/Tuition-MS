@@ -1,18 +1,18 @@
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Student } from '../types';
-import { Course as UiCourse, Student as UiStudent, Payment as UiPayment, Reminder as UiReminder, getStoredData, saveStoredData } from '../data/mockData';
+import { Course as UiCourse, Student as UiStudent, getStoredData, saveStoredData } from '../data/mockData';
+import { requireActiveInstituteId } from '../lib/tenant';
 
-// Determine if we should use Supabase
-const useSupabase = 
-  !!import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
+const useSupabase = isSupabaseConfigured;
 
 export const studentService = {
   async getStudents(): Promise<Student[]> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('students')
         .select('*')
+        .eq('institute_id', instituteId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Student[];
@@ -39,10 +39,12 @@ export const studentService = {
 
   async getStudentById(id: string): Promise<Student> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('students')
         .select('*')
         .eq('id', id)
+        .eq('institute_id', instituteId)
         .single();
       if (error) throw error;
       return data as Student;
@@ -56,9 +58,10 @@ export const studentService = {
 
   async createStudent(student: Omit<Student, 'id' | 'created_at'>): Promise<Student> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('students')
-        .insert([student])
+        .insert([{ ...student, institute_id: instituteId }])
         .select()
         .single();
       if (error) throw error;
@@ -102,10 +105,12 @@ export const studentService = {
 
   async updateStudent(id: string, updates: Partial<Student>): Promise<Student> {
     if (useSupabase) {
+      const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
         .from('students')
         .update(updates)
         .eq('id', id)
+        .eq('institute_id', instituteId)
         .select()
         .single();
       if (error) throw error;
@@ -145,23 +150,6 @@ export const studentService = {
 
       return updated;
     }
-  },
-
-  async deleteStudent(id: string): Promise<void> {
-    if (useSupabase) {
-      const { error } = await supabase
-        .from('students')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-    } else {
-      const mockData = getStoredData();
-      saveStoredData({
-        ...mockData,
-        students: mockData.students.filter((s: UiStudent) => s.id !== id),
-        payments: mockData.payments.filter((p: UiPayment) => p.studentId !== id),
-        reminders: mockData.reminders.filter((r: UiReminder) => r.studentId !== id)
-      });
-    }
   }
 };
+
