@@ -11,7 +11,6 @@ import {
   BookOpen, 
   ChevronLeft, 
   ChevronRight,
-  Menu,
   X,
   Sparkles,
   Settings
