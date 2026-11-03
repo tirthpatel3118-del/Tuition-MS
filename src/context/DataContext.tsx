@@ -8,11 +8,13 @@ import { studentService } from '../services/studentService';
 import { paymentService } from '../services/paymentService';
 import { courseService } from '../services/courseService';
 import { installmentService } from '../services/installmentService';
-import { receiptService } from '../services/receiptService';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { getActiveInstituteId } from '../lib/tenant';
 
 import { AppSettings, Batch } from '../types';
 import { settingsService, DEFAULT_SETTINGS } from '../services/settingsService';
 import { batchService } from '../services/batchService';
+import { reminderService } from '../services/reminderService';
 
 interface DataContextType {
   courses: Course[];
@@ -36,14 +38,14 @@ interface DataContextType {
   recordPayment: (
     payment: Omit<Payment, 'id' | 'receiptNumber' | 'studentName' | 'courseName' | 'paymentDate'>,
     installmentId?: string
-  ) => Payment;
+  ) => Promise<Payment>;
   addCourse: (course: Omit<Course, 'id'>) => void;
   deleteCourse: (id: string) => Promise<boolean>;
   addBatch: (batchData: Omit<Batch, 'id'>) => Promise<void>;
   updateBatch: (id: string, updates: Partial<Batch>) => Promise<void>;
   deleteBatch: (id: string) => Promise<boolean>;
-  sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => void;
-  sendBulkReminders: (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => void;
+  sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
+  sendBulkReminders: (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
   
   // UI helper functions
   toasts: ToastMessage[];
@@ -63,14 +65,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     payments: Payment[];
     reminders: Reminder[];
     installments: Installment[];
-  }>(() => getStoredData());
+  }>(() => isSupabaseConfigured
+    ? { courses: [], students: [], payments: [], reminders: [], installments: [] }
+    : getStoredData());
 
   const [batches, setBatches] = useState<Batch[]>([]);
 
   // Toast UI state
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  const [settings, setSettings] = useState<AppSettings>(() => settingsService.getLocalSettings());
+  const [settings, setSettings] = useState<AppSettings>(() => isSupabaseConfigured
+    ? DEFAULT_SETTINGS
+    : settingsService.getLocalSettings());
 
   const updateSettings = async (newSettings: AppSettings) => {
     try {
@@ -95,7 +101,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Function to refresh data from Supabase backend or mock service fallback
   const refreshDataFromBackend = async () => {
     try {
-      const [dbCourses, dbStudents, dbPayments, dbInstallments, dbReceipts, dbSettings, dbBatches, dbStudentBatches, dbCourseFees] = await Promise.all([
+      const [dbCourses, dbStudents, dbPayments, dbInstallments, dbReceipts, dbSettings, dbBatches, dbStudentBatches, dbCourseFees, dbReminders] = await Promise.all([
         courseService.getCourses(),
         studentService.getStudents(),
         paymentService.getPayments(),
@@ -104,7 +110,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         settingsService.getSettings(),
         batchService.getBatches(),
         batchService.getStudentBatches(),
-        settingsService.getCourseFees()
+        settingsService.getCourseFees(),
+        reminderService.getReminders()
       ]);
 
       if (dbSettings) {
@@ -180,12 +187,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: i.created_at
       }));
 
+      const mappedReminders: Reminder[] = dbReminders.map(reminder => ({
+        ...reminder,
+        studentName: mappedStudents.find(student => student.id === reminder.studentId)?.name ?? 'Unknown Student',
+      }));
+
       setData(prev => ({
         ...prev,
         courses: mappedCourses,
         students: mappedStudents,
         payments: mappedPayments,
-        installments: mappedInstallments
+        installments: mappedInstallments,
+        reminders: mappedReminders,
       }));
     } catch (err: any) {
       console.error('Failed to load data from backend:', err);
@@ -199,7 +212,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Save reminders to local storage whenever they change
   useEffect(() => {
-    localStorage.setItem('eduledger_reminders', JSON.stringify(data.reminders));
+    if (!isSupabaseConfigured) localStorage.setItem('eduledger_reminders', JSON.stringify(data.reminders));
   }, [data.reminders]);
 
   // Toast helpers
@@ -348,19 +361,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       let updatedInstallments = prev.installments || [];
       if (installmentsData) {
-        const paidInstallments = updatedInstallments.filter(inst => inst.studentId === id && inst.status === 'Paid');
+        const protectedInstallments = updatedInstallments.filter(inst => inst.studentId === id && inst.status !== 'Pending');
+        const pendingByNumber = new Map(updatedInstallments
+          .filter(inst => inst.studentId === id && inst.status === 'Pending')
+          .map(inst => [inst.installmentNumber, inst]));
         const otherStudentsInstallments = updatedInstallments.filter(inst => inst.studentId !== id);
 
         const newInstallments: Installment[] = installmentsData
-          .filter(inst => inst.status !== 'Paid')
+          .filter(inst => inst.status === 'Pending')
           .map((inst: any, index) => ({
             ...inst,
-            id: inst.id || `inst_${id}_${index + 1}_${Date.now()}`,
+            id: pendingByNumber.get(inst.installmentNumber)?.id || inst.id || `inst_${id}_${index + 1}_${Date.now()}`,
             studentId: id,
             createdAt: inst.createdAt || new Date().toISOString()
           }));
 
-        updatedInstallments = [...otherStudentsInstallments, ...paidInstallments, ...newInstallments];
+        updatedInstallments = [...otherStudentsInstallments, ...protectedInstallments, ...newInstallments];
       }
 
       return {
@@ -400,35 +416,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (installmentsData) {
-          await installmentService.deleteInstallmentsByStudentId(id);
-          const paidInstallments = (data.installments || []).filter(inst => inst.studentId === id && inst.status === 'Paid');
-          
-          const installmentsToInsert = [
-            ...paidInstallments.map(inst => ({
-              student_id: id,
+          await installmentService.reconcilePendingInstallmentsByStudentId(id, installmentsData
+            .filter(inst => inst.status === 'Pending')
+            .map(inst => ({
               installment_number: inst.installmentNumber,
               due_date: inst.dueDate,
               amount: inst.amount,
-              status: inst.status as any,
-              payment_id: inst.paymentId || null,
-              remarks: inst.remarks || null
-            })),
-            ...installmentsData
-              .filter(inst => inst.status !== 'Paid')
-              .map(inst => ({
-                student_id: id,
-                installment_number: inst.installmentNumber,
-                due_date: inst.dueDate,
-                amount: inst.amount,
-                status: inst.status,
-                payment_id: null,
-                remarks: inst.remarks || null
-              }))
-          ];
-
-          if (installmentsToInsert.length > 0) {
-            await installmentService.createInstallments(installmentsToInsert);
-          }
+              remarks: inst.remarks || null,
+            })));
         }
 
         await refreshDataFromBackend();
@@ -531,82 +526,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const recordPayment = (
+  const recordPayment = async (
     paymentData: Omit<Payment, 'id' | 'receiptNumber' | 'studentName' | 'courseName' | 'paymentDate'>,
     installmentId?: string
-  ) => {
+  ): Promise<Payment> => {
     const student = data.students.find(s => s.id === paymentData.studentId);
     if (!student) throw new Error('Student not found');
 
+    if (isSupabaseConfigured && !installmentId) {
+      throw new Error('Select an installment before recording a payment. Payments must be allocated to a fee installment.');
+    }
+
     const paymentDate = new Date().toISOString().split('T')[0];
-    const receiptNumber = `REC-2026-${String(data.payments.length + 1).padStart(3, '0')}`;
-    const localId = `p${Date.now()}`;
+    const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
+    const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
+    const storageKey = `eduledger.pendingPayment:${requestKey}`;
+    let idempotencyKey = sessionStorage.getItem(storageKey);
+    if (!idempotencyKey) {
+      idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      sessionStorage.setItem(storageKey, idempotencyKey);
+    }
+
+    const result = await paymentService.recordPaymentAtomic({
+      studentId: paymentData.studentId,
+      amount: paymentData.amount,
+      paymentMode: paymentData.paymentMethod,
+      paymentDate,
+      installmentId: installmentId ?? '',
+      remarks: [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | '),
+      idempotencyKey,
+    });
+    sessionStorage.removeItem(storageKey);
 
     const newPayment: Payment = {
       ...paymentData,
-      id: localId,
-      receiptNumber,
+      id: result.paymentId,
+      receiptNumber: result.receiptNumber || localReceiptNumber,
       studentName: student.name,
       courseName: student.courseName,
-      paymentDate
+      paymentDate,
     };
-
-    // Optimistically update local React state
-    setData(prev => {
-      let updatedInstallments = prev.installments || [];
-      if (installmentId) {
-        updatedInstallments = (prev.installments || []).map(inst => {
-          if (inst.id === installmentId) {
-            return {
-              ...inst,
-              status: 'Paid' as const,
-              paymentId: localId
-            };
-          }
-          return inst;
-        });
-      }
-
-      return {
-        ...prev,
-        payments: [newPayment, ...prev.payments],
-        installments: updatedInstallments
-      };
-    });
-
-    // Save payment, receipt, and link installment in database asynchronously
-    (async () => {
-      try {
-        const dbPayment = await paymentService.createPayment({
-          student_id: paymentData.studentId,
-          amount: paymentData.amount,
-          payment_mode: paymentData.paymentMethod,
-          payment_date: paymentDate,
-          remarks: paymentData.remarks || ''
-        });
-
-        await receiptService.createReceipt({
-          payment_id: dbPayment.id,
-          receipt_number: receiptNumber
-        });
-
-        if (installmentId) {
-          const matchedInstallment = data.installments.find(i => i.id === installmentId);
-          if (matchedInstallment) {
-            await installmentService.updateInstallment(installmentId, {
-              status: 'Paid',
-              payment_id: dbPayment.id
-            });
-          }
-        }
-
-        await refreshDataFromBackend();
-      } catch (err: any) {
-        showToast(`Payment Sync Error: ${err.message || err}`, 'error');
-        await refreshDataFromBackend();
-      }
-    })();
-
+    await refreshDataFromBackend();
     return newPayment;
   };
 
@@ -646,19 +606,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })();
   };
 
-  const sendReminder = (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => {
+  const sendReminder = async (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => {
     const student = studentsWithFees.find(s => s.id === studentId);
-    if (!student) return;
+    if (!student) throw new Error('Student not found.');
 
-    const newReminder: Reminder = {
-      id: `r${Date.now()}`,
+    const newReminder = await reminderService.createReminder({
       studentId,
-      studentName: student.name,
       amountDue: student.feesDue,
-      sentDate: new Date().toLocaleString(),
-      type,
-      status: 'Sent'
-    };
+      channel: type,
+      status: 'manual_opened',
+    });
+    newReminder.studentName = student.name;
 
     setData(prev => ({
       ...prev,
@@ -666,31 +624,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
-  const sendBulkReminders = (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => {
-    const newReminders: Reminder[] = [];
-    const timestamp = new Date().toLocaleString();
-
-    studentIds.forEach((id, index) => {
-      const student = studentsWithFees.find(s => s.id === id);
-      if (student && student.feesDue > 0) {
-        newReminders.push({
-          id: `r${Date.now()}-${index}`,
-          studentId: id,
-          studentName: student.name,
-          amountDue: student.feesDue,
-          sentDate: timestamp,
-          type,
-          status: 'Sent'
-        });
-      }
-    });
-
-    if (newReminders.length > 0) {
-      setData(prev => ({
-        ...prev,
-        reminders: [...newReminders, ...prev.reminders]
-      }));
-    }
+  const sendBulkReminders = async (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => {
+    const uniqueIds = [...new Set(studentIds)];
+    const eligible = uniqueIds
+      .map(id => studentsWithFees.find(student => student.id === id))
+      .filter((student): student is Student => Boolean(student && student.feesDue > 0));
+    const created = await reminderService.createManyReminders(eligible.map(student => ({
+      studentId: student.id,
+      amountDue: student.feesDue,
+      channel: type,
+      status: 'queued',
+    })));
+    const newReminders = created.map(reminder => ({
+      ...reminder,
+      studentName: eligible.find(student => student.id === reminder.studentId)?.name ?? 'Unknown Student',
+    }));
+    if (newReminders.length) setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
   };
 
   return (
@@ -732,3 +681,4 @@ export const useData = () => {
   }
   return context;
 };
+
