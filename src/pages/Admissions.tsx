@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 22140)
+Total output lines: 1655
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -15,7 +18,6 @@ import {
   BookOpen, 
   FileText, 
   X,
-  CreditCard,
   AlertCircle,
   ArrowUpDown,
   CheckCircle2,
@@ -891,145 +893,7 @@ export const Admissions: React.FC = () => {
                     <input
                       type="date"
                       value={firstDueDate}
-                      onChange={(e) => handleFirstDueDateChange(e.target.value)}
-                      className="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Frequency</label>
-                    <select
-                      value={frequency}
-                      onChange={(e) => handleFrequencyChange(e.target.value)}
-                      className="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs cursor-pointer bg-white"
-                    >
-                      <option value="monthly">Monthly</option>
-                      <option value="2months">Every 2 Months</option>
-                      <option value="3months">Every 3 Months</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {plannedInstallments.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-400 font-bold text-[10px] uppercase">
-                        <th className="py-2 pr-2 w-16">Inst. #</th>
-                        <th className="py-2 px-2 w-32">Amount ({settings?.currencySymbol || '₹'})</th>
-                        <th className="py-2 px-2 w-40">Due Date</th>
-                        <th className="py-2 px-2">Remarks / Notes</th>
-                        <th className="py-2 pl-2 w-16 text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {plannedInstallments.map((inst, idx) => (
-                        <tr key={idx} className="hover:bg-slate-100/40">
-                          <td className="py-2.5 pr-2 font-bold text-slate-700">
-                            #{inst.installmentNumber}
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="number"
-                              disabled={inst.status === 'Paid'}
-                              value={inst.amount || ''}
-                              onChange={(e) => updateInstallmentRow(idx, { amount: parseFloat(e.target.value) || 0 })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
-                            />
-                            {formErrors[`inst_amount_${idx}`] && (
-                              <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
-                                {formErrors[`inst_amount_${idx}`]}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="date"
-                              disabled={inst.status === 'Paid'}
-                              value={inst.dueDate}
-                              onChange={(e) => updateInstallmentRow(idx, { dueDate: e.target.value })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
-                            />
-                            {formErrors[`inst_date_${idx}`] && (
-                              <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
-                                {formErrors[`inst_date_${idx}`]}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="text"
-                              disabled={inst.status === 'Paid'}
-                              value={inst.remarks || ''}
-                              onChange={(e) => updateInstallmentRow(idx, { remarks: e.target.value })}
-                              placeholder="Remarks"
-                              className="w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            />
-                          </td>
-                          <td className="py-2.5 pl-2 text-center">
-                            {inst.status === 'Paid' ? (
-                              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-bold rounded text-[9px] uppercase border border-emerald-100">
-                                Paid
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => removeInstallmentRow(idx)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-6 border border-dashed border-slate-200 rounded-xl text-slate-400 bg-white">
-                  No installments planned yet. Click "+ Add Installment" to define a payment schedule.
-                </div>
-              )}
-
-              {/* Planner Summary (Requirement 5) */}
-              <div className="space-y-2">
-                <div className="bg-white border border-slate-200/60 p-3 rounded-xl text-xs font-semibold space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-medium">Course Fee:</span>
-                    <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{(formData.totalFees || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500 font-medium">Total Planned:</span>
-                    <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalPlannedInstallments.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-t border-slate-100 pt-2">
-                    <span className="text-slate-500 font-medium">Remaining Allocation:</span>
-                    <span className={`font-bold ${remainingAllocation === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {settings?.currencySymbol || '₹'}{remainingAllocation.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                </div>
-
-                {remainingAllocation === 0 ? (
-                  <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 font-bold uppercase tracking-wider justify-center">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Schedule Fully Allocated!</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-[10px] text-rose-600 bg-rose-50/50 border border-rose-100 rounded-lg p-2 font-bold uppercase tracking-wider justify-center">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>Remaining Allocation must be {settings?.currencySymbol || '₹'}0 to save.</span>
-                  </div>
-                )}
-              </div>
-              {formErrors.installmentsTotal && (
-                <span className="text-[10px] text-rose-600 font-bold block">{formErrors.installmentsTotal}</span>
-              )}
-            </div>
-
-            {/* Notes */}
+                      onChange={(e) => handleFirstDueDateCha…2140 tokens truncated…
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-600">Academic Remarks / Profile Notes</label>
               <textarea 
@@ -1653,3 +1517,4 @@ export const Admissions: React.FC = () => {
     </div>
   );
 };
+
