@@ -204,7 +204,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }));
     } catch (err: any) {
       console.error('Failed to load data from backend:', err);
-      showToast('Error syncing with database. Falling back to local cache.', 'warning');
+      showToast('Could not refresh institute records. The latest database state is unconfirmed; retry before making changes.', 'warning');
     }
   };
 
