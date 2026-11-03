@@ -8,6 +8,7 @@ import { studentService } from '../services/studentService';
 import { paymentService } from '../services/paymentService';
 import { courseService } from '../services/courseService';
 import { installmentService } from '../services/installmentService';
+import { receiptService } from '../services/receiptService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getActiveInstituteId } from '../lib/tenant';
 
