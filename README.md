@@ -1,32 +1,39 @@
-# React + TypeScript + Vite
+# EduLedger ERP
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+EduLedger is a tuition and institute management app built with React, TypeScript, Vite, and Supabase. It supports a local demo workspace and an authenticated, multi-institute Supabase workspace.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Requirements: Node.js 20.19+ and npm.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm ci
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Without Supabase credentials, the development server uses browser-local demo data. The production build fails closed with a setup screen if Supabase is not configured.
+
+## Supabase browser configuration
+
+Copy `.env.example` to `.env.local` and set:
+
+```dotenv
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<public-publishable-key>
+```
+
+Only a public publishable key belongs in browser configuration. Never use a `service_role` or secret key in a `VITE_` variable or commit environment files.
+
+## Build and lint
+
+```sh
+npm run build
+npm run lint
+```
+
+## Database readiness
+
+The app expects the tenant, membership, academic privacy view, reminder, allocation, and payment RPC objects defined by the approved EduLedger v2.4 architecture plan. The existing live project schema has not yet been safely reconciled to that plan. Do not apply the legacy `20260706000000_init_schema.sql` or the v2.4 migrations to production until the live baseline is captured, an isolated restore passes row-count and financial parity checks, and the migrations are reviewed against that baseline.
+
+The payment UI writes through `record_payment_atomic`; database setup must also install the matching `void_payment_atomic` path and strict role policies before production use. WhatsApp/SMS reminders are only queued or opened manually; a delivery service and verified webhooks are not included.
+
