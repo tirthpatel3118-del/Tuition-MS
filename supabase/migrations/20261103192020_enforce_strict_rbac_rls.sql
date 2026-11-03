@@ -203,11 +203,24 @@ ALTER VIEW public.academic_students OWNER TO postgres;
 REVOKE ALL ON public.academic_students FROM PUBLIC, anon;
 GRANT SELECT ON public.academic_students TO authenticated;
 
--- Retire the unsafe, broadly executable legacy event-trigger helper if present.
+-- Retire the legacy event trigger after this migration has explicitly secured
+-- every application table and view. Remove all triggers bound to this helper,
+-- then remove the callable function itself.
 DO $$
+DECLARE
+    v_event_trigger_name TEXT;
 BEGIN
     IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+        FOR v_event_trigger_name IN
+            SELECT evtname
+            FROM pg_event_trigger
+            WHERE evtfoid = 'public.rls_auto_enable()'::regprocedure
+        LOOP
+            EXECUTE format('DROP EVENT TRIGGER %I', v_event_trigger_name);
+        END LOOP;
+
         REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;
+        DROP FUNCTION public.rls_auto_enable();
     END IF;
 END $$;
 
