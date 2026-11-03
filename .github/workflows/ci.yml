@@ -21,10 +21,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies from the lockfile
-        run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          git diff --exit-code -- package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
