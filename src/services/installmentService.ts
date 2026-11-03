@@ -185,7 +185,7 @@ export const installmentService = {
       }
     } else {
       const mockData = getStoredData();
-      const all = mockData.installments || [];
+      const all: UiInstallment[] = mockData.installments || [];
       const desiredByNumber = new Map(desired.map(item => [item.installment_number, item]));
       const preserved = all.filter(item => item.studentId !== studentId || item.status !== 'Pending');
       const reconciled: UiInstallment[] = [];
@@ -209,7 +209,6 @@ export const installmentService = {
         });
       }
       saveStoredData({ ...mockData, installments: [...preserved, ...reconciled] });
-    }
     }
   }
 };
