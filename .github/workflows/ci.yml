@@ -8,14 +8,6 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    shell: bash
-    working-directory: .
-
-env:
-  npm_config_package_lock: true
-
 jobs:
   app:
     runs-on: ubuntu-latest
@@ -29,21 +21,11 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Verify project manifests
-        run: |
-          printf 'GitHub workspace: %s\n' "$GITHUB_WORKSPACE"
-          pwd
-          ls -la package.json package-lock.json
-          printf 'npm local prefix: '
-          npm prefix
-          npm config get package-lock
-
       - name: Install locked dependencies
-        run: npm ci --prefix "$GITHUB_WORKSPACE"
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
 
       - name: Build production app
         run: npm run build
-
