@@ -129,9 +129,11 @@ export const paymentService = {
         saveStoredData({
           ...mockData,
           students: updatedStudents,
-          installments: ((mockData.installments || []) as UiInstallment[]).map(installment => installment.id === input.installmentId && input.amount >= installment.amount
-            ? { ...installment, status: 'Paid' as const, paymentId: newId }
-            : installment),
+          installments: ((mockData.installments || []) as UiInstallment[]).map(installment => {
+            if (installment.id !== input.installmentId) return installment;
+            if (input.amount >= installment.amount) return { ...installment, status: 'Paid' as const, paymentId: newId };
+            return { ...installment, amount: installment.amount - input.amount };
+          }),
           payments: [uiPayment, ...mockData.payments]
         });
         return { paymentId: newId, receiptNumber };
