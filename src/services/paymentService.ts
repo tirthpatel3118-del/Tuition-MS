@@ -82,7 +82,7 @@ export const paymentService = {
         const uiPayment: UiPayment = {
           id: newId,
           receiptNumber,
-          studentId: payment.student_id,
+          studentId: input.studentId,
           studentName: student.name,
           courseName: student.courseName,
           amount: input.amount,
