@@ -220,8 +220,8 @@ export const Reminders: React.FC = () => {
 
     confirmAction({
       title: 'Send Fee Reminders',
-      message: `Are you sure you want to dispatch ${selectedInstallmentIds.length} simulated ${reminderType} reminders?`,
-      confirmText: 'Send Reminders',
+      message: `Add reminders for ${selectedInstallmentIds.length} selected installment(s) to the ${reminderType} queue? They will be recorded as queued, not sent automatically.`,
+      confirmText: 'Queue Reminders',
       type: 'primary',
       onConfirm: () => {
         const studentIds = selectedInstallmentIds.map(id => {
@@ -229,10 +229,13 @@ export const Reminders: React.FC = () => {
           return inst ? inst.studentId : '';
         }).filter(id => id !== '');
 
-        sendBulkReminders(studentIds, reminderType);
-        showToast(`Reminders sent successfully for ${selectedInstallmentIds.length} installment(s).`, 'success');
-        setSelectedInstallmentIds([]);
-        setFocusedInstallmentId(null);
+        void sendBulkReminders(studentIds, reminderType).then(() => {
+          showToast(`Reminders queued for ${selectedInstallmentIds.length} selected installment(s).`, 'success');
+          setSelectedInstallmentIds([]);
+          setFocusedInstallmentId(null);
+        }).catch((error: unknown) => {
+          showToast(error instanceof Error ? error.message : 'Could not queue reminders.', 'error');
+        });
       }
     });
   };
@@ -395,8 +398,11 @@ export const Reminders: React.FC = () => {
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={() => {
-                                      sendReminder(inst.studentId, 'WhatsApp');
-                                      showToast('WhatsApp reminder logged successfully', 'success');
+                                      void sendReminder(inst.studentId, 'WhatsApp').then(() => {
+                                        showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
+                                      }).catch((error: unknown) => {
+                                        showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
+                                      });
                                     }}
                                     title="Send WhatsApp Reminder"
                                     className="p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
@@ -606,9 +612,14 @@ export const Reminders: React.FC = () => {
                             {settings?.currencySymbol || '₹'}{log.amountDue.toLocaleString('en-IN')}
                           </td>
                           <td className="px-5 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
+                              log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                              'text-blue-700 bg-blue-50 border-blue-100'
+                            }`}>
                               <CheckCircle2 className="w-3 h-3" />
-                              <span>Sent</span>
+                              <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
                             </span>
                           </td>
                         </tr>
@@ -633,3 +644,4 @@ export const Reminders: React.FC = () => {
     </div>
   );
 };
+
