@@ -114,6 +114,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         settingsService.getCourseFees(),
         reminderService.getReminders()
       ]);
+      const paidByStudent = await paymentService.getAllocationTotalsByStudent(dbInstallments);
 
       if (dbSettings) {
         setSettings(dbSettings);
@@ -151,8 +152,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           batchId: batchId,
           batch: batchObj ? `${batchObj.name} (${batchObj.timing})` : 'Unassigned Batch',
           totalFees: Number(s.course_fee),
-          feesPaid: 0,
-          feesDue: Number(s.course_fee),
+          feesPaid: paidByStudent[s.id] ?? 0,
+          feesDue: Math.max(0, Number(s.course_fee) - (paidByStudent[s.id] ?? 0)),
           status: s.status
         };
       });
