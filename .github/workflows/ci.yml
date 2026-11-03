@@ -25,7 +25,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Lint
-        run: npm run lint
+        run: npm run lint -- --format=unix
 
       - name: Build production app
+        if: always()
         run: npm run build
