@@ -1,5 +1,26 @@
 -- Strict institute-scoped authorization. Apply only after the initial owner is linked.
 
+-- Fail closed before removing legacy access unless the migrated test institute
+-- has an authenticated owner who can enter after the RLS cutover.
+DO $$
+DECLARE
+    v_dev_institute_id CONSTANT UUID := '00000000-0000-0000-0000-000000000001';
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM public.institutes WHERE id = v_dev_institute_id
+    ) THEN
+        RAISE EXCEPTION 'RLS cutover blocked: the migrated institute does not exist.';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM public.institute_members
+        WHERE institute_id = v_dev_institute_id AND role = 'owner'
+    ) THEN
+        RAISE EXCEPTION 'RLS cutover blocked: link and verify an Auth user as owner of the migrated institute first.';
+    END IF;
+END $$;
+
 -- Remove the legacy public CRUD policies regardless of their exact historical names.
 DO $$
 DECLARE
