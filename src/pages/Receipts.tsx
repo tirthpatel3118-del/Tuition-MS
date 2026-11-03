@@ -6,13 +6,9 @@ import {
   Printer, 
   ChevronLeft, 
   Sparkles,
-  FileCheck,
   Download,
   CheckCircle2,
-  Calendar,
-  Layers,
   ArrowRight,
-  ArrowUpDown,
   AlertCircle
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
@@ -43,7 +39,6 @@ const numberToWords = (num: number, currencySymbol = '₹'): string => {
 
   let i = 0;
   while (num > 0) {
-    let divider = i === 1 ? 100 : 1000;
     if (i === 0) {
       const rem = num % 1000;
       if (rem > 0) {
@@ -516,3 +511,4 @@ export const Receipts: React.FC = () => {
     </div>
   );
 };
+
