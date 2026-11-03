@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { 
   LayoutDashboard, 
   UserPlus, 
@@ -30,6 +31,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setMobileOpen
 }) => {
   const { settings } = useData();
+  const auth = useAuth();
+  const role = auth.activeMembership?.role;
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/admissions', label: 'Admissions', icon: UserPlus },
@@ -37,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { to: '/receipts', label: 'Receipts', icon: Receipt },
     { to: '/reminders', label: 'Dues & Reminders', icon: BellRing },
     { to: '/courses', label: 'Courses & Batches', icon: BookOpen },
-    { to: '/settings', label: 'Settings', icon: Settings },
+    ...(role === 'owner' || !auth.configured ? [{ to: '/settings', label: 'Settings', icon: Settings }] : []),
   ];
 
   const sidebarContent = (
@@ -103,8 +106,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {!collapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="text-xs font-semibold text-slate-800 truncate leading-none">Admin Demo</span>
-              <span className="text-[10px] text-slate-500 truncate mt-1">{settings?.email || 'admin@eduledger.com'}</span>
+                <span className="text-xs font-semibold text-slate-800 truncate leading-none">{auth.configured ? auth.activeMembership?.role : 'Demo'}</span>
+                <span className="text-[10px] text-slate-500 truncate mt-1">{auth.configured ? auth.email : (settings?.email || 'Demo mode')}</span>
             </div>
           )}
         </div>
@@ -152,3 +155,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
+
