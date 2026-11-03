@@ -30,10 +30,16 @@ jobs:
           cache: npm
 
       - name: Verify project manifests
-        run: test -s package.json && test -s package-lock.json && npm config get package-lock
+        run: |
+          printf 'GitHub workspace: %s\n' "$GITHUB_WORKSPACE"
+          pwd
+          ls -la package.json package-lock.json
+          printf 'npm local prefix: '
+          npm prefix
+          npm config get package-lock
 
       - name: Install locked dependencies
-        run: npm ci
+        run: npm ci --prefix "$GITHUB_WORKSPACE"
 
       - name: Lint
         run: npm run lint
