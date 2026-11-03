@@ -10,8 +10,6 @@ import {
   Download, 
   Save, 
   FileText, 
-  CheckCircle2, 
-  AlertCircle, 
   Sparkles, 
   RefreshCw,
   HelpCircle
@@ -165,7 +163,6 @@ export const Settings: React.FC = () => {
         }
 
         // Extremely simple CSV parser
-        const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g, '').trim().toLowerCase());
         const importedStudentsCount = lines.slice(1).length;
 
         // In a real application, you would iterate and call addStudent for each record.
@@ -652,3 +649,4 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
+
