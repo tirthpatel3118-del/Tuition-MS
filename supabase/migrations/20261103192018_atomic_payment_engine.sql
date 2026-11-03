@@ -565,6 +565,31 @@ BEGIN
         RAISE EXCEPTION 'Validation Failed: One or more requested installments do not exist or belong to another student.';
     END IF;
 
+    -- Do not collect against legacy payment links that were not verified during
+    -- migration, or against a Paid status whose full amount lacks allocation evidence.
+    IF EXISTS (
+        SELECT 1
+        FROM public.installments AS i
+        WHERE i.id = ANY(v_alloc_inst_ids)
+          AND i.institute_id = p_institute_id
+          AND (
+              (i.legacy_payment_id IS NOT NULL AND NOT EXISTS (
+                  SELECT 1 FROM public.payment_allocations AS pa
+                  WHERE pa.institute_id = i.institute_id
+                    AND pa.installment_id = i.id
+                    AND pa.payment_id = i.legacy_payment_id
+              ))
+              OR (i.status = 'Paid' AND COALESCE((
+                  SELECT sum(pa.allocated_amount)
+                  FROM public.payment_allocations AS pa
+                  WHERE pa.institute_id = i.institute_id
+                    AND pa.installment_id = i.id
+              ), 0) < i.amount)
+          )
+    ) THEN
+        RAISE EXCEPTION 'HISTORICAL_RECONCILIATION_REQUIRED: Resolve legacy installment payment history before collecting another payment.';
+    END IF;
+
     -- 8. Validate Individual Allocations Against Locked Installment Balances
     FOR v_alloc IN SELECT * FROM jsonb_to_recordset(v_canonical_allocations) AS x(installment_id UUID, amount NUMERIC) LOOP
         IF v_alloc.amount IS NULL OR v_alloc.amount <= 0 THEN
