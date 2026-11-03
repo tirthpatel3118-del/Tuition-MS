@@ -152,12 +152,32 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Update installment statuses based on verified allocations
+    -- Preserve legacy-paid state when no allocation can be verified. Record it for review;
+    -- do not silently turn historical paid records into new debts.
+    INSERT INTO public._migration_anomalies
+        (entity_type, entity_identifier, issue_code, issue_description)
+    SELECT 'INSTALLMENT', i.id::text, 'UNVERIFIED_HISTORICAL_PAID_STATUS',
+           'Legacy installment was Paid but no verified payment allocation exists; preserved for review.'
+    FROM public.installments AS i
+    WHERE i.status = 'Paid'
+      AND NOT EXISTS (
+          SELECT 1 FROM public.payment_allocations AS pa
+          WHERE pa.institute_id = i.institute_id AND pa.installment_id = i.id
+      )
+    ON CONFLICT DO NOTHING;
+
+    -- Recalculate only installments with verified allocation evidence. Preserve all
+    -- other legacy statuses until their payment history has been reconciled.
     UPDATE public.installments i
     SET status = public.calculate_installment_status(
         i.amount,
-        COALESCE((SELECT sum(allocated_amount) FROM public.payment_allocations WHERE installment_id = i.id), 0),
+        COALESCE((SELECT sum(allocated_amount) FROM public.payment_allocations
+                  WHERE institute_id = i.institute_id AND installment_id = i.id), 0),
         i.due_date
+    )
+    WHERE EXISTS (
+        SELECT 1 FROM public.payment_allocations AS pa
+        WHERE pa.institute_id = i.institute_id AND pa.installment_id = i.id
     );
 END $$;
 
