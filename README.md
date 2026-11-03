@@ -41,3 +41,5 @@ The live project currently reports an empty Supabase migration history even thou
 
 The seven v2.4 migration files are a review candidate, not a deployment package yet. Their SQL has not been executed against an isolated copy of the live database. Confirm existing row counts, orphan references, duplicate roll numbers and receipt numbers, payment-to-installment matches, and the exact legacy RLS policies before applying them. Migration 5 allocates legacy payments only on a single exact amount match; other cases are preserved as anomalies for manual review.
 
+Run [`supabase/preflight/202611_v2_4_baseline.sql`](supabase/preflight/202611_v2_4_baseline.sql) against the verified backup and its isolated restore to capture the aggregate baseline. It returns counts, integrity checks, payment-link classifications, installment statuses, and legacy policy definitions without returning student or payment rows. The live read-only check on 2026-11-03 found 3 courses, 2 students, 2 payments, 2 receipts, and 9 installments; both payments match one installment exactly for a total of 7,500.00. Seven installments have no linked payment, and one of those is past due.
+
