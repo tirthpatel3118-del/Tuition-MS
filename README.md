@@ -37,3 +37,7 @@ The app expects the tenant, membership, academic privacy view, reminder, allocat
 
 The payment UI writes through `record_payment_atomic`; database setup must also install the matching `void_payment_atomic` path and strict role policies before production use. WhatsApp/SMS reminders are only queued or opened manually; a delivery service and verified webhooks are not included.
 
+The live project currently reports an empty Supabase migration history even though its legacy tables already exist. The repository's `20260706000000_init_schema.sql` would therefore be treated as pending by a normal migration push and must not be replayed against that database. Establish and verify the baseline in an isolated restore first; only then reconcile the Supabase migration history and apply the tenant migrations in order. Migration 7 is the access cutover and must wait until the intended initial owner is linked and login is verified.
+
+The seven v2.4 migration files are a review candidate, not a deployment package yet. Their SQL has not been executed against an isolated copy of the live database. Confirm existing row counts, orphan references, duplicate roll numbers and receipt numbers, payment-to-installment matches, and the exact legacy RLS policies before applying them. Migration 5 allocates legacy payments only on a single exact amount match; other cases are preserved as anomalies for manual review.
+
