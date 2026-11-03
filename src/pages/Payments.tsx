@@ -5,10 +5,7 @@ import {
   CreditCard, 
   Search, 
   Plus, 
-  Calendar, 
-  User, 
   FileText, 
-  DollarSign,
   AlertCircle,
   Eye,
   CheckCircle2,
@@ -17,13 +14,12 @@ import {
   ChevronDown,
   X
 } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TableSkeleton } from '../components/TableSkeleton';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export const Payments: React.FC = () => {
   const { students, payments, installments, recordPayment, showToast, confirmAction, settings } = useData();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   // Tabs: 'ledger' | 'collect'
