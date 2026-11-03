@@ -45,8 +45,8 @@ interface DataContextType {
   addBatch: (batchData: Omit<Batch, 'id'>) => Promise<void>;
   updateBatch: (id: string, updates: Partial<Batch>) => Promise<void>;
   deleteBatch: (id: string) => Promise<boolean>;
-  sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
-  sendBulkReminders: (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
+  sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email', installmentId?: string) => Promise<void>;
+  sendBulkReminders: (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
   
   // UI helper functions
   toasts: ToastMessage[];
@@ -607,13 +607,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })();
   };
 
-  const sendReminder = async (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email') => {
+  const sendReminder = async (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email', installmentId?: string) => {
     const student = studentsWithFees.find(s => s.id === studentId);
     if (!student) throw new Error('Student not found.');
 
     const newReminder = await reminderService.createReminder({
       studentId,
-      amountDue: student.feesDue,
+      amountDue: data.installments.find(installment => installment.id === installmentId)?.amount ?? student.feesDue,
       channel: type,
       status: 'manual_opened',
     });
@@ -625,20 +625,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
-  const sendBulkReminders = async (studentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => {
-    const uniqueIds = [...new Set(studentIds)];
-    const eligible = uniqueIds
-      .map(id => studentsWithFees.find(student => student.id === id))
-      .filter((student): student is Student => Boolean(student && student.feesDue > 0));
-    const created = await reminderService.createManyReminders(eligible.map(student => ({
+  const sendBulkReminders = async (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => {
+    const selected = installmentIds
+      .map(id => data.installments.find(installment => installment.id === id))
+      .filter((installment): installment is Installment => Boolean(installment && installment.status !== 'Paid'))
+      .map(installment => ({ installment, student: studentsWithFees.find(student => student.id === installment.studentId) }))
+      .filter((item): item is { installment: Installment; student: Student } => Boolean(item.student));
+    const created = await reminderService.createManyReminders(selected.map(({ installment, student }) => ({
       studentId: student.id,
-      amountDue: student.feesDue,
+      amountDue: installment.amount,
       channel: type,
       status: 'queued',
     })));
     const newReminders = created.map(reminder => ({
       ...reminder,
-      studentName: eligible.find(student => student.id === reminder.studentId)?.name ?? 'Unknown Student',
+      studentName: selected.find(item => item.student.id === reminder.studentId)?.student.name ?? 'Unknown Student',
     }));
     if (newReminders.length) setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
   };
