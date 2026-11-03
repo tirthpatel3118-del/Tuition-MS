@@ -43,5 +43,7 @@ The seven v2.4 migration files are a review candidate, not a deployment package 
 
 Run [`supabase/preflight/202611_v2_4_baseline.sql`](supabase/preflight/202611_v2_4_baseline.sql) against the verified backup and its isolated restore to capture the aggregate baseline. It returns counts, integrity checks, payment-link classifications, installment statuses, and legacy policy definitions without returning student or payment rows. The live read-only check on 2026-11-03 found 3 courses, 2 students, 2 payments, 2 receipts, and 9 installments; both payments match one installment exactly for a total of 7,500.00. Seven installments have no linked payment, and one of those is past due.
 
+After migrations 1–5 have run on the isolated restore, run [`supabase/reports/20261104_historical_reconciliation.sql`](supabase/reports/20261104_historical_reconciliation.sql). It reports payment allocation parity and unverified history as aggregate counts and totals. A legacy payment is allocated only when it maps to one installment, the amounts match exactly, and that installment was already marked `Paid`; every other case remains unallocated and is recorded for manual review.
+
 The live database has no `public.settings` relation, so the three existing courses will have `course_fee = NULL` after migration unless an isolated backup reveals another verified source. Migration 3 records those missing fees for review rather than inventing prices. Enter the confirmed course rates before using those courses for new admissions; existing student-level fee amounts remain preserved.
 

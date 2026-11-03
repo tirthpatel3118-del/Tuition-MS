@@ -117,7 +117,7 @@ BEGIN
 
         IF v_linked_inst_count = 1 THEN
             SELECT * INTO v_inst FROM public.installments WHERE legacy_payment_id = v_pay.id;
-            IF v_pay.amount = v_inst.amount THEN
+            IF v_pay.amount = v_inst.amount AND v_inst.status = 'Paid' THEN
                 INSERT INTO public.payment_allocations (
                     institute_id, payment_id, installment_id, allocated_amount, allocation_type
                 ) VALUES (
@@ -125,15 +125,19 @@ BEGIN
                 ) ON CONFLICT (payment_id, installment_id) DO NOTHING;
             ELSE
                 INSERT INTO public._migration_anomalies (entity_type, entity_identifier, issue_code, issue_description, raw_payload)
-                VALUES ('PAYMENT', v_pay.id::text, 'NON_EXACT_ALLOCATION',
-                        'Legacy payment/installment amounts differ; no allocation inferred.',
+                VALUES ('PAYMENT', v_pay.id::text, 'UNVERIFIED_HISTORICAL_ALLOCATION',
+                        CASE
+                            WHEN v_pay.amount <> v_inst.amount THEN 'Legacy payment/installment amounts differ; no allocation inferred.'
+                            ELSE 'Legacy installment is not marked Paid; no allocation inferred.'
+                        END,
                         jsonb_build_object('payment_id', v_pay.id, 'amount', v_pay.amount,
-                                           'installment_id', v_inst.id, 'installment_amount', v_inst.amount))
+                                           'installment_id', v_inst.id, 'installment_amount', v_inst.amount,
+                                           'installment_status', v_inst.status))
                 ON CONFLICT DO NOTHING;
             END IF;
         ELSIF v_linked_inst_count > 1 THEN
             INSERT INTO public._migration_anomalies (entity_type, entity_identifier, issue_code, issue_description, raw_payload)
-            VALUES ('PAYMENT', v_pay.id::text, 'AMBIGUOUS_MULTI_INSTALLMENT',
+            VALUES ('PAYMENT', v_pay.id::text, 'UNVERIFIED_HISTORICAL_ALLOCATION',
                     'Payment references multiple installments; no allocation inferred.',
                     jsonb_build_object('payment_id', v_pay.id, 'amount', v_pay.amount,
                                        'linked_installment_count', v_linked_inst_count,
@@ -141,7 +145,7 @@ BEGIN
             ON CONFLICT DO NOTHING;
         ELSE
             INSERT INTO public._migration_anomalies (entity_type, entity_identifier, issue_code, issue_description, raw_payload)
-            VALUES ('PAYMENT', v_pay.id::text, 'UNLINKED_PAYMENT', 
+            VALUES ('PAYMENT', v_pay.id::text, 'UNVERIFIED_HISTORICAL_ALLOCATION',
                     'Payment has no associated installment reference in original dataset.',
                     jsonb_build_object('payment_id', v_pay.id, 'amount', v_pay.amount))
             ON CONFLICT DO NOTHING;
