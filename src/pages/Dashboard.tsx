@@ -15,7 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, settings, sendReminder } = useData();
+  const { students, payments, courses, installments, settings, sendReminder, showToast } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -476,7 +476,13 @@ export const Dashboard: React.FC = () => {
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => sendReminder(student.id, 'WhatsApp')}
+                      onClick={() => {
+                        void sendReminder(student.id, 'WhatsApp').then(() => {
+                          showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
+                        }).catch((error: unknown) => {
+                          showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
+                        });
+                      }}
                       className="flex items-center justify-center gap-1 border border-emerald-250 bg-emerald-50/20 hover:bg-emerald-50/40 text-emerald-700 font-bold text-[10px] py-1.5 rounded-lg transition-all"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
@@ -558,3 +564,4 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
