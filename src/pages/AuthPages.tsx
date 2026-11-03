@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -30,6 +31,8 @@ export function AuthLoading({ message = 'Checking your secure workspace…' }: {
 
 export function AuthPage() {
   const { signIn, signUp, error: authError } = useAuth();
+  const location = useLocation();
+  const invitationFlow = location.pathname === '/accept-invitation' && Boolean(new URLSearchParams(location.search).get('token'));
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,7 +51,7 @@ export function AuthPage() {
         await signIn(email, password);
       } else {
         const needsConfirmation = await signUp(email, password, fullName);
-        if (needsConfirmation) setMessage('Check your email to confirm your account, then return here to sign in.');
+        if (needsConfirmation) setMessage(invitationFlow ? 'Check your email to confirm your account, then return to this invitation link to accept it.' : 'Check your email to confirm your account, then return here to sign in.');
       }
     } catch (submitError) {
       setFormError(submitError instanceof Error ? submitError.message : 'Unable to complete sign-in. Please try again.');
@@ -59,8 +62,8 @@ export function AuthPage() {
 
   return (
     <AuthFrame
-      title={mode === 'sign-in' ? 'Welcome back' : 'Create your owner account'}
-      description={mode === 'sign-in' ? 'Sign in to manage your institute records.' : 'Create an account to set up your tuition institute.'}
+      title={invitationFlow ? (mode === 'sign-in' ? 'Sign in to accept your invitation' : 'Create an account to join') : (mode === 'sign-in' ? 'Welcome back' : 'Create your owner account')}
+      description={invitationFlow ? 'Use the email address that received this invitation. You can accept it after signing in.' : (mode === 'sign-in' ? 'Sign in to manage your institute records.' : 'Create an account to set up your tuition institute.')}
     >
       <form className="space-y-4" onSubmit={submit}>
         {mode === 'sign-up' && (
