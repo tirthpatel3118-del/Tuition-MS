@@ -223,12 +223,7 @@ export const Reminders: React.FC = () => {
       confirmText: 'Queue Reminders',
       type: 'primary',
       onConfirm: () => {
-        const studentIds = selectedInstallmentIds.map(id => {
-          const inst = dueInstallments.find(i => i.id === id);
-          return inst ? inst.studentId : '';
-        }).filter(id => id !== '');
-
-        void sendBulkReminders(studentIds, reminderType).then(() => {
+        void sendBulkReminders(selectedInstallmentIds, reminderType).then(() => {
           showToast(`Reminders queued for ${selectedInstallmentIds.length} selected installment(s).`, 'success');
           setSelectedInstallmentIds([]);
           setFocusedInstallmentId(null);
@@ -392,7 +387,7 @@ export const Reminders: React.FC = () => {
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={() => {
-                                      void sendReminder(inst.studentId, 'WhatsApp').then(() => {
+                                      void sendReminder(inst.studentId, 'WhatsApp', inst.id).then(() => {
                                         showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
                                       }).catch((error: unknown) => {
                                         showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
