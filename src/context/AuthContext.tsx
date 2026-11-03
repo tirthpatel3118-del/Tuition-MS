@@ -42,6 +42,7 @@ interface AuthContextValue {
   selectInstitute: (instituteId: string) => void;
   createInstitute: (name: string, slug: string) => Promise<void>;
   refreshMemberships: () => Promise<void>;
+  acceptInvitation: (token: string) => Promise<void>;
 }
 
 const ACTIVE_INSTITUTE_KEY = 'edulegder.activeInstituteId';
@@ -184,12 +185,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         data: { full_name: fullName.trim() },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: window.location.href,
       },
     });
     if (signUpError) throw signUpError;
     return !data.session;
   }, []);
+
+  const acceptInvitation = useCallback(async (token: string) => {
+    const { data, error: acceptError } = await supabase.rpc('accept_institute_invitation', { p_raw_token: token });
+    if (acceptError) throw acceptError;
+    const instituteId = String(data?.institute_id ?? '');
+    if (!instituteId) throw new Error('The invitation did not return a valid institute.');
+    await refreshMemberships();
+    sessionStorage.setItem(ACTIVE_INSTITUTE_KEY, instituteId);
+    setActiveInstituteId(instituteId);
+    setRequestInstituteId(instituteId);
+  }, [refreshMemberships]);
 
   const signOut = useCallback(async () => {
     const { error: signOutError } = await supabase.auth.signOut();
@@ -238,7 +250,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     selectInstitute,
     createInstitute,
     refreshMemberships,
-  }), [configured, status, session, memberships, activeMembership, error, signIn, signUp, signOut, selectInstitute, createInstitute, refreshMemberships]);
+    acceptInvitation,
+  }), [configured, status, session, memberships, activeMembership, error, signIn, signUp, signOut, selectInstitute, createInstitute, refreshMemberships, acceptInvitation]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

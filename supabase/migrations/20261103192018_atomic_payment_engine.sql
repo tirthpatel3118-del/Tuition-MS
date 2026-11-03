@@ -336,6 +336,94 @@ GRANT EXECUTE ON FUNCTION public.update_member_role(UUID, UUID, TEXT) TO authent
 GRANT EXECUTE ON FUNCTION public.transfer_institute_ownership(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.remove_institute_member(UUID, UUID) TO authenticated;
 
+-- Owner-only read and revoke endpoints for the team administration screen.
+CREATE OR REPLACE FUNCTION public.list_institute_members(p_institute_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Only owners can view institute members.';
+    END IF;
+
+    RETURN COALESCE((
+        SELECT jsonb_agg(jsonb_build_object(
+            'userId', m.user_id,
+            'email', COALESCE(u.email, ''),
+            'role', m.role,
+            'createdAt', m.created_at
+        ) ORDER BY m.created_at, m.user_id)
+        FROM public.institute_members AS m
+        LEFT JOIN auth.users AS u ON u.id = m.user_id
+        WHERE m.institute_id = p_institute_id
+    ), '[]'::jsonb);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.list_institute_invitations(p_institute_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Only owners can view institute invitations.';
+    END IF;
+
+    RETURN COALESCE((
+        SELECT jsonb_agg(jsonb_build_object(
+            'id', i.id,
+            'email', i.email,
+            'role', i.role,
+            'status', i.status,
+            'expiresAt', i.expires_at,
+            'createdAt', i.created_at
+        ) ORDER BY i.created_at DESC)
+        FROM public.institute_invitations AS i
+        WHERE i.institute_id = p_institute_id
+          AND i.status IN ('Pending', 'Accepted', 'Revoked', 'Expired')
+    ), '[]'::jsonb);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.revoke_institute_invitation(
+    p_institute_id UUID,
+    p_invitation_id UUID
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR UPDATE;
+    IF NOT FOUND OR NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Only current owners can revoke invitations.';
+    END IF;
+
+    UPDATE public.institute_invitations
+    SET status = 'Revoked'
+    WHERE id = p_invitation_id AND institute_id = p_institute_id AND status = 'Pending';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invitation Not Found: It may have already been accepted, revoked, or expired.';
+    END IF;
+END;
+$$;
+
+ALTER FUNCTION public.list_institute_members(UUID) OWNER TO postgres;
+ALTER FUNCTION public.list_institute_invitations(UUID) OWNER TO postgres;
+ALTER FUNCTION public.revoke_institute_invitation(UUID, UUID) OWNER TO postgres;
+REVOKE ALL ON FUNCTION public.list_institute_members(UUID) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.list_institute_invitations(UUID) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.revoke_institute_invitation(UUID, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.list_institute_members(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.list_institute_invitations(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.revoke_institute_invitation(UUID, UUID) TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.record_payment_atomic(
     p_institute_id UUID,
     p_student_id UUID,

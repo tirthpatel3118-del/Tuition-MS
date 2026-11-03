@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-12 flex items-center justify-center">
       <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">

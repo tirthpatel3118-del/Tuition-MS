@@ -1,11 +1,12 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Menu, RotateCcw, Bell, LogOut } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { AuthLoading, AuthPage, CreateInstitutePage, SelectInstitutePage } from './pages/AuthPages';
+import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Admissions = lazy(() => import('./pages/Admissions').then(module => ({ default: module.Admissions })));
@@ -132,6 +133,8 @@ function AppContent() {
 
 function AppEntry() {
   const auth = useAuth();
+  const location = useLocation();
+  const isInvitationRoute = location.pathname === '/accept-invitation';
 
   if (!auth.configured) {
     if (import.meta.env.PROD) {
@@ -167,6 +170,8 @@ function AppEntry() {
       </main>
     );
   }
+
+  if (isInvitationRoute) return <InvitationAcceptancePage />;
 
   if (auth.memberships.length === 0) return <CreateInstitutePage />;
   if (!auth.activeMembership) return <SelectInstitutePage />;
