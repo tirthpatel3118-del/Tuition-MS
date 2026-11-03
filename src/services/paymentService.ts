@@ -6,6 +6,28 @@ import { requireActiveInstituteId } from '../lib/tenant';
 const useSupabase = isSupabaseConfigured;
 
 export const paymentService = {
+  async getAllocationTotalsByStudent(installments: Array<{ id: string; student_id: string }>): Promise<Record<string, number>> {
+    if (!useSupabase) {
+      const stored = getStoredData();
+      return Object.fromEntries((stored.students as UiStudent[]).map(student => [student.id, student.feesPaid]));
+    }
+
+    const instituteId = requireActiveInstituteId();
+    const { data, error } = await supabase
+      .from('payment_allocations')
+      .select('installment_id, allocated_amount')
+      .eq('institute_id', instituteId);
+    if (error) throw error;
+
+    const studentByInstallment = new Map(installments.map(installment => [installment.id, installment.student_id]));
+    const totals: Record<string, number> = {};
+    for (const allocation of data ?? []) {
+      const studentId = studentByInstallment.get(allocation.installment_id);
+      if (studentId) totals[studentId] = (totals[studentId] ?? 0) + Number(allocation.allocated_amount);
+    }
+    return totals;
+  },
+
   async getPayments(): Promise<Payment[]> {
     if (useSupabase) {
       const instituteId = requireActiveInstituteId();
