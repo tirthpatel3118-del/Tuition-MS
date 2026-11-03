@@ -1,17 +1,16 @@
-import { supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { AppSettings } from '../types';
+import { requireActiveInstituteId } from '../lib/tenant';
 
-const useSupabase = 
-  !!import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
+const useSupabase = isSupabaseConfigured;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   instituteName: 'EduLedger ERP',
   logoUrl: '',
-  address: '123 Academy Lane, Tech City, IN',
-  contactNumber: '+91 98765 43210',
-  email: 'info@eduledger.com',
-  website: 'https://eduledger.com',
+  address: '',
+  contactNumber: '',
+  email: '',
+  website: '',
   receiptPrefix: 'REC',
   receiptFooter: 'This is a computer generated receipt. Signature is not mandatory.',
   authorizedSignatureUrl: '',
@@ -22,63 +21,39 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 const LOCAL_STORAGE_KEY = 'eduledger_settings';
+const LOCAL_COURSE_FEES_KEY = 'eduledger_course_fees';
 
 export const settingsService = {
   async getSettings(): Promise<AppSettings> {
-    if (useSupabase) {
-      try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('value')
-          .eq('key', 'app_settings')
-          .maybeSingle();
+    if (!useSupabase) return this.getLocalSettings();
 
-        // If table doesn't exist, we'll get an error, otherwise data might be null if not initialized
-        if (error) {
-          console.warn('Failed to fetch settings from Supabase, falling back to local.', error);
-          return this.getLocalSettings();
-        }
-
-        if (data && data.value) {
-          return { ...DEFAULT_SETTINGS, ...data.value } as AppSettings;
-        }
-
-        // Initialize table if empty
-        const defaults = this.getLocalSettings();
-        await this.saveSettings(defaults);
-        return defaults;
-      } catch (err) {
-        console.warn('Error reading settings from database:', err);
-        return this.getLocalSettings();
-      }
-    } else {
-      return this.getLocalSettings();
-    }
+    const instituteId = requireActiveInstituteId();
+    const { data, error } = await supabase
+      .from('institute_settings')
+      .select('value')
+      .eq('institute_id', instituteId)
+      .eq('key', 'app_settings')
+      .maybeSingle();
+    if (error) throw error;
+    return { ...DEFAULT_SETTINGS, ...(data?.value ?? {}) } as AppSettings;
   },
 
   async saveSettings(settings: AppSettings): Promise<AppSettings> {
-    // Save to local storage first
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
-
-    if (useSupabase) {
-      try {
-        // Upsert into Supabase settings table
-        const { error } = await supabase
-          .from('settings')
-          .upsert({
-            key: 'app_settings',
-            value: settings,
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error('Failed to save settings to Supabase:', error);
-        }
-      } catch (err) {
-        console.error('Database connection error saving settings:', err);
-      }
+    if (!useSupabase) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
+      return settings;
     }
 
+    const instituteId = requireActiveInstituteId();
+    const { error } = await supabase
+      .from('institute_settings')
+      .upsert({
+        institute_id: instituteId,
+        key: 'app_settings',
+        value: settings,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'institute_id,key' });
+    if (error) throw error;
     return settings;
   },
 
@@ -95,52 +70,34 @@ export const settingsService = {
   },
 
   async getCourseFees(): Promise<Record<string, number>> {
-    if (useSupabase) {
-      try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('value')
-          .eq('key', 'course_fees')
-          .maybeSingle();
+    if (!useSupabase) return JSON.parse(localStorage.getItem(LOCAL_COURSE_FEES_KEY) || '{}');
 
-        if (error) {
-          console.warn('Failed to fetch course fees from Supabase, falling back to local.', error);
-          return JSON.parse(localStorage.getItem('eduledger_course_fees') || '{}');
-        }
-
-        if (data && data.value) {
-          return data.value as Record<string, number>;
-        }
-
-        return {};
-      } catch (err) {
-        console.warn('Error reading course fees from database:', err);
-        return JSON.parse(localStorage.getItem('eduledger_course_fees') || '{}');
-      }
-    } else {
-      return JSON.parse(localStorage.getItem('eduledger_course_fees') || '{}');
-    }
+    const instituteId = requireActiveInstituteId();
+    const { data, error } = await supabase
+      .from('courses')
+      .select('id, course_fee')
+      .eq('institute_id', instituteId);
+    if (error) throw error;
+    return Object.fromEntries((data ?? []).flatMap((row: { id: string; course_fee: number | null }) =>
+      row.course_fee == null ? [] : [[row.id, Number(row.course_fee)]]
+    ));
   },
 
   async saveCourseFees(mapping: Record<string, number>): Promise<void> {
-    localStorage.setItem('eduledger_course_fees', JSON.stringify(mapping));
+    if (!useSupabase) {
+      localStorage.setItem(LOCAL_COURSE_FEES_KEY, JSON.stringify(mapping));
+      return;
+    }
 
-    if (useSupabase) {
-      try {
-        const { error } = await supabase
-          .from('settings')
-          .upsert({
-            key: 'course_fees',
-            value: mapping,
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error('Failed to save course fees to Supabase:', error);
-        }
-      } catch (err) {
-        console.error('Database connection error saving course fees:', err);
-      }
+    const instituteId = requireActiveInstituteId();
+    for (const [courseId, courseFee] of Object.entries(mapping)) {
+      const { error } = await supabase
+        .from('courses')
+        .update({ course_fee: courseFee })
+        .eq('id', courseId)
+        .eq('institute_id', instituteId);
+      if (error) throw error;
     }
   }
 };
+
