@@ -60,12 +60,22 @@ DECLARE
     v_raw_token TEXT;
     v_token_hash TEXT;
 BEGIN
+    PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Institute Not Found.';
+    END IF;
+
     IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
         RAISE EXCEPTION 'Access Denied: Only owners can invite members.';
     END IF;
 
     IF p_role NOT IN ('owner', 'accountant', 'teacher') THEN
         RAISE EXCEPTION 'Validation Failed: Invalid role %', p_role;
+    END IF;
+
+    PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR SHARE;
+    IF NOT FOUND OR NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Only current owners can invite members.';
     END IF;
 
     UPDATE public.institute_invitations 
@@ -162,6 +172,9 @@ BEGIN
     END IF;
 
     PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR UPDATE;
+    IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Caller is no longer an owner.';
+    END IF;
 
     SELECT role INTO v_current_role 
     FROM public.institute_members 
@@ -203,6 +216,9 @@ BEGIN
     END IF;
 
     PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR UPDATE;
+    IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Caller is no longer an owner.';
+    END IF;
 
     IF NOT EXISTS (SELECT 1 FROM public.institute_members WHERE institute_id = p_institute_id AND user_id = p_new_owner_user_id) THEN
         RAISE EXCEPTION 'Target User Not Found: Target must be an existing member of the institute.';
@@ -241,6 +257,9 @@ BEGIN
     END IF;
 
     PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR UPDATE;
+    IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
+        RAISE EXCEPTION 'Access Denied: Caller is no longer an owner.';
+    END IF;
 
     SELECT role INTO v_current_role 
     FROM public.institute_members 
@@ -354,6 +373,10 @@ DECLARE
     v_canonical_allocations JSONB;
 BEGIN
     -- 1. Role Authorization Gate
+    PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Institute Not Found.';
+    END IF;
     IF NOT private.is_member_of(p_institute_id, ARRAY['owner', 'accountant']) THEN
         RAISE EXCEPTION 'Access Denied: Caller does not possess accounting privileges for this institute.';
     END IF;
@@ -485,7 +508,14 @@ BEGIN
     v_year := to_char(p_payment_date, 'YYYY');
 
     INSERT INTO public.institute_receipt_counters (institute_id, year, prefix, last_number)
-    SELECT p_institute_id, v_year, i.receipt_prefix, 0
+    SELECT p_institute_id, v_year, i.receipt_prefix,
+           COALESCE((
+               SELECT MAX(substring(r.receipt_number FROM '[0-9]+$')::BIGINT)
+               FROM public.receipts AS r
+               WHERE r.institute_id = p_institute_id
+                 AND (r.receipt_number LIKE i.receipt_prefix || '-' || v_year || '-%'
+                      OR (r.receipt_type = 'CREDIT_NOTE' AND r.receipt_number LIKE 'CN-' || v_year || '-%'))
+           ), 0)
     FROM public.institutes AS i
     WHERE i.id = p_institute_id
     ON CONFLICT (institute_id, year) DO NOTHING;
@@ -597,6 +627,10 @@ DECLARE
     v_target_inst_status TEXT;
 BEGIN
     -- 1. Authorization: Only owners can authorize financial reversals
+    PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Institute Not Found.';
+    END IF;
     IF NOT private.is_member_of(p_institute_id, ARRAY['owner']) THEN
         RAISE EXCEPTION 'Access Denied: Only institute owners can reverse payments.';
     END IF;
@@ -643,7 +677,14 @@ BEGIN
     v_year := to_char(now(), 'YYYY');
 
     INSERT INTO public.institute_receipt_counters (institute_id, year, prefix, last_number)
-    SELECT p_institute_id, v_year, i.receipt_prefix, 0
+    SELECT p_institute_id, v_year, i.receipt_prefix,
+           COALESCE((
+               SELECT MAX(substring(r.receipt_number FROM '[0-9]+$')::BIGINT)
+               FROM public.receipts AS r
+               WHERE r.institute_id = p_institute_id
+                 AND (r.receipt_number LIKE i.receipt_prefix || '-' || v_year || '-%'
+                      OR (r.receipt_type = 'CREDIT_NOTE' AND r.receipt_number LIKE 'CN-' || v_year || '-%'))
+           ), 0)
     FROM public.institutes AS i
     WHERE i.id = p_institute_id
     ON CONFLICT (institute_id, year) DO NOTHING;
