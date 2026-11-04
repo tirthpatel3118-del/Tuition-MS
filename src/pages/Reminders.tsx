@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
 import { isDemoMode } from '../lib/supabase';
+import { renderReminderTemplate } from '../utils/reminderTemplate';
 
 export const Reminders: React.FC = () => {
   const { students, reminders, installments, installmentPaidTotals, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
@@ -160,33 +161,18 @@ export const Reminders: React.FC = () => {
       setFocusedInstallmentId(instId);
     } else {
       setSelectedInstallmentIds(prev => prev.filter(id => id !== instId));
-      if (focusedInstallmentId === instId) {
-        setFocusedInstallmentId(null);
-      }
-    }
-  };
-
-  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) => {
-    const symbol = settings?.currencySymbol || '₹';
-    return templateStr
-      .replace(/{StudentName}/g, inst.studentName || '')
-      .replace(/\[StudentName\]/g, inst.studentName || '')
-      .replace(/{ParentName}/g, inst.parentName || '')
-      .replace(/\[ParentName\]/g, inst.parentName || '')
-      .replace(/{InstallmentNumber}/g, String(inst.installmentNumber || ''))
-      .replace(/\[InstallmentNumber\]/g, String(inst.installmentNumber || ''))
-      .replace(/{Amount}/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[Amount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[InstallmentAmount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/{DueDate}/g, inst.dueDate || '')
-      .replace(/\[DueDate\]/g, inst.dueDate || '')
-      .replace(/{RemainingFee}/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/\[RemainingFee\]/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/\[InstituteName\]/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/{[A-Za-z0-9_]+}/g, '')
-      .replace(/\[[A-Za-z0-9_]+\]/g, '');
-  };
+      if (focusedInstallmentId === i  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) =>
+    renderReminderTemplate(templateStr, {
+      studentName: inst.studentName,
+      parentName: inst.parentName,
+      installmentNumber: inst.installmentNumber,
+      amount: inst.amount,
+      installmentAmount: inst.amount,
+      dueDate: formatDateForDisplay(inst.dueDate, settings?.dateFormat),
+      remainingFee: inst.remainingFee,
+      instituteName: settings?.instituteName,
+      currencySymbol: settings?.currencySymbol,
+    });
 
   // Parsing function for template preview
   const getParsedPreview = (instId: string | null) => {
