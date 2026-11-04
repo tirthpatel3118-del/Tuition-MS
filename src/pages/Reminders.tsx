@@ -17,6 +17,7 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { isDemoMode } from '../lib/supabase';
 
 export const Reminders: React.FC = () => {
   const { students, reminders, installments, installmentPaidTotals, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
@@ -388,18 +389,24 @@ export const Reminders: React.FC = () => {
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-center gap-1.5">
                                   <a
-                                    href={getWhatsAppLink(inst)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={() => {
+                                    href={isDemoMode ? undefined : getWhatsAppLink(inst)}
+                                    target={isDemoMode ? undefined : '_blank'}
+                                    rel={isDemoMode ? undefined : 'noreferrer'}
+                                    aria-disabled={isDemoMode}
+                                    onClick={event => {
+                                      if (isDemoMode) {
+                                        event.preventDefault();
+                                        showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                                        return;
+                                      }
                                       void sendReminder(inst.studentId, 'WhatsApp', inst.id).then(() => {
                                         showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
                                       }).catch((error: unknown) => {
                                         showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
                                       });
                                     }}
-                                    title="Send WhatsApp Reminder"
-                                    className="p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                                    title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
+                                    className={`p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
