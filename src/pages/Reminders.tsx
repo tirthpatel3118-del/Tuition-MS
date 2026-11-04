@@ -161,7 +161,13 @@ export const Reminders: React.FC = () => {
       setFocusedInstallmentId(instId);
     } else {
       setSelectedInstallmentIds(prev => prev.filter(id => id !== instId));
-      if (focusedInstallmentId === i  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) =>
+      if (focusedInstallmentId === instId) {
+        setFocusedInstallmentId(null);
+      }
+    }
+  };
+
+  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) =>
     renderReminderTemplate(templateStr, {
       studentName: inst.studentName,
       parentName: inst.parentName,
