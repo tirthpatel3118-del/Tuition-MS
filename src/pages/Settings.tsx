@@ -30,7 +30,7 @@ export const Settings: React.FC = () => {
   const [formData, setFormData] = useState<AppSettings>({ ...settings });
   const logoInputRef = useRef<HTMLInputElement>(null);
   const sigInputRef = useRef<HTMLInputElement>(null);
-  const csvImportRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     setFormData({ ...settings });
@@ -82,7 +82,7 @@ export const Settings: React.FC = () => {
   };
 
   // BACKUP OPERATIONS
-  // 1. Export database as JSON
+  // Export currently loaded workspace data as a convenience snapshot, not a database backup.
   const handleExportDatabase = () => {
     try {
       const dump = {
@@ -97,11 +97,11 @@ export const Settings: React.FC = () => {
       const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dump, null, 2))}`;
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute('href', jsonString);
-      downloadAnchor.setAttribute('download', `eduledger_db_backup_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchor.setAttribute('download', `eduledger_workspace_snapshot_${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast('Database JSON backup downloaded successfully!', 'success');
+      showToast('Workspace snapshot downloaded. This is not a full database backup.', 'success');
     } catch (err) {
       console.error(err);
       showToast('Failed to export database', 'error');
@@ -147,37 +147,6 @@ export const Settings: React.FC = () => {
     }
   };
 
-  // 3. Import CSV
-  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        if (!text) return;
-
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-        if (lines.length < 2) {
-          showToast('CSV file is empty or missing data rows', 'error');
-          return;
-        }
-
-        // Extremely simple CSV parser
-        const importedStudentsCount = lines.slice(1).length;
-
-        // In a real application, you would iterate and call addStudent for each record.
-        // To prevent corrupting state or database triggers, we show an audit verification to the user.
-        showToast(`Parsed ${importedStudentsCount} student rows successfully! Real-time import simulation completed.`, 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('Error parsing CSV file template.', 'error');
-      }
-    };
-    reader.readAsText(file);
-  };
-
   if (isLoading) {
     return <PageLoader />;
   }
@@ -188,7 +157,7 @@ export const Settings: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Application Settings</h1>
-          <p className="text-sm text-slate-500 mt-1">Configure institute profile details, receipt prefixes, custom whatsapp notification alerts, and database backup routines.</p>
+          <p className="text-sm text-slate-500 mt-1">Configure institute profile details, receipt prefixes, custom whatsapp notification alerts, and workspace exports.</p>
         </div>
       </div>
 
@@ -253,7 +222,7 @@ export const Settings: React.FC = () => {
             }`}
           >
             <Database className="w-4 h-4" />
-            <span>Database Backup & CSV</span>
+            <span>Workspace Export</span>
           </button>
           <button
             onClick={() => setActiveSection('team')}
@@ -564,7 +533,7 @@ export const Settings: React.FC = () => {
                       <Database className="w-4 h-4 text-blue-600" />
                       <span>Database Backup & CSV Operations</span>
                     </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Export student lists or dump settings to preserve database state.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Export the currently loaded student list or workspace snapshot. These files are not full database backups.</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -573,7 +542,7 @@ export const Settings: React.FC = () => {
                         <Download className="w-4 h-4 text-blue-600" />
                         <span>Export Actions</span>
                       </h4>
-                      <p className="text-[10px] text-slate-500 leading-normal">Download local data backups instantly for offline audits.</p>
+                      <p className="text-[10px] text-slate-500 leading-normal">Download the data currently loaded in this workspace. The JSON snapshot is not a full database backup and cannot restore the database.</p>
                       
                       <div className="flex flex-col gap-2 pt-1">
                         <button
@@ -582,7 +551,7 @@ export const Settings: React.FC = () => {
                           className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer"
                         >
                           <Database className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Export Database JSON</span>
+                          <span>Export Workspace Snapshot (JSON)</span>
                         </button>
                         
                         <button
@@ -599,27 +568,21 @@ export const Settings: React.FC = () => {
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
                       <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Upload className="w-4 h-4 text-amber-600" />
-                        <span>Import Actions</span>
+                        <span>Student Import</span>
                       </h4>
-                      <p className="text-[10px] text-slate-500 leading-normal">Import student lists via structured comma-separated-values sheets.</p>
+                      <p className="text-[10px] text-slate-500 leading-normal">CSV import is not available yet. No student records will be changed by selecting a file.</p>
                       
-                      <div className="pt-2">
-                        <input 
-                          type="file"
-                          ref={csvImportRef}
-                          accept=".csv"
-                          onChange={handleImportCSV}
-                          className="hidden"
-                        />
+                                            <div className="pt-2">
                         <button
                           type="button"
-                          onClick={() => csvImportRef.current?.click()}
-                          className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer"
+                          disabled
+                          className="w-full flex items-center justify-center gap-2 bg-slate-100 border border-slate-200 text-slate-400 font-bold py-2 rounded-xl text-xs cursor-not-allowed"
+                          aria-describedby="student-import-unavailable"
                         >
-                          <Upload className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Import Students CSV</span>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Import Students CSV (Unavailable)</span>
                         </button>
-                        <span className="text-[8px] text-slate-400 mt-1 block text-center">Supported columns: roll_number, full_name, parent_name, mobile</span>
+                        <span id="student-import-unavailable" className="text-[8px] text-slate-400 mt-1 block text-center">Import will be enabled after validated database writes and error handling are implemented.</span>
                       </div>
                     </div>
                   </div>
