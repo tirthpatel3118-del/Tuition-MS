@@ -59,13 +59,9 @@ export const settingsService = {
   },
 
   getLocalSettings(): AppSettings {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
-      } catch {
-        return DEFAULT_SETTINGS;
-      }
+    const stored = getStoredValue<unknown>(LOCAL_STORAGE_KEY, null);
+    if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
+      return { ...DEFAULT_SETTINGS, ...(stored as Partial<AppSettings>) };
     }
     return DEFAULT_SETTINGS;
   },
