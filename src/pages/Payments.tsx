@@ -59,6 +59,14 @@ export const Payments: React.FC = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [successInfo, setSuccessInfo] = useState<{ receiptId: string; amount: number; studentName: string } | null>(null);
 
+  const outstandingInstallmentAmount = (installment: Installment) =>
+    Math.max(0, Number(installment.amount) - (installmentPaidTotals[installment.id] ?? 0));
+  const getUnpaidInstallments = (studentId: string) => installments
+    .filter(installment => installment.studentId === studentId
+      && installment.status !== 'Paid'
+      && outstandingInstallmentAmount(installment) > 0)
+    .sort((a, b) => a.installmentNumber - b.installmentNumber);
+
   // Trigger simulated loader when filter/tab changes
   useEffect(() => {
     setCurrentPage(1);
@@ -80,7 +88,7 @@ export const Payments: React.FC = () => {
 
         if (studentInsts.length > 0) {
           setSelectedInstallmentId(studentInsts[0].id);
-          setPaymentAmount(String(studentInsts[0].amount));
+          setPaymentAmount(String(outstandingInstallmentAmount(studentInsts[0])));
         } else {
           setPaymentAmount(String(student.feesDue));
         }
@@ -92,13 +100,6 @@ export const Payments: React.FC = () => {
 
   // Selected student details for validation & helpers
   const selectedStudent = students.find(s => s.id === selectedStudentId);
-  const outstandingInstallmentAmount = (installment: Installment) =>
-    Math.max(0, Number(installment.amount) - (installmentPaidTotals[installment.id] ?? 0));
-  const getUnpaidInstallments = (studentId: string) => installments
-    .filter(installment => installment.studentId === studentId
-      && installment.status !== 'Paid'
-      && outstandingInstallmentAmount(installment) > 0)
-    .sort((a, b) => a.installmentNumber - b.installmentNumber);
   const selectedStudentInstallments = getUnpaidInstallments(selectedStudentId);
 
   // Filter students based on search term
@@ -185,7 +186,7 @@ export const Payments: React.FC = () => {
 
     if (studentInsts.length > 0) {
       setSelectedInstallmentId(studentInsts[0].id);
-      setPaymentAmount(String(studentInsts[0].amount));
+      setPaymentAmount(String(outstandingInstallmentAmount(studentInsts[0])));
     } else {
       const student = students.find(s => s.id === studentId);
       setPaymentAmount(student ? String(student.feesDue) : '');
