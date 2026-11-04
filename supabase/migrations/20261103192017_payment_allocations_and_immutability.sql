@@ -73,7 +73,8 @@ CREATE OR REPLACE FUNCTION public.calculate_installment_status(
 RETURNS TEXT
 LANGUAGE plpgsql
 STABLE
-AS $$
+SET search_path = ''
+AS $
 BEGIN
     IF p_paid >= p_scheduled THEN
         RETURN 'Paid';
@@ -185,7 +186,8 @@ END $$;
 CREATE OR REPLACE FUNCTION public.prevent_financial_mutation()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-AS $$
+SET search_path = ''
+AS $
 BEGIN
   RAISE EXCEPTION 'Financial records are immutable. Direct UPDATE and DELETE operations are forbidden.';
 END;
