@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatLocalDateInput } from '../lib/date';
+import { renderReminderTemplate } from '../utils/reminderTemplate';
 import { useData } from '../context/DataContext';
 import { 
   Building, 
@@ -80,16 +81,19 @@ export const Settings: React.FC = () => {
     }
   };
 
-  // Helper to replace reminder template variables for preview
-  const getTemplatePreview = () => {
-    const template = formData.whatsappReminderTemplate || '';
-    return template
-      .replace(/{StudentName}/g, 'Rahul Sharma')
-      .replace(/{ParentName}/g, 'Mr. Amit Sharma')
-      .replace(/{Amount}/g, `${formData.currencySymbol || '₹'}5,000`)
-      .replace(/{DueDate}/g, '2026-08-15')
-      .replace(/{InstituteName}/g, formData.instituteName || 'EduLedger ERP');
-  };
+  // Use the same token renderer as dashboard and reminder messages.
+  const getTemplatePreview = () =>
+    renderReminderTemplate(formData.whatsappReminderTemplate || '', {
+      studentName: 'Rahul Sharma',
+      parentName: 'Mr. Amit Sharma',
+      installmentNumber: 2,
+      amount: 5000,
+      installmentAmount: 5000,
+      dueDate: '2026-08-15',
+      remainingFee: 10000,
+      instituteName: formData.instituteName,
+      currencySymbol: formData.currencySymbol,
+    });
 
   // BACKUP OPERATIONS
   // Export currently loaded workspace data as a convenience snapshot, not a database backup.
@@ -454,7 +458,7 @@ export const Settings: React.FC = () => {
                       <div className="text-[10px] text-slate-500 space-y-1.5">
                         <span className="font-bold text-slate-700 block">Available Template Variables:</span>
                         <div className="flex flex-wrap gap-1">
-                          {['{StudentName}', '{ParentName}', '{Amount}', '{DueDate}', '{InstituteName}', '{InstallmentNumber}'].map(v => (
+                          {['{StudentName}', '{ParentName}', '{InstallmentNumber}', '{Amount}', '{InstallmentAmount}', '{DueDate}', '{RemainingFee}', '{InstituteName}'].map(v => (
                             <code key={v} className="bg-white border border-slate-200 px-1 py-0.5 rounded font-mono font-bold text-blue-600">{v}</code>
                           ))}
                         </div>
