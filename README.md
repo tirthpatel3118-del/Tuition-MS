@@ -24,6 +24,12 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<public-publishable-key>
 
 Only a public publishable key belongs in browser configuration. Never use a `service_role` or secret key in a `VITE_` variable or commit environment files.
 
+## Authentication and account recovery
+
+The app provides sign-in, account creation, invitation acceptance, forgot-password, and reset-password screens. Before enabling live email flows, configure Supabase Auth’s Site URL and Redirect URLs for the exact production domain and any preview or local origins you intend to use. Allow the site root for account confirmation and `/reset-password` for password recovery. Configure and verify email delivery in the Supabase project. Do not use a preview origin as the production Site URL.
+
+The privacy policy and terms pages are available at `/privacy` and `/terms`. Their current content is an operator-review draft: confirm the data processors, retention and deletion practices, responsible institute identity, legal jurisdiction, and contact details before publishing them as final legal notices.
+
 ## Build and lint
 
 ```sh
