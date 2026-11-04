@@ -23,6 +23,7 @@ interface DataContextType {
   payments: Payment[];
   reminders: Reminder[];
   installments: Installment[];
+  installmentPaidTotals: Record<string, number>;
   batches: Batch[];
   settings: AppSettings;
   updateSettings: (newSettings: AppSettings) => Promise<void>;
@@ -71,6 +72,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     : getStoredData());
 
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [installmentPaidTotals, setInstallmentPaidTotals] = useState<Record<string, number>>({});
 
   // Toast UI state
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -114,7 +116,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         settingsService.getCourseFees(),
         reminderService.getReminders()
       ]);
-      const paidByStudent = await paymentService.getAllocationTotalsByStudent(dbInstallments);
+      const allocationTotals = await paymentService.getAllocationTotals(dbInstallments);
+      const paidByStudent = allocationTotals.byStudent;
+      setInstallmentPaidTotals(allocationTotals.byInstallment);
 
       if (dbSettings) {
         setSettings(dbSettings);
@@ -613,9 +617,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const student = studentsWithFees.find(s => s.id === studentId);
     if (!student) throw new Error('Student not found.');
 
+    const installment = installmentId ? data.installments.find(item => item.id === installmentId) : undefined;
+    if (installmentId && !installment) throw new Error('Installment not found.');
+    const amountDue = installment
+      ? Math.max(0, installment.amount - (installmentPaidTotals[installment.id] ?? 0))
+      : student.feesDue;
+    if (amountDue <= 0) throw new Error('This installment has no outstanding balance.');
+
     const newReminder = await reminderService.createReminder({
       studentId,
-      amountDue: data.installments.find(installment => installment.id === installmentId)?.amount ?? student.feesDue,
+      amountDue,
       channel: type,
       status: 'manual_opened',
     });
@@ -631,17 +642,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const selected = installmentIds
       .map(id => data.installments.find(installment => installment.id === id))
       .filter((installment): installment is Installment => Boolean(installment && installment.status !== 'Paid'))
-      .map(installment => ({ installment, student: studentsWithFees.find(student => student.id === installment.studentId) }))
-      .filter((item): item is { installment: Installment; student: Student } => Boolean(item.student));
-    const created = await reminderService.createManyReminders(selected.map(({ installment, student }) => ({
+      .map(installment => ({
+        installment,
+        amountDue: Math.max(0, installment.amount - (installmentPaidTotals[installment.id] ?? 0)),
+        student: studentsWithFees.find(student => student.id === installment.studentId),
+      }))
+      .filter((item): item is { installment: Installment; amountDue: number; student: Student } => Boolean(item.student && item.amountDue > 0));
+    const created = await reminderService.createManyReminders(selected.map(({ installment, student, amountDue }) => ({
       studentId: student.id,
-      amountDue: installment.amount,
+      amountDue,
       channel: type,
       status: 'queued',
     })));
     const newReminders = created.map(reminder => ({
       ...reminder,
-      studentName: selected.find(item => item.student.id === reminder.studentId)?.student.name ?? 'Unknown Student',
+      studentName: selected.find(item => item.installment.studentId === reminder.studentId)?.student.name ?? 'Unknown Student',
     }));
     if (newReminders.length) setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
   };
@@ -651,6 +666,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...data,
       students: studentsWithFees,
       batches,
+      installmentPaidTotals,
       settings,
       updateSettings,
       addStudent,
