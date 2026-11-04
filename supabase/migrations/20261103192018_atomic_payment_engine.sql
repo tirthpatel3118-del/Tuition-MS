@@ -586,10 +586,28 @@ BEGIN
                     AND pa.installment_id = i.id
               ), 0) < i.amount)
           )
+    ) OR EXISTS (
+        -- Unallocated legacy payments may belong to this student's tuition.
+        -- Require reconciliation before allowing another collection.
+        SELECT 1
+        FROM public.payments AS p
+        WHERE p.institute_id = p_institute_id
+          AND p.student_id = p_student_id
+          AND p.payment_type = 'PAYMENT'
+          AND NOT EXISTS (
+              SELECT 1 FROM public.payment_allocations AS pa
+              WHERE pa.institute_id = p.institute_id
+                AND pa.payment_id = p.id
+                AND pa.allocation_type = 'CREDIT'
+          )
+          AND NOT EXISTS (
+              SELECT 1 FROM public.payment_reversals AS pr
+              WHERE pr.institute_id = p.institute_id
+                AND pr.original_payment_id = p.id
+          )
     ) THEN
-        RAISE EXCEPTION 'HISTORICAL_RECONCILIATION_REQUIRED: Resolve legacy installment payment history before collecting another payment.';
+        RAISE EXCEPTION 'HISTORICAL_RECONCILIATION_REQUIRED: Resolve legacy payment and installment history for this student before collecting another payment.';
     END IF;
-
     -- 8. Validate Individual Allocations Against Locked Installment Balances
     FOR v_alloc IN SELECT * FROM jsonb_to_recordset(v_canonical_allocations) AS x(installment_id UUID, amount NUMERIC) LOOP
         IF v_alloc.amount IS NULL OR v_alloc.amount <= 0 THEN
