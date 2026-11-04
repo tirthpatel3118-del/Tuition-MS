@@ -74,7 +74,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 STABLE
 SET search_path = ''
-AS $
+AS $$
 BEGIN
     IF p_paid >= p_scheduled THEN
         RETURN 'Paid';
@@ -187,7 +187,7 @@ CREATE OR REPLACE FUNCTION public.prevent_financial_mutation()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = ''
-AS $
+AS $$
 BEGIN
   RAISE EXCEPTION 'Financial records are immutable. Direct UPDATE and DELETE operations are forbidden.';
 END;
