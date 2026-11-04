@@ -249,7 +249,9 @@ export const Admissions: React.FC = () => {
     if (!formData.batch.trim()) errors.batch = 'Batch timings are required';
 
     const totalPlanned = plannedInstallments.reduce((sum, inst) => sum + inst.amount, 0);
-    if (totalPlanned !== formData.totalFees) {
+    const totalPlannedCents = Math.round(totalPlanned * 100);
+    const courseFeeCents = Math.round(formData.totalFees * 100);
+    if (totalPlannedCents !== courseFeeCents) {
       errors.installmentsTotal = `Total planned installments (${settings?.currencySymbol || '₹'}${totalPlanned.toLocaleString('en-IN')}) must exactly match the course fee of ${settings?.currencySymbol || '₹'}${formData.totalFees.toLocaleString('en-IN')}`;
     }
     
