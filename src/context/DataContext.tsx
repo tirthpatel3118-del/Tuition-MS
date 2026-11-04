@@ -60,6 +60,7 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
+const pendingPaymentIdempotencyKeys = new Map<string, string>();
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<{
@@ -556,18 +557,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
     const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
     const storageKey = `eduledger.pendingPayment:${requestKey}`;
-    let idempotencyKey: string | null = null;
-    try {
-      idempotencyKey = sessionStorage.getItem(storageKey);
-    } catch {
-      // Keep a same-tab key below when session storage is unavailable.
+    let idempotencyKey: string | null = pendingPaymentIdempotencyKeys.get(storageKey) ?? null;
+    if (!idempotencyKey) {
+      try {
+        idempotencyKey = sessionStorage.getItem(storageKey);
+      } catch {
+        // The in-memory map still supports retries in this tab.
+      }
     }
     if (!idempotencyKey) {
       idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      pendingPaymentIdempotencyKeys.set(storageKey, idempotencyKey);
       try {
         sessionStorage.setItem(storageKey, idempotencyKey);
       } catch {
-        // The current payment call can still complete; backend calls keep their key in this closure.
+        // The in-memory map keeps this key available for same-tab retries.
       }
     }
 
@@ -580,6 +584,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       remarks: [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | '),
       idempotencyKey,
     });
+    pendingPaymentIdempotencyKeys.delete(storageKey);
     try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional after the request completes. */ }
 
     const newPayment: Payment = {
