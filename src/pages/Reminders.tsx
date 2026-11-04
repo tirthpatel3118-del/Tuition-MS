@@ -527,7 +527,7 @@ export const Reminders: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Template Text</label>
-                  <span className="text-[9px] text-slate-400">Tokens: {StudentName}, {ParentName}, {InstallmentNumber}, {Amount}, {DueDate}, {InstituteName}, {RemainingFee}; [InstallmentAmount] is also supported. Square-bracket forms work for the other listed tokens.</span>
+                  <span className="text-[9px] text-slate-400">Tokens: [StudentName], [ParentName], [InstallmentNumber], [Amount], [InstallmentAmount], [DueDate], [InstituteName], [RemainingFee].</span>
                 </div>
                 <textarea 
                   rows={4}
