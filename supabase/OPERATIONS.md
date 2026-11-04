@@ -65,3 +65,10 @@ Before the eventual production cutover, take a fresh backup, confirm a recovery 
 - [Supabase CLI `db dump`](https://supabase.com/docs/reference/cli/supabase-db-dump)
 - [Database migrations](https://supabase.com/docs/guides/deployment/database-migrations)
 
+## 7. Current live checkpoint (read-only, 2026-11-04)
+
+A fresh Supabase MCP inspection confirmed that the production project still has the five legacy application tables and an empty migration history. Row-level security is enabled on those tables, but each has a `PUBLIC` `ALL` policy with unrestricted `USING (true)` and `WITH CHECK (true)`. RLS being enabled does not make this access model private. Do not point an unauthenticated app at this project.
+
+The same inspection found no development branches in the Free-plan organization. Security advisors still flag the public `public.rls_auto_enable()` SECURITY DEFINER function and disabled leaked-password protection; performance advisors flag three unindexed legacy foreign keys. These findings are audit evidence only and are not authorization to change production.
+
+No production DDL, data, policies, auth configuration, or migration history was changed during this inspection. Continue with the backup and isolated-restore steps above before applying or validating schema changes. Keep student-level records, amounts, and contact details out of Git; the live preflight should remain aggregate-only.
