@@ -36,7 +36,6 @@ export function AuthLoading({ message = 'Checking your secure workspace…' }: {
 export function AuthPage() {
   const { signIn, signUp, error: authError } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const invitationFlow = location.pathname === '/accept-invitation' && Boolean(new URLSearchParams(location.search).get('token'));
   const mode = location.pathname === '/sign-up' ? 'sign-up' : 'sign-in';
   const [fullName, setFullName] = useState('');
