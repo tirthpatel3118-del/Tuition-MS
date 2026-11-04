@@ -83,7 +83,7 @@ export const Settings: React.FC = () => {
 
   // BACKUP OPERATIONS
   // Export currently loaded workspace data as a convenience snapshot, not a database backup.
-  const handleExportDatabase = () => {
+  const handleExportWorkspaceSnapshot = () => {
     try {
       const dump = {
         exportDate: new Date().toISOString(),
@@ -104,7 +104,7 @@ export const Settings: React.FC = () => {
       showToast('Workspace snapshot downloaded. This is not a full database backup.', 'success');
     } catch (err) {
       console.error(err);
-      showToast('Failed to export database', 'error');
+      showToast('Failed to export workspace snapshot', 'error');
     }
   };
 
