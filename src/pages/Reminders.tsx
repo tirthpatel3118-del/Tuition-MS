@@ -19,7 +19,7 @@ import {
 import { TableSkeleton } from '../components/TableSkeleton';
 
 export const Reminders: React.FC = () => {
-  const { students, reminders, installments, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
+  const { students, reminders, installments, installmentPaidTotals, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -83,6 +83,11 @@ export const Reminders: React.FC = () => {
   // Installments that are Pending or Overdue
   const dueInstallments = (installments || [])
     .filter(inst => inst.status !== 'Paid')
+    .map(inst => ({
+      ...inst,
+      amount: Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0)),
+    }))
+    .filter(inst => inst.amount > 0)
     .map(inst => {
       const student = students.find(s => s.id === inst.studentId);
       return {
