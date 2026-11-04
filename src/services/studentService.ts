@@ -6,7 +6,7 @@ import { requireActiveInstituteId } from '../lib/tenant';
 const useSupabase = isSupabaseConfigured;
 
 export const studentService = {
-  async getStudents(): Promise<Student[]> {
+  async getStudents(): Promise<Array<Student & { batch?: string }>> {
     if (useSupabase) {
       const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
@@ -15,7 +15,7 @@ export const studentService = {
         .eq('institute_id', instituteId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Student[];
+      return data as Array<Student & { batch?: string }>;
     } else {
       const mockStudents: UiStudent[] = getStoredData().students;
       return mockStudents.map(s => ({
@@ -30,6 +30,7 @@ export const studentService = {
         course_id: s.courseId,
         admission_date: s.enrollmentDate,
         course_fee: s.totalFees,
+        batch: s.batch,
         discount: 0,
         status: s.status,
         created_at: new Date().toISOString()
@@ -56,7 +57,7 @@ export const studentService = {
     }
   },
 
-  async createStudent(student: Omit<Student, 'id' | 'created_at'>): Promise<Student> {
+  async createStudent(student: Omit<Student, 'id' | 'created_at'>, demoBatchName?: string): Promise<Student> {
     if (useSupabase) {
       const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
@@ -88,7 +89,7 @@ export const studentService = {
         enrollmentDate: student.admission_date,
         courseId: student.course_id,
         courseName: course ? course.name : 'Unknown Course',
-        batch: 'Morning - Batch A (08:00 AM)',
+        batch: demoBatchName || 'Morning - Batch A (08:00 AM)',
         totalFees: student.course_fee,
         feesPaid: 0,
         feesDue: student.course_fee,
@@ -103,7 +104,7 @@ export const studentService = {
     }
   },
 
-  async updateStudent(id: string, updates: Partial<Student>): Promise<Student> {
+  async updateStudent(id: string, updates: Partial<Student>, demoBatchName?: string): Promise<Student> {
     if (useSupabase) {
       const instituteId = requireActiveInstituteId();
       const { data, error } = await supabase
@@ -125,6 +126,7 @@ export const studentService = {
       const updatedMockStudents = mockData.students.map((s: UiStudent) => {
         if (s.id === id) {
           const merged = { ...s };
+          if (demoBatchName !== undefined) merged.batch = demoBatchName;
           if (updates.full_name) merged.name = updates.full_name;
           if (updates.email) merged.email = updates.email;
           if (updates.student_mobile) merged.phone = updates.student_mobile;
