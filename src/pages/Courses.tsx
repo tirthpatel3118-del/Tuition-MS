@@ -129,10 +129,17 @@ export const Courses: React.FC = () => {
       showToast('Timing is required', 'error');
       return false;
     }
-    const cap = parseInt(batchFormData.capacity);
-    if (isNaN(cap) || cap <= 0) {
-      showToast('Capacity must be a positive number', 'error');
+    const cap = Number(batchFormData.capacity);
+    if (!Number.isInteger(cap) || cap <= 0) {
+      showToast('Capacity must be a positive whole number', 'error');
       return false;
+    }
+    if (batchFormData.courseFee.trim()) {
+      const fee = Number(batchFormData.courseFee);
+      if (!Number.isFinite(fee) || fee <= 0) {
+        showToast('Batch fee must be a valid amount greater than 0', 'error');
+        return false;
+      }
     }
     return true;
   };
@@ -145,8 +152,8 @@ export const Courses: React.FC = () => {
       courseId: batchFormData.courseId,
       name: batchFormData.name,
       timing: batchFormData.timing,
-      capacity: parseInt(batchFormData.capacity),
-      courseFee: batchFormData.courseFee ? parseFloat(batchFormData.courseFee) : undefined,
+      capacity: Number(batchFormData.capacity),
+      courseFee: batchFormData.courseFee.trim() ? Number(batchFormData.courseFee) : undefined,
       status: batchFormData.status
     };
 
