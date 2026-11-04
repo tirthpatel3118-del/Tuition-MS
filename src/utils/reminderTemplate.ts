@@ -31,9 +31,9 @@ export const renderReminderTemplate = (
 
   let rendered = template;
   for (const [name, value] of Object.entries(tokens)) {
-    rendered = rendered.replace(new RegExp(`\\\\{${name}\\\\}|\\\\[${name}\\\\]`, 'g'), value);
+    rendered = rendered.replace(new RegExp(`\\{${name}\\}|\\[${name}\\]`, 'g'), value);
   }
 
   // Avoid sending unresolved placeholders when a saved template has an unknown token.
-  return rendered.replace(/\\{[A-Za-z0-9_]+\\}|\\[[A-Za-z0-9_]+\\]/g, '');
-};
+  return rendered.replace(/\{[A-Za-z0-9_]+\}|\[[A-Za-z0-9_]+\]/g, '');
+}
