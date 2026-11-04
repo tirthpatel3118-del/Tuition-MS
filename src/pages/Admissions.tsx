@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { addMonthsToDateInput, formatLocalDateInput } from '../lib/date';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { Student, Installment } from '../data/mockData';
@@ -78,19 +79,12 @@ export const Admissions: React.FC = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const [selectedInstCount, setSelectedInstCount] = useState<number>(3);
-  const [firstDueDate, setFirstDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [firstDueDate, setFirstDueDate] = useState<string>(formatLocalDateInput());
   const [frequency, setFrequency] = useState<string>('monthly');
 
   const calculateDueDate = (start: string, freq: string, index: number): string => {
-    if (!start) return new Date().toISOString().split('T')[0];
-    const date = new Date(start);
-    if (freq === 'custom') {
-      date.setMonth(date.getMonth() + index);
-      return date.toISOString().split('T')[0];
-    }
-    const monthsToAdd = freq === 'monthly' ? 1 : freq === '2months' ? 2 : freq === '3months' ? 3 : 1;
-    date.setMonth(date.getMonth() + index * monthsToAdd);
-    return date.toISOString().split('T')[0];
+    const monthsPerInstallment = freq === 'monthly' || freq === 'custom' ? 1 : freq === '2months' ? 2 : freq === '3months' ? 3 : 1;
+    return addMonthsToDateInput(start || formatLocalDateInput(), index * monthsPerInstallment);
   };
 
   const applyDatesToInstallments = (start: string, freq: string, currentInsts: typeof plannedInstallments) => {
@@ -170,7 +164,7 @@ export const Admissions: React.FC = () => {
         id: '',
         installmentNumber: nextNumber,
         amount: suggestedAmount,
-        dueDate: new Date().toISOString().split('T')[0],
+        dueDate: formatLocalDateInput(),
         status: 'Pending',
         remarks: ''
       }
@@ -274,7 +268,7 @@ export const Admissions: React.FC = () => {
 
     setIsSubmitting(true);
     setTimeout(() => {
-      const enrollmentDate = new Date().toISOString().split('T')[0];
+      const enrollmentDate = formatLocalDateInput();
       const newStud = addStudent({
         name: formData.name,
         email: formData.email,
@@ -355,7 +349,7 @@ export const Admissions: React.FC = () => {
     if (studentInsts.length > 0) {
       setFirstDueDate(studentInsts[0].dueDate);
     } else {
-      setFirstDueDate(new Date().toISOString().split('T')[0]);
+      setFirstDueDate(formatLocalDateInput());
     }
     setFrequency('custom');
 
