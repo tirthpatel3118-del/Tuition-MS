@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { AppSettings } from '../types';
-import { getStoredValue } from '../data/mockData';
+import { getStoredValue, setStoredValue } from '../data/mockData';
 import { requireActiveInstituteId } from '../lib/tenant';
 
 const useSupabase = isSupabaseConfigured;
@@ -41,7 +41,7 @@ export const settingsService = {
 
   async saveSettings(settings: AppSettings): Promise<AppSettings> {
     if (!useSupabase) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
+      setStoredValue(LOCAL_STORAGE_KEY, settings);
       return settings;
     }
 
@@ -87,7 +87,7 @@ export const settingsService = {
 
   async saveCourseFees(mapping: Record<string, number>): Promise<void> {
     if (!useSupabase) {
-      localStorage.setItem(LOCAL_COURSE_FEES_KEY, JSON.stringify(mapping));
+      setStoredValue(LOCAL_COURSE_FEES_KEY, mapping);
       return;
     }
 
