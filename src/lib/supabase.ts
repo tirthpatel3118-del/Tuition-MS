@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+// These are browser-safe project coordinates and a publishable key. RLS and
+// database policies enforce access; never place a service_role key here.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://lcuheihzphekphgeszbt.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   || import.meta.env.VITE_SUPABASE_ANON_KEY
-  || '';
+  || 'sb_publishable_qwFiJbh9DOgWsMwy2wqtSQ_BnhlaF44';
 
 // The explicit browser demo mode always uses local sample data and must never
 // send requests to the configured Supabase project.
@@ -26,4 +28,3 @@ export const supabase = createClient(
   supabaseUrl || 'http://127.0.0.1:54321',
   supabaseAnonKey || 'demo-only-key'
 );
-
