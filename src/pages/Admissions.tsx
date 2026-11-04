@@ -29,6 +29,7 @@ export const Admissions: React.FC = () => {
     courses, 
     payments, 
     installments,
+    batches,
     addStudent, 
     updateStudent, 
     deleteStudent,
@@ -209,12 +210,34 @@ export const Admissions: React.FC = () => {
   }, [search, selectedCourse, selectedStatus]);
 
   // Load course fee when a course is selected
+  const batchLabel = (batch: (typeof batches)[number]) => `${batch.name} (${batch.timing})`;
+  const availableBatches = batches.filter(batch =>
+    batch.courseId === formData.courseId &&
+    (batch.status === 'Active' || (isEditing && formData.batch === batchLabel(batch)))
+  );
+
+  const handleBatchChange = (value: string) => {
+    const selectedBatch = batches.find(batch =>
+      batch.courseId === formData.courseId &&
+      (value === batchLabel(batch) || value === batch.name)
+    );
+    const course = courses.find(item => item.id === formData.courseId);
+    setFormData(prev => ({
+      ...prev,
+      batch: value,
+      totalFees: selectedBatch?.courseFee ?? course?.fees ?? prev.totalFees
+    }));
+    if (value.trim()) setFormErrors(prev => ({ ...prev, batch: '' }));
+  };
+
   const handleCourseChange = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
+    const firstBatch = batches.find(batch => batch.courseId === courseId && batch.status === 'Active');
     setFormData(prev => ({
       ...prev,
       courseId,
-      totalFees: course?.fees ?? 0
+      batch: firstBatch ? batchLabel(firstBatch) : '',
+      totalFees: firstBatch?.courseFee ?? course?.fees ?? 0
     }));
     // Clear validation error on selection change
     if (courseId) {
@@ -240,7 +263,30 @@ export const Admissions: React.FC = () => {
     }
 
     if (!formData.courseId) errors.courseId = 'Please select a course package';
-    if (!formData.batch.trim()) errors.batch = 'Batch timings are required';
+    if (!formData.batch.trim()) {
+      errors.batch = 'Batch timings are required';
+    } else {
+      const selectedBatch = batches.find(batch =>
+        batch.courseId === formData.courseId &&
+        (formData.batch === batchLabel(batch) || formData.batch === batch.name)
+      );
+      if (selectedBatch) {
+        const isCurrentBatch = selectedStudentId
+          ? students.find(student => student.id === selectedStudentId)?.batchId === selectedBatch.id
+            || students.find(student => student.id === selectedStudentId)?.batch === batchLabel(selectedBatch)
+          : false;
+        const activeCount = students.filter(student =>
+          student.status === 'Active' &&
+          student.id !== selectedStudentId &&
+          (student.batchId === selectedBatch.id || student.batch === batchLabel(selectedBatch) || student.batch === selectedBatch.name)
+        ).length;
+        if (selectedBatch.status !== 'Active' && !isCurrentBatch) {
+          errors.batch = 'Choose an active batch for this admission';
+        } else if (!isCurrentBatch && activeCount >= selectedBatch.capacity) {
+          errors.batch = 'This batch is at capacity. Choose another batch.';
+        }
+      }
+    }
 
     const totalPlanned = plannedInstallments.reduce((sum, inst) => sum + inst.amount, 0);
     const totalPlannedCents = Math.round(totalPlanned * 100);
@@ -478,10 +524,12 @@ export const Admissions: React.FC = () => {
             onClick={() => {
               setActiveTab('add');
               setIsEditing(false);
+              const defaultCourse = courses[0];
+              const defaultBatch = batches.find(batch => batch.courseId === defaultCourse?.id && batch.status === 'Active');
               setFormData({
                 name: '', email: '', phone: '', parentName: '', parentPhone: '',
-                courseId: courses[0]?.id || '', batch: 'Morning - Batch A (08:00 AM)',
-                totalFees: courses[0]?.fees || 0, status: 'Active', notes: ''
+                courseId: defaultCourse?.id || '', batch: defaultBatch ? batchLabel(defaultBatch) : '',
+                totalFees: defaultBatch?.courseFee ?? defaultCourse?.fees ?? 0, status: 'Active', notes: ''
               });
               setFormErrors({});
             }}
@@ -765,16 +813,31 @@ export const Admissions: React.FC = () => {
               {/* Batch Selection */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Batch Timings <span className="text-rose-500">*</span></label>
-                <input 
-                  type="text"
-                  value={formData.batch}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, batch: e.target.value }));
-                    if (e.target.value) setFormErrors(prev => ({ ...prev, batch: '' }));
-                  }}
-                  placeholder="e.g. Morning - Batch A (08:00 AM)"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
-                />
+                {availableBatches.length > 0 ? (
+                  <select
+                    value={formData.batch}
+                    onChange={e => handleBatchChange(e.target.value)}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  >
+                    <option value="">-- Choose Batch --</option>
+                    {availableBatches.map(batch => (
+                      <option key={batch.id} value={batchLabel(batch)}>
+                        {batchLabel(batch)}{batch.courseFee ? ` · ${settings?.currencySymbol || '₹'}${batch.courseFee.toLocaleString('en-IN')}` : ''}
+                      </option>
+                    ))}
+                    {formData.batch && !availableBatches.some(batch => formData.batch === batchLabel(batch)) && (
+                      <option value={formData.batch}>Current assignment: {formData.batch}</option>
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.batch}
+                    onChange={e => handleBatchChange(e.target.value)}
+                    placeholder="Enter batch timing"
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  />
+                )}
                 {formErrors.batch && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.batch}</span>}
               </div>
 
@@ -1351,12 +1414,30 @@ export const Admissions: React.FC = () => {
 
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-500">Batch Assignment <span className="text-rose-500">*</span></label>
-                      <input 
-                        type="text" 
-                        value={formData.batch}
-                        onChange={(e) => setFormData(prev => ({ ...prev, batch: e.target.value }))}
-                        className={`w-full px-3 py-1.5 border rounded-lg text-xs ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
-                      />
+                      {availableBatches.length > 0 ? (
+                        <select
+                          value={formData.batch}
+                          onChange={e => handleBatchChange(e.target.value)}
+                          className={`w-full px-3 py-1.5 border rounded-lg text-xs bg-white ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
+                        >
+                          <option value="">Choose batch</option>
+                          {availableBatches.map(batch => (
+                            <option key={batch.id} value={batchLabel(batch)}>
+                              {batchLabel(batch)}{batch.courseFee ? ` · ${settings?.currencySymbol || '₹'}${batch.courseFee.toLocaleString('en-IN')}` : ''}
+                            </option>
+                          ))}
+                          {formData.batch && !availableBatches.some(batch => formData.batch === batchLabel(batch)) && (
+                            <option value={formData.batch}>Current assignment: {formData.batch}</option>
+                          )}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={formData.batch}
+                          onChange={e => handleBatchChange(e.target.value)}
+                          className={`w-full px-3 py-1.5 border rounded-lg text-xs ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
+                        />
+                      )}
                       {formErrors.batch && <span className="text-[10px] text-rose-600 block font-bold">{formErrors.batch}</span>}
                     </div>
 
