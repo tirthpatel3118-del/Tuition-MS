@@ -59,7 +59,7 @@ export interface Installment {
   installment_number: number;
   due_date: string;
   amount: number;
-  status: 'Pending' | 'Paid' | 'Overdue';
+  status: 'Pending' | 'Paid' | 'Overdue' | 'Partially_Paid';
   payment_id: string | null;
   remarks: string | null;
   created_at: string;
