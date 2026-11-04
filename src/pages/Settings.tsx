@@ -133,11 +133,11 @@ export const Settings: React.FC = () => {
 
       const escapeCsvCell = (value: string | number) => {
         const text = String(value ?? '');
-        const formulaLike = /^[\\u0000-\\u0020\\uFEFF]*[=+\\-@＝＋－＠]/u.test(text);
-        const safeText = formulaLike ? `\\t${text}` : text;
+        const formulaLike = /^[\u0000-\u0020\uFEFF]*[=+\-@＝＋－＠]/u.test(text);
+        const safeText = formulaLike ? `\t${text}` : text;
         return `"${safeText.replace(/"/g, '""')}"`;
       };
-      const csvContent = `\\uFEFF${[headers, ...rows].map(row => row.map(escapeCsvCell).join(',')).join('\\n')}`;
+      const csvContent = `\uFEFF${[headers, ...rows].map(row => row.map(escapeCsvCell).join(',')).join('\n')}`;
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       
