@@ -155,7 +155,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           courseId: s.course_id,
           courseName: course ? course.name : 'Unknown Course',
           batchId: batchId,
-          batch: batchObj ? `${batchObj.name} (${batchObj.timing})` : 'Unassigned Batch',
+          batch: batchObj ? `${batchObj.name} (${batchObj.timing})` : (s.batch || 'Unassigned Batch'),
           totalFees: Number(s.course_fee),
           feesPaid: paidByStudent[s.id] ?? 0,
           feesDue: Math.max(0, Number(s.course_fee) - (paidByStudent[s.id] ?? 0)),
@@ -311,7 +311,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           course_fee: studentData.totalFees,
           discount: 0,
           status: studentData.status
-        });
+        }, studentData.batch);
 
         // Save batch mapping
         if (studentData.batch) {
@@ -407,7 +407,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (updatedFields.status) dbUpdates.status = updatedFields.status;
 
         if (Object.keys(dbUpdates).length > 0) {
-          await studentService.updateStudent(id, dbUpdates);
+          await studentService.updateStudent(id, dbUpdates, updatedFields.batch);
         }
 
         // Save batch mapping if modified
