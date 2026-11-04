@@ -48,14 +48,47 @@ interface AuthContextValue {
 const ACTIVE_INSTITUTE_KEY = 'edulegder.activeInstituteId';
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function readSessionValue(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionValue(key: string, value: string) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    // Persisting the active institute is optional; React state remains authoritative.
+  }
+}
+
+function removeSessionValue(key: string) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // Storage can be disabled by browser privacy settings.
+  }
+}
+
 function clearAppData() {
-  for (const key of Object.keys(localStorage)) {
-    if (key.startsWith('eduledger_')) localStorage.removeItem(key);
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('eduledger_')) localStorage.removeItem(key);
+    }
+  } catch {
+    // Clearing cached data must not interrupt sign-in or sign-out.
   }
-  for (const key of Object.keys(sessionStorage)) {
-    if (key.startsWith('eduledger.pendingPayment:')) sessionStorage.removeItem(key);
+
+  try {
+    for (const key of Object.keys(sessionStorage)) {
+      if (key.startsWith('eduledger.pendingPayment:')) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // Storage cleanup is best-effort; server-side tenant access is still enforced by RLS.
   }
-  sessionStorage.removeItem(ACTIVE_INSTITUTE_KEY);
+  removeSessionValue(ACTIVE_INSTITUTE_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -146,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setMemberships(nextMemberships);
-    const storedInstituteId = sessionStorage.getItem(ACTIVE_INSTITUTE_KEY);
+    const storedInstituteId = readSessionValue(ACTIVE_INSTITUTE_KEY);
     const storedMembership = nextMemberships.find(item => item.instituteId === storedInstituteId);
 
     if (storedMembership) {
@@ -155,11 +188,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (nextMemberships.length === 1) {
       setActiveInstituteId(nextMemberships[0].instituteId);
       setRequestInstituteId(nextMemberships[0].instituteId);
-      sessionStorage.setItem(ACTIVE_INSTITUTE_KEY, nextMemberships[0].instituteId);
+      writeSessionValue(ACTIVE_INSTITUTE_KEY, nextMemberships[0].instituteId);
     } else {
       setActiveInstituteId(null);
       setRequestInstituteId(null);
-      sessionStorage.removeItem(ACTIVE_INSTITUTE_KEY);
+      removeSessionValue(ACTIVE_INSTITUTE_KEY);
     }
 
     setStatus('ready');
@@ -198,7 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const instituteId = String(data?.institute_id ?? '');
     if (!instituteId) throw new Error('The invitation did not return a valid institute.');
     await refreshMemberships();
-    sessionStorage.setItem(ACTIVE_INSTITUTE_KEY, instituteId);
+    writeSessionValue(ACTIVE_INSTITUTE_KEY, instituteId);
     setActiveInstituteId(instituteId);
     setRequestInstituteId(instituteId);
   }, [refreshMemberships]);
@@ -213,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const membership = memberships.find(item => item.instituteId === instituteId);
     if (!membership) throw new Error('You are not a member of that institute.');
     if (activeInstituteId !== instituteId) clearAppData();
-    sessionStorage.setItem(ACTIVE_INSTITUTE_KEY, instituteId);
+    writeSessionValue(ACTIVE_INSTITUTE_KEY, instituteId);
     setActiveInstituteId(instituteId);
     setRequestInstituteId(instituteId);
   }, [activeInstituteId, memberships]);
@@ -229,7 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshMemberships();
     if (data) {
       const instituteId = String(data);
-      sessionStorage.setItem(ACTIVE_INSTITUTE_KEY, instituteId);
+      writeSessionValue(ACTIVE_INSTITUTE_KEY, instituteId);
       setActiveInstituteId(instituteId);
       setRequestInstituteId(instituteId);
     }
