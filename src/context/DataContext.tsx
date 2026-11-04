@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Course, Student, Payment, Reminder, Installment, getStoredData } from '../data/mockData';
+import { Course, Student, Payment, Reminder, Installment, getStoredData, setStoredValue } from '../data/mockData';
 import { ToastMessage, ToastContainer } from '../components/Toast';
 import { ConfirmConfig, ConfirmationDialog } from '../components/ConfirmationDialog';
 
@@ -219,7 +219,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Save reminders to local storage whenever they change
   useEffect(() => {
-    if (!isSupabaseConfigured) localStorage.setItem('eduledger_reminders', JSON.stringify(data.reminders));
+    if (!isSupabaseConfigured) setStoredValue('eduledger_reminders', data.reminders);
   }, [data.reminders]);
 
   // Toast helpers
@@ -234,6 +234,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const removeToast = (id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
+
+  useEffect(() => {
+    const warnStorageUnavailable = () => {
+      showToast('Browser storage is unavailable. Demo changes will stay only until this tab closes or reloads.', 'warning');
+    };
+    window.addEventListener('eduledger:storage-unavailable', warnStorageUnavailable);
+    return () => window.removeEventListener('eduledger:storage-unavailable', warnStorageUnavailable);
+  }, []);
 
   // Dialog helpers
   const confirmAction = (config: Omit<ConfirmConfig, 'isOpen'>) => {
@@ -548,10 +556,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
     const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
     const storageKey = `eduledger.pendingPayment:${requestKey}`;
-    let idempotencyKey = sessionStorage.getItem(storageKey);
+    let idempotencyKey: string | null = null;
+    try {
+      idempotencyKey = sessionStorage.getItem(storageKey);
+    } catch {
+      // Keep a same-tab key below when session storage is unavailable.
+    }
     if (!idempotencyKey) {
       idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      sessionStorage.setItem(storageKey, idempotencyKey);
+      try {
+        sessionStorage.setItem(storageKey, idempotencyKey);
+      } catch {
+        // The current payment call can still complete; backend calls keep their key in this closure.
+      }
     }
 
     const result = await paymentService.recordPaymentAtomic({
@@ -563,7 +580,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       remarks: [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | '),
       idempotencyKey,
     });
-    sessionStorage.removeItem(storageKey);
+    try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional after the request completes. */ }
 
     const newPayment: Payment = {
       ...paymentData,
