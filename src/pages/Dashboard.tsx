@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
+import { isDemoMode } from '../lib/supabase';
 
 export const Dashboard: React.FC = () => {
   const { students, payments, courses, installments, settings, sendReminder, showToast } = useData();
@@ -147,7 +148,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">Here is a summary of {settings?.instituteName || 'EduLedger'} ERP database statistics.</p>
+          <p className="text-sm text-slate-500 mt-1">Tuition, collection, and outstanding balance overview for {settings?.instituteName || 'your institute'}.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -182,7 +183,7 @@ export const Dashboard: React.FC = () => {
             <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalRevenue.toLocaleString('en-IN')}</h3>
             <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>+18.4% monthly</span>
+              <span>{payments.length} payments recorded</span>
             </div>
           </div>
           <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600"></div>
@@ -468,17 +469,25 @@ export const Dashboard: React.FC = () => {
                   {/* Actions buttons */}
                   <div className="grid grid-cols-2 gap-2 mt-0.5">
                     <a
-                      href={`https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(
+                      href={isDemoMode ? undefined : `https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(
                         (settings?.whatsappReminderTemplate || 'Dear {ParentName}, this is a gentle reminder that an outstanding fee of {Amount} is due for {StudentName}.')
                           .replace(/{ParentName}/g, student.parentName)
                           .replace(/{StudentName}/g, student.name)
                           .replace(/{Amount}/g, `${settings?.currencySymbol || '₹'}${student.feesDue.toLocaleString('en-IN')}`)
-                          .replace(/{DueDate}/g, 'N/A')
+                          .replace(/{DueDate}/g, installments
+                            .filter(item => item.studentId === student.id && item.status !== 'Paid')
+                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate || 'N/A')
                           .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger')
                       )}`}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => {
+                      aria-disabled={isDemoMode}
+                      onClick={event => {
+                        if (isDemoMode) {
+                          event.preventDefault();
+                          showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                          return;
+                        }
                         void sendReminder(student.id, 'WhatsApp').then(() => {
                           showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
                         }).catch((error: unknown) => {
