@@ -11,7 +11,7 @@ RETURNS UUID
 LANGUAGE plpgsql
 IMMUTABLE
 SET search_path = ''
-AS $
+AS $$
 BEGIN
   RETURN p_val::uuid;
 EXCEPTION WHEN invalid_text_representation THEN
@@ -24,7 +24,7 @@ RETURNS NUMERIC
 LANGUAGE plpgsql
 IMMUTABLE
 SET search_path = ''
-AS $
+AS $$
 BEGIN
   RETURN p_val::numeric;
 EXCEPTION WHEN invalid_text_representation THEN
@@ -80,10 +80,7 @@ $$;
 ALTER FUNCTION private.is_member_of(UUID, TEXT[]) OWNER TO postgres;
 REVOKE ALL ON FUNCTION private.is_member_of(UUID, TEXT[]) FROM PUBLIC, anon, authenticated;
 
--- Seed Default Development Institute
-INSERT INTO public.institutes (id, name, slug)
-VALUES ('00000000-0000-0000-0000-000000000001', 'EduLedger Academy (Dev)', 'dev-institute')
-ON CONFLICT (id) DO NOTHING;
+-- Clean production install: do not seed a demo institute or owner.
 
 -- Migration Support Tables
 CREATE TABLE IF NOT EXISTS public._migration_batch_id_map (
