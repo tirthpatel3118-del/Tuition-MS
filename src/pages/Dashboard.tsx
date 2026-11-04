@@ -35,12 +35,15 @@ export const Dashboard: React.FC = () => {
     .filter(inst => inst.status !== 'Paid')
     .reduce((sum, inst) => sum + inst.amount, 0);
 
-  // Today's date relative to Temporal Context: 2026-07-06
-  const todayStr = '2026-07-06';
-  const today = new Date(todayStr);
+  // Use the browser's local calendar date so due totals stay correct across time zones.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const toDateKey = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const todayStr = toDateKey(today);
   const sevenDaysLater = new Date(today);
   sevenDaysLater.setDate(today.getDate() + 7);
-  const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
+  const sevenDaysLaterStr = toDateKey(sevenDaysLater);
 
   // Today's Due: Pending or Overdue installments due today (or overdue in the past)
   const todaysDue = (installments || [])
@@ -65,16 +68,15 @@ export const Dashboard: React.FC = () => {
     ? Math.round((totalRevenue / totalFeesExpected) * 100) 
     : 0;
 
-  // 2. Prepare Data for Monthly Revenue Trend Chart (Custom Interactive SVG Chart)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-  const monthlyRevenueMap: { [key: string]: number } = {
-    'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0
-  };
+  // 2. Prepare year-to-date monthly revenue for the interactive SVG chart.
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = monthNames.slice(0, today.getMonth() + 1);
+  const monthlyRevenueMap: Record<string, number> = Object.fromEntries(months.map(month => [month, 0]));
 
   payments.forEach(p => {
-    const monthIndex = parseInt(p.paymentDate.split('-')[1], 10);
-    if (!isNaN(monthIndex) && monthIndex >= 1 && monthIndex <= 7) {
-      const monthName = months[monthIndex - 1];
+    const [paymentYear, paymentMonth] = p.paymentDate.split('-').map(Number);
+    if (paymentYear === today.getFullYear() && paymentMonth >= 1 && paymentMonth <= months.length) {
+      const monthName = months[paymentMonth - 1];
       monthlyRevenueMap[monthName] += p.amount;
     }
   });
@@ -278,7 +280,7 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-base">Collection History (2026)</h3>
+              <h3 className="font-bold text-slate-800 text-base">Collection History ({today.getFullYear()})</h3>
               <p className="text-xs text-slate-400">Monthly aggregate collection performance.</p>
             </div>
             <div className="flex items-center gap-2">
