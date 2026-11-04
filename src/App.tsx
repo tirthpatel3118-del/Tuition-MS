@@ -6,7 +6,7 @@ import { Sidebar } from './components/Sidebar';
 import { Menu, RotateCcw, Bell, LogOut } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
-import { AuthLoading, AuthPage, CreateInstitutePage, SelectInstitutePage } from './pages/AuthPages';
+import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -142,6 +142,9 @@ function AppEntry() {
   const location = useLocation();
   const isInvitationRoute = location.pathname === '/accept-invitation';
 
+  if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
+  if (location.pathname === '/terms') return <TermsPage />;
+
   if (!auth.configured) {
     if (import.meta.env.PROD && !isDemoMode) {
       return (
@@ -162,6 +165,9 @@ function AppEntry() {
     return <AuthLoading />;
   }
 
+  if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
+  if (location.pathname === '/reset-password') return <PasswordResetPage />;
+
   if (auth.status === 'signed-out') return <AuthPage />;
 
   if (auth.status === 'error') {
@@ -178,6 +184,7 @@ function AppEntry() {
   }
 
   if (isInvitationRoute) return <InvitationAcceptancePage />;
+  if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
 
   if (auth.memberships.length === 0) return <CreateInstitutePage />;
   if (!auth.activeMembership) return <SelectInstitutePage />;
