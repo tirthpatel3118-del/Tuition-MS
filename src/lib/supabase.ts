@@ -9,9 +9,15 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 // send requests to the configured Supabase project.
 const DEMO_SESSION_KEY = 'eduledger_demo_mode';
 const requestedDemoMode = new URLSearchParams(window.location.search).get('demo') === '1';
-if (requestedDemoMode) sessionStorage.setItem(DEMO_SESSION_KEY, '1');
+let storedDemoMode = false;
+try {
+  storedDemoMode = sessionStorage.getItem(DEMO_SESSION_KEY) === '1';
+  if (requestedDemoMode) sessionStorage.setItem(DEMO_SESSION_KEY, '1');
+} catch {
+  // The explicit query parameter is enough to keep this tab in demo mode.
+}
 
-export const isDemoMode = requestedDemoMode || sessionStorage.getItem(DEMO_SESSION_KEY) === '1';
+export const isDemoMode = requestedDemoMode || storedDemoMode;
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey) && !isDemoMode;
 
 // Keep the demo build usable without credentials. No request is made unless a
