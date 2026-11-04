@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Batch } from '../types';
-import { getStoredData, saveStoredData } from '../data/mockData';
+import { getStoredData, getStoredValue, saveStoredData } from '../data/mockData';
 import { requireActiveInstituteId } from '../lib/tenant';
 
 const useSupabase = isSupabaseConfigured;
@@ -136,7 +136,12 @@ export const batchService = {
   },
 
   async getStudentBatches(): Promise<Record<string, string>> {
-    if (!useSupabase) return JSON.parse(localStorage.getItem('eduledger_student_batches') || '{}');
+    if (!useSupabase) {
+      const stored = getStoredValue<unknown>('eduledger_student_batches', {});
+      return stored && typeof stored === 'object' && !Array.isArray(stored)
+        ? stored as Record<string, string>
+        : {};
+    }
 
     const instituteId = requireActiveInstituteId();
     const { data, error } = await supabase
