@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Menu, RotateCcw, Bell, LogOut } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
+import { isDemoMode } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, SelectInstitutePage } from './pages/AuthPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 
@@ -35,6 +36,11 @@ function AppContent() {
 
       {/* Main App Container */}
       <div className="flex-1 flex flex-col min-w-0">
+        {isDemoMode && (
+          <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
+            Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
+          </div>
+        )}
         {/* Top Navigation Bar */}
         <header className="bg-white border-b border-slate-100 h-16 flex items-center justify-between px-6 sticky top-0 z-30 select-none no-print">
           {/* Left header: mobile toggle & search */}
@@ -137,7 +143,7 @@ function AppEntry() {
   const isInvitationRoute = location.pathname === '/accept-invitation';
 
   if (!auth.configured) {
-    if (import.meta.env.PROD) {
+    if (import.meta.env.PROD && !isDemoMode) {
       return (
         <main className="min-h-screen bg-slate-50 px-4 flex items-center justify-center">
           <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
