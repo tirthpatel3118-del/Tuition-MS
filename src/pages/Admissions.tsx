@@ -440,7 +440,7 @@ export const Admissions: React.FC = () => {
 
     let nextDueMonth = 'N/A';
     if (earliestDueInst) {
-      const date = new Date(earliestDueInst.dueDate);
+      const date = new Date(`${earliestDueInst.dueDate}T00:00:00`);
       if (!isNaN(date.getTime())) {
         nextDueMonth = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       }
@@ -450,7 +450,7 @@ export const Admissions: React.FC = () => {
       total: student.totalFees,
       paid: student.feesPaid,
       due: student.feesDue,
-      lastPaymentDate: lastPay ? lastPay.paymentDate : 'No payments',
+      lastPaymentDate: lastPay ? formatDateForDisplay(lastPay.paymentDate, settings?.dateFormat) : 'No payments',
       nextDueMonth
     };
   };
