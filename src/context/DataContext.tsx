@@ -648,7 +648,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         student: studentsWithFees.find(student => student.id === installment.studentId),
       }))
       .filter((item): item is { installment: Installment; amountDue: number; student: Student } => Boolean(item.student && item.amountDue > 0));
-    const created = await reminderService.createManyReminders(selected.map(({ installment, student, amountDue }) => ({
+    const created = await reminderService.createManyReminders(selected.map(({ student, amountDue }) => ({
       studentId: student.id,
       amountDue,
       channel: type,
