@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -13,6 +13,10 @@ export function AuthFrame({ title, description, children }: { title: string; des
           <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
         </div>
         {children}
+        <nav aria-label="Legal" className="mt-8 flex justify-center gap-4 border-t border-slate-100 pt-5 text-xs text-slate-500">
+          <Link to="/privacy" className="hover:text-blue-700">Privacy policy</Link>
+          <Link to="/terms" className="hover:text-blue-700">Terms of use</Link>
+        </nav>
       </section>
     </main>
   );
@@ -32,8 +36,9 @@ export function AuthLoading({ message = 'Checking your secure workspace…' }: {
 export function AuthPage() {
   const { signIn, signUp, error: authError } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const invitationFlow = location.pathname === '/accept-invitation' && Boolean(new URLSearchParams(location.search).get('token'));
-  const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
+  const mode = location.pathname === '/sign-up' ? 'sign-up' : 'sign-in';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,12 +93,85 @@ export function AuthPage() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         {mode === 'sign-in' ? 'New to EduLedger?' : 'Already have an account?'}{' '}
-        <button type="button" onClick={() => { setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in'); setFormError(''); setMessage(''); }} className="font-semibold text-blue-600 hover:text-blue-700">
+        <Link to={mode === 'sign-in' ? '/sign-up' : '/sign-in'} className="font-semibold text-blue-600 hover:text-blue-700">
           {mode === 'sign-in' ? 'Create an account' : 'Sign in'}
-        </button>
+        </Link>
       </p>
+      {mode === 'sign-in' && !invitationFlow && <p className="mt-3 text-center"><Link to="/forgot-password" className="text-sm font-semibold text-blue-600 hover:text-blue-700">Forgot your password?</Link></p>}
     </AuthFrame>
   );
+}
+
+export function ForgotPasswordPage() {
+  const { requestPasswordReset } = useAuth();
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setBusy(true); setError('');
+    try { await requestPasswordReset(email); setSent(true); }
+    catch (value) { setError(value instanceof Error ? value.message : 'Could not send the recovery email. Please try again.'); }
+    finally { setBusy(false); }
+  };
+  return <AuthFrame title="Reset your password" description="Enter your account email and we’ll send a secure password reset link.">
+    {sent ? <div role="status" className="rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">If an account matches that email, a recovery link is on its way. Check your inbox and spam folder.</div> : <form onSubmit={submit} className="space-y-4">
+      <label className="block text-sm font-semibold text-slate-700">Email address<input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
+      {error && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error}</p>}
+      <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">{busy ? 'Sending…' : 'Send reset link'}</button>
+    </form>}
+    <p className="mt-5 text-center text-sm"><Link to="/sign-in" className="font-semibold text-blue-600 hover:text-blue-700">Back to sign in</Link></p>
+  </AuthFrame>;
+}
+
+export function PasswordResetPage() {
+  const { session, updatePassword, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState(''); const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState(''); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setError('');
+    if (password !== confirm) { setError('The passwords do not match.'); return; }
+    setBusy(true);
+    try { await updatePassword(password); setDone(true); }
+    catch (value) { setError(value instanceof Error ? value.message : 'Could not update the password. Request a new reset link and try again.'); }
+    finally { setBusy(false); }
+  };
+  if (!session) return <AuthFrame title="Reset link unavailable" description="This link may have expired or already been used. Request a new password reset link to continue."><Link to="/forgot-password" className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-bold text-white">Request a new link</Link></AuthFrame>;
+  if (done) return <AuthFrame title="Password updated" description="Your password has been changed. Sign in with your new password to continue."><button onClick={async () => { await signOut(); navigate('/sign-in', { replace: true }); }} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Continue to sign in</button></AuthFrame>;
+  return <AuthFrame title="Choose a new password" description="Use at least 8 characters for your new password."><form onSubmit={submit} className="space-y-4">
+    <label className="block text-sm font-semibold text-slate-700">New password<input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
+    <label className="block text-sm font-semibold text-slate-700">Confirm new password<input required minLength={8} type="password" autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
+    {error && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error}</p>}
+    <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy ? 'Updating…' : 'Update password'}</button>
+  </form></AuthFrame>;
+}
+
+export function PrivacyPolicyPage() {
+  return <AuthFrame title="Privacy policy" description="How EduLedger handles information when you use the tuition management workspace.">
+    <div className="max-h-[55vh] space-y-4 overflow-y-auto pr-2 text-sm leading-6 text-slate-600">
+      <p><strong>Last updated: November 4, 2026.</strong> This policy is a product disclosure draft. The institute operating EduLedger should publish its legal name and contact details before inviting real students.</p>
+      <h2 className="font-bold text-slate-900">Information in the workspace</h2><p>Depending on enabled features, the service may hold account details, institute and staff records, student and guardian details, course enrolments, attendance, fee balances, payment entries, receipts, and reminder notes. Do not enter sensitive personal data that is not needed to run the institute.</p>
+      <h2 className="font-bold text-slate-900">How information is used</h2><p>Workspace information is used to provide institute administration, display records to authorized users, maintain receipts and payment history, and support account security. Payments recorded in the app are administrative records; this does not itself process a card or bank transfer.</p>
+      <h2 className="font-bold text-slate-900">Storage, access and security</h2><p>When connected, data is intended to be stored in the institute’s configured Supabase database with access controlled by account membership and database policies. The current deployment may be unconnected or use browser demo data. Final hosting, backup, retention, and security practices must be confirmed by the operator before production use.</p>
+      <h2 className="font-bold text-slate-900">Sharing and retention</h2><p>We do not describe or promise specific third-party processing or retention periods here because the production hosting and operational configuration have not been verified. The institute administrator should set retention rules and explain any provider disclosures applicable to their deployment.</p>
+      <h2 className="font-bold text-slate-900">Your choices and contact</h2><p>Ask your institute administrator to access, correct, export, or delete records held in its workspace. Account deletion and data deletion may be separate. Add the responsible institute’s contact details here before public launch.</p>
+      <p>Questions about this policy should be directed to the institute operating this EduLedger workspace.</p>
+    </div>
+  </AuthFrame>;
+}
+
+export function TermsPage() {
+  return <AuthFrame title="Terms of use" description="Rules for using the EduLedger tuition management workspace.">
+    <div className="max-h-[55vh] space-y-4 overflow-y-auto pr-2 text-sm leading-6 text-slate-600">
+      <p><strong>Last updated: November 4, 2026.</strong> These terms are a draft for the institute operator to review and adopt with its legal and contact details before public use.</p>
+      <h2 className="font-bold text-slate-900">Workspace access</h2><p>Use an account assigned to you and keep your credentials secure. Institute owners are responsible for inviting appropriate staff, assigning access, and removing access when it is no longer needed.</p>
+      <h2 className="font-bold text-slate-900">Accurate records</h2><p>Keep student, attendance, fee, and payment records accurate. Verify financial entries against the institute’s source records. EduLedger is an administrative tool and does not replace accounting, tax, or legal advice.</p>
+      <h2 className="font-bold text-slate-900">Acceptable use</h2><p>Do not access another institute’s information, misuse personal data, interfere with the service, or upload information you do not have authority to use. Follow applicable privacy and education requirements.</p>
+      <h2 className="font-bold text-slate-900">Availability and data</h2><p>Availability, support, backups, export, and retention depend on the final deployment and are not guaranteed by this draft. Keep independent records until the operator has verified its backup and recovery process.</p>
+      <h2 className="font-bold text-slate-900">Operator details</h2><p>The institute operating this workspace should add its legal identity, contact information, jurisdiction, and any service-specific commitments before accepting these terms.</p>
+    </div>
+  </AuthFrame>;
 }
 
 export function CreateInstitutePage() {
