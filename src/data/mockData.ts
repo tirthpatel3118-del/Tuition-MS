@@ -32,7 +32,7 @@ export interface Installment {
   installmentNumber: number;
   dueDate: string;
   amount: number;
-  status: 'Pending' | 'Paid' | 'Overdue';
+  status: 'Pending' | 'Paid' | 'Overdue' | 'Partially_Paid';
   paymentId?: string | null;
   remarks?: string;
   createdAt: string;
