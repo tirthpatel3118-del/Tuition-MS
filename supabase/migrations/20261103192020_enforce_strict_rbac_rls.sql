@@ -215,7 +215,7 @@ REVOKE ALL ON public._migration_batch_id_map, public._migration_anomalies,
 
 -- Teacher roster is intentionally limited to academic fields and uses an explicit membership predicate.
 CREATE OR REPLACE VIEW public.academic_students
-WITH (security_barrier = true) AS
+WITH (security_barrier = true, security_invoker = true) AS
 SELECT s.id, s.institute_id, s.course_id, s.batch_id, s.roll_number,
        s.full_name, s.status, s.admission_date, s.created_at
 FROM public.students AS s
