@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Payment } from '../data/mockData';
+import { Installment, Payment } from '../data/mockData';
 import { 
   CreditCard, 
   Search, 
@@ -19,7 +19,7 @@ import { TableSkeleton } from '../components/TableSkeleton';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export const Payments: React.FC = () => {
-  const { students, payments, installments, recordPayment, showToast, confirmAction, settings } = useData();
+  const { students, payments, installments, installmentPaidTotals, recordPayment, showToast, confirmAction, settings } = useData();
   const [searchParams] = useSearchParams();
 
   // Tabs: 'ledger' | 'collect'
@@ -76,9 +76,7 @@ export const Payments: React.FC = () => {
         setSelectedStudentId(studentId);
         
         // Find pending/overdue installments for this student
-        const studentInsts = installments.filter(
-          inst => inst.studentId === studentId && inst.status !== 'Paid'
-        ).sort((a, b) => a.installmentNumber - b.installmentNumber);
+        const studentInsts = getUnpaidInstallments(studentId);
 
         if (studentInsts.length > 0) {
           setSelectedInstallmentId(studentInsts[0].id);
@@ -90,10 +88,18 @@ export const Payments: React.FC = () => {
         setActiveTab('collect');
       }
     }
-  }, [searchParams, students, installments]);
+  }, [searchParams, students, installments, installmentPaidTotals]);
 
   // Selected student details for validation & helpers
   const selectedStudent = students.find(s => s.id === selectedStudentId);
+  const outstandingInstallmentAmount = (installment: Installment) =>
+    Math.max(0, Number(installment.amount) - (installmentPaidTotals[installment.id] ?? 0));
+  const getUnpaidInstallments = (studentId: string) => installments
+    .filter(installment => installment.studentId === studentId
+      && installment.status !== 'Paid'
+      && outstandingInstallmentAmount(installment) > 0)
+    .sort((a, b) => a.installmentNumber - b.installmentNumber);
+  const selectedStudentInstallments = getUnpaidInstallments(selectedStudentId);
 
   // Filter students based on search term
   const eligibleStudents = students.filter(s => s.status !== 'Inactive' && s.feesDue > 0);
@@ -175,9 +181,7 @@ export const Payments: React.FC = () => {
     setFormErrors(prev => ({ ...prev, studentId: '' }));
     
     // Find pending/overdue installments for this student
-    const studentInsts = installments.filter(
-      inst => inst.studentId === studentId && inst.status !== 'Paid'
-    ).sort((a, b) => a.installmentNumber - b.installmentNumber);
+    const studentInsts = getUnpaidInstallments(studentId);
 
     if (studentInsts.length > 0) {
       setSelectedInstallmentId(studentInsts[0].id);
@@ -193,7 +197,7 @@ export const Payments: React.FC = () => {
     setFormErrors(prev => ({ ...prev, installmentId: '' }));
     const inst = installments.find(i => i.id === instId);
     if (inst) {
-      setPaymentAmount(String(inst.amount));
+      setPaymentAmount(String(outstandingInstallmentAmount(inst)));
     }
   };
 
@@ -204,9 +208,7 @@ export const Payments: React.FC = () => {
     }
 
     // Check if the student has pending installments, and one must be selected
-    const studentInsts = installments.filter(
-      inst => inst.studentId === selectedStudentId && inst.status !== 'Paid'
-    );
+    const studentInsts = getUnpaidInstallments(selectedStudentId);
     if ((studentInsts.length > 0 || isSupabaseConfigured) && !selectedInstallmentId) {
       errors.installmentId = 'Please select which installment this payment is for';
     }
@@ -217,8 +219,9 @@ export const Payments: React.FC = () => {
     } else if (selectedStudent) {
       if (selectedInstallmentId) {
         const targetInst = installments.find(i => i.id === selectedInstallmentId);
-        if (targetInst && amountNum > targetInst.amount) {
-          errors.amount = `Amount exceeds selected installment value of ${settings?.currencySymbol || '₹'}${targetInst.amount.toLocaleString('en-IN')}`;
+        const outstandingAmount = targetInst ? outstandingInstallmentAmount(targetInst) : 0;
+        if (targetInst && amountNum > outstandingAmount) {
+          errors.amount = `Amount exceeds selected installment balance of ${settings?.currencySymbol || '₹'}${outstandingAmount.toLocaleString('en-IN')}`;
         }
       } else if (amountNum > selectedStudent.feesDue) {
         errors.amount = `Amount exceeds outstanding student due of ${settings?.currencySymbol || '₹'}${selectedStudent.feesDue.toLocaleString('en-IN')}`;
@@ -706,15 +709,12 @@ export const Payments: React.FC = () => {
                     onChange={(e) => handleInstallmentChange(e.target.value)}
                     className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.installmentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   >
-                    {installments.filter(inst => inst.studentId === selectedStudentId && inst.status !== 'Paid').length > 0 ? (
+                    {selectedStudentInstallments.length > 0 ? (
                       <>
                         <option value="">-- Choose Installment --</option>
-                        {installments
-                          .filter(inst => inst.studentId === selectedStudentId && inst.status !== 'Paid')
-                          .sort((a, b) => a.installmentNumber - b.installmentNumber)
-                          .map(inst => (
+                        {selectedStudentInstallments.map(inst => (
                             <option key={inst.id} value={inst.id}>
-                              Installment #{inst.installmentNumber} — {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')} (Due: {inst.dueDate}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                              Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {inst.dueDate}) {inst.remarks ? `[${inst.remarks}]` : ''}
                             </option>
                           ))
                         }
