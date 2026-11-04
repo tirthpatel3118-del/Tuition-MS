@@ -1,5 +1,6 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { AppSettings } from '../types';
+import { getStoredValue } from '../data/mockData';
 import { requireActiveInstituteId } from '../lib/tenant';
 
 const useSupabase = isSupabaseConfigured;
@@ -70,7 +71,12 @@ export const settingsService = {
   },
 
   async getCourseFees(): Promise<Record<string, number>> {
-    if (!useSupabase) return JSON.parse(localStorage.getItem(LOCAL_COURSE_FEES_KEY) || '{}');
+    if (!useSupabase) {
+      const stored = getStoredValue<unknown>(LOCAL_COURSE_FEES_KEY, {});
+      return stored && typeof stored === 'object' && !Array.isArray(stored)
+        ? stored as Record<string, number>
+        : {};
+    }
 
     const instituteId = requireActiveInstituteId();
     const { data, error } = await supabase
