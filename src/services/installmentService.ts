@@ -144,45 +144,12 @@ export const installmentService = {
   ): Promise<void> {
     if (useSupabase) {
       const instituteId = requireActiveInstituteId();
-      const { data, error } = await supabase
-        .from('installments')
-        .select('id, installment_number, status')
-        .eq('student_id', studentId)
-        .eq('institute_id', instituteId);
+      const { error } = await supabase.rpc('reconcile_pending_installments_atomic', {
+        p_institute_id: instituteId,
+        p_student_id: studentId,
+        p_desired_installments: desired,
+      });
       if (error) throw error;
-
-      const existingPending = (data ?? []).filter(row => row.status === 'Pending');
-      const desiredByNumber = new Map(desired.map(item => [item.installment_number, item]));
-      for (const existing of existingPending) {
-        const replacement = desiredByNumber.get(existing.installment_number);
-        if (!replacement) {
-          const { error: deleteError } = await supabase.from('installments').delete()
-            .eq('id', existing.id).eq('institute_id', instituteId).eq('status', 'Pending');
-          if (deleteError) throw deleteError;
-          continue;
-        }
-        const { error: updateError } = await supabase.from('installments').update({
-          due_date: replacement.due_date,
-          amount: replacement.amount,
-          remarks: replacement.remarks ?? null,
-        }).eq('id', existing.id).eq('institute_id', instituteId).eq('status', 'Pending');
-        if (updateError) throw updateError;
-        desiredByNumber.delete(existing.installment_number);
-      }
-      const additions = [...desiredByNumber.values()];
-      if (additions.length) {
-        const { error: insertError } = await supabase.from('installments').insert(additions.map(item => ({
-          institute_id: instituteId,
-          student_id: studentId,
-          installment_number: item.installment_number,
-          due_date: item.due_date,
-          amount: item.amount,
-          status: 'Pending',
-          payment_id: null,
-          remarks: item.remarks ?? null,
-        })));
-        if (insertError) throw insertError;
-      }
     } else {
       const mockData = getStoredData();
       const all: UiInstallment[] = mockData.installments || [];
@@ -210,6 +177,8 @@ export const installmentService = {
       }
       saveStoredData({ ...mockData, installments: [...preserved, ...reconciled] });
     }
+  },
+
   }
 };
 
