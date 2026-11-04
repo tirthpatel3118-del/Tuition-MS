@@ -38,6 +38,8 @@ interface AuthContextValue {
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   selectInstitute: (instituteId: string) => void;
   createInstitute: (name: string, slug: string) => Promise<void>;
@@ -218,11 +220,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         data: { full_name: fullName.trim() },
-        emailRedirectTo: window.location.href,
+        emailRedirectTo: `${window.location.origin}/`,
       },
     });
     if (signUpError) throw signUpError;
     return !data.session;
+  }, []);
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (resetError) throw resetError;
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    if (updateError) throw updateError;
   }, []);
 
   const acceptInvitation = useCallback(async (token: string) => {
@@ -279,12 +293,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     signIn,
     signUp,
+    requestPasswordReset,
+    updatePassword,
     signOut,
     selectInstitute,
     createInstitute,
     refreshMemberships,
     acceptInvitation,
-  }), [configured, status, session, memberships, activeMembership, error, signIn, signUp, signOut, selectInstitute, createInstitute, refreshMemberships, acceptInvitation]);
+  }), [configured, status, session, memberships, activeMembership, error, signIn, signUp, requestPasswordReset, updatePassword, signOut, selectInstitute, createInstitute, refreshMemberships, acceptInvitation]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
