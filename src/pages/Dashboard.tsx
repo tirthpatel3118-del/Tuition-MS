@@ -65,8 +65,11 @@ export const Dashboard: React.FC = () => {
     .filter(s => s.status !== 'Inactive')
     .reduce((sum, s) => sum + s.totalFees, 0);
 
-  const collectionRate = totalFeesExpected > 0 
-    ? Math.round((totalRevenue / totalFeesExpected) * 100) 
+  const totalFeesCollected = students
+    .filter(s => s.status !== 'Inactive')
+    .reduce((sum, s) => sum + s.feesPaid, 0);
+  const collectionRate = totalFeesExpected > 0
+    ? Math.round((totalFeesCollected / totalFeesExpected) * 100)
     : 0;
 
   // 2. Prepare year-to-date monthly revenue for the interactive SVG chart.
@@ -268,7 +271,7 @@ export const Dashboard: React.FC = () => {
           <div className="mt-4">
             <h3 className="text-2xl font-bold text-slate-800">{collectionRate}%</h3>
             <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
-              <span>Excellent Collection health</span>
+              <span>Collected from active students</span>
             </div>
           </div>
           <div className="absolute bottom-0 inset-x-0 h-1 bg-emerald-600"></div>
