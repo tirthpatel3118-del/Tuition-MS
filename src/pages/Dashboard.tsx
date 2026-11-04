@@ -15,6 +15,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
 import { isDemoMode } from '../lib/supabase';
+import { renderReminderTemplate } from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
   const { students, payments, courses, installments, settings, sendReminder, showToast } = useData();
@@ -141,6 +142,28 @@ export const Dashboard: React.FC = () => {
     .filter(s => s.feesDue > 0 && s.status === 'Active')
     .sort((a, b) => b.feesDue - a.feesDue)
     .slice(0, 4);
+
+  const buildReminderMessage = (student: typeof highDuesStudents[number]) => {
+    const nextInstallment = installments
+      .filter(item => item.studentId === student.id && item.status !== 'Paid')
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber)[0];
+    const installmentAmount = nextInstallment?.amount ?? student.feesDue;
+
+    return renderReminderTemplate(
+      settings?.whatsappReminderTemplate || 'Dear {ParentName}, this is a gentle reminder that Installment #{InstallmentNumber} of {Amount} is due on {DueDate} for {StudentName}. Please clear the dues. Thank you, {InstituteName}.',
+      {
+        studentName: student.name,
+        parentName: student.parentName,
+        installmentNumber: nextInstallment?.installmentNumber,
+        amount: installmentAmount,
+        installmentAmount,
+        dueDate: formatDateForDisplay(nextInstallment?.dueDate, settings?.dateFormat) || 'N/A',
+        remainingFee: student.feesDue,
+        instituteName: settings?.instituteName,
+        currencySymbol: settings?.currencySymbol,
+      }
+    );
+  };
 
   if (isLoading) {
     return <PageLoader />;
@@ -473,16 +496,7 @@ export const Dashboard: React.FC = () => {
                   {/* Actions buttons */}
                   <div className="grid grid-cols-2 gap-2 mt-0.5">
                     <a
-                      href={isDemoMode ? undefined : `https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(
-                        (settings?.whatsappReminderTemplate || 'Dear {ParentName}, this is a gentle reminder that an outstanding fee of {Amount} is due for {StudentName}.')
-                          .replace(/{ParentName}/g, student.parentName)
-                          .replace(/{StudentName}/g, student.name)
-                          .replace(/{Amount}/g, `${settings?.currencySymbol || '₹'}${student.feesDue.toLocaleString('en-IN')}`)
-                          .replace(/{DueDate}/g, formatDateForDisplay(installments
-                            .filter(item => item.studentId === student.id && item.status !== 'Paid')
-                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate, settings?.dateFormat) || 'N/A')
-                          .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger')
-                      )}`}
+                      href={isDemoMode ? undefined : `https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(buildReminderMessage(student))}`}
                       target="_blank"
                       rel="noreferrer"
                       aria-disabled={isDemoMode}
