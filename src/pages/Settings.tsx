@@ -39,10 +39,18 @@ export const Settings: React.FC = () => {
     return () => clearTimeout(timer);
   }, [settings]);
 
-  // Handle Base64 file reader for logo & signature
+  // Read an approved raster image into the settings form. Persistence happens when settings are saved.
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'authorizedSignatureUrl') => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
+
+    const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedImageTypes.includes(file.type)) {
+      showToast('Choose a PNG, JPEG, or WebP image.', 'error');
+      return;
+    }
 
     if (file.size > 2 * 1024 * 1024) {
       showToast('Image file size must be less than 2MB', 'error');
@@ -50,10 +58,11 @@ export const Settings: React.FC = () => {
     }
 
     const reader = new FileReader();
+    reader.onerror = () => showToast('Could not read the selected image.', 'error');
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         setFormData(prev => ({ ...prev, [field]: reader.result as string }));
-        showToast('Image uploaded and processed successfully!', 'success');
+        showToast('Image added to the form. Save settings to keep it.', 'info');
       }
     };
     reader.readAsDataURL(file);
@@ -295,7 +304,7 @@ export const Settings: React.FC = () => {
                         <input 
                           type="file" 
                           ref={logoInputRef}
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           onChange={(e) => handleImageUpload(e, 'logoUrl')}
                           className="hidden"
                         />
@@ -391,7 +400,7 @@ export const Settings: React.FC = () => {
                         <input 
                           type="file" 
                           ref={sigInputRef}
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           onChange={(e) => handleImageUpload(e, 'authorizedSignatureUrl')}
                           className="hidden"
                         />
