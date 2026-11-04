@@ -443,23 +443,29 @@ export const INITIAL_BATCHES: Batch[] = [
 ];
 
 // Helper functions for Local Storage
-export const getStoredData = () => {
-  const courses = localStorage.getItem('eduledger_courses');
-  const students = localStorage.getItem('eduledger_students');
-  const payments = localStorage.getItem('eduledger_payments');
-  const reminders = localStorage.getItem('eduledger_reminders');
-  const installments = localStorage.getItem('eduledger_installments');
-  const batches = localStorage.getItem('eduledger_batches');
-
-  return {
-    courses: courses ? JSON.parse(courses) : INITIAL_COURSES,
-    students: students ? JSON.parse(students) : INITIAL_STUDENTS,
-    payments: payments ? JSON.parse(payments) : INITIAL_PAYMENTS,
-    reminders: reminders ? JSON.parse(reminders) : INITIAL_REMINDERS,
-    installments: installments ? JSON.parse(installments) : INITIAL_INSTALLMENTS,
-    batches: batches ? JSON.parse(batches) : INITIAL_BATCHES,
-  };
+export const getStoredValue = <T,>(key: string, fallback: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored === null ? fallback : JSON.parse(stored) as T;
+  } catch {
+    // A damaged or unavailable browser store should not prevent demo startup.
+    return fallback;
+  }
 };
+
+const getStoredArray = <T,>(key: string, fallback: T[]): T[] => {
+  const stored = getStoredValue<unknown>(key, null);
+  return Array.isArray(stored) ? stored as T[] : fallback;
+};
+
+export const getStoredData = () => ({
+  courses: getStoredArray('eduledger_courses', INITIAL_COURSES),
+  students: getStoredArray('eduledger_students', INITIAL_STUDENTS),
+  payments: getStoredArray('eduledger_payments', INITIAL_PAYMENTS),
+  reminders: getStoredArray('eduledger_reminders', INITIAL_REMINDERS),
+  installments: getStoredArray('eduledger_installments', INITIAL_INSTALLMENTS),
+  batches: getStoredArray('eduledger_batches', INITIAL_BATCHES),
+});
 
 export const saveStoredData = (data: {
   courses?: Course[];
