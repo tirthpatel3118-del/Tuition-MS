@@ -6,10 +6,17 @@ import { requireActiveInstituteId } from '../lib/tenant';
 const useSupabase = isSupabaseConfigured;
 
 export const paymentService = {
-  async getAllocationTotalsByStudent(installments: Array<{ id: string; student_id: string }>): Promise<Record<string, number>> {
+  async getAllocationTotals(installments: Array<{ id: string; student_id: string }>): Promise<{
+    byStudent: Record<string, number>;
+    byInstallment: Record<string, number>;
+  }> {
     if (!useSupabase) {
       const stored = getStoredData();
-      return Object.fromEntries((stored.students as UiStudent[]).map(student => [student.id, student.feesPaid]));
+      return {
+        byStudent: Object.fromEntries((stored.students as UiStudent[]).map(student => [student.id, student.feesPaid])),
+        // In demo storage, a partial payment is already reflected in the installment amount.
+        byInstallment: {},
+      };
     }
 
     const instituteId = requireActiveInstituteId();
@@ -20,12 +27,16 @@ export const paymentService = {
     if (error) throw error;
 
     const studentByInstallment = new Map(installments.map(installment => [installment.id, installment.student_id]));
-    const totals: Record<string, number> = {};
+    const byStudent: Record<string, number> = {};
+    const byInstallment: Record<string, number> = {};
     for (const allocation of data ?? []) {
-      const studentId = studentByInstallment.get(allocation.installment_id);
-      if (studentId) totals[studentId] = (totals[studentId] ?? 0) + Number(allocation.allocated_amount);
+      const installmentId = allocation.installment_id;
+      const amount = Number(allocation.allocated_amount);
+      byInstallment[installmentId] = (byInstallment[installmentId] ?? 0) + amount;
+      const studentId = studentByInstallment.get(installmentId);
+      if (studentId) byStudent[studentId] = (byStudent[studentId] ?? 0) + amount;
     }
-    return totals;
+    return { byStudent, byInstallment };
   },
 
   async getPayments(): Promise<Payment[]> {
