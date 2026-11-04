@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { Installment, Payment } from '../data/mockData';
@@ -456,7 +457,7 @@ export const Payments: React.FC = () => {
                               {p.courseName}
                             </td>
                             <td className="px-5 py-3.5 text-slate-500">
-                              {p.paymentDate}
+                              {formatDateForDisplay(p.paymentDate, settings?.dateFormat)}
                             </td>
                             <td className="px-5 py-3.5">
                               <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] inline-block
@@ -715,7 +716,7 @@ export const Payments: React.FC = () => {
                         <option value="">-- Choose Installment --</option>
                         {selectedStudentInstallments.map(inst => (
                             <option key={inst.id} value={inst.id}>
-                              Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {inst.dueDate}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                              Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
                             </option>
                           ))
                         }

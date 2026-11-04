@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useEffect, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -226,7 +227,7 @@ export const Receipts: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 border-b border-slate-100 text-xs">
               <div>
                 <span className="text-slate-400 block font-semibold text-[10px] uppercase">Payment Date</span>
-                <span className="font-bold text-slate-800 mt-1 block">{activePayment.paymentDate}</span>
+                <span className="font-bold text-slate-800 mt-1 block">{formatDateForDisplay(activePayment.paymentDate, settings?.dateFormat)}</span>
               </div>
               <div>
                 <span className="text-slate-400 block font-semibold text-[10px] uppercase">Payment Method</span>
@@ -436,7 +437,7 @@ export const Receipts: React.FC = () => {
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                             {p.receiptNumber}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-semibold">{p.paymentDate}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold">{formatDateForDisplay(p.paymentDate, settings?.dateFormat)}</span>
                         </div>
 
                         <div className="py-4 space-y-1.5">

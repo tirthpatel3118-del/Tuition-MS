@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { 
@@ -477,9 +478,9 @@ export const Dashboard: React.FC = () => {
                           .replace(/{ParentName}/g, student.parentName)
                           .replace(/{StudentName}/g, student.name)
                           .replace(/{Amount}/g, `${settings?.currencySymbol || '₹'}${student.feesDue.toLocaleString('en-IN')}`)
-                          .replace(/{DueDate}/g, installments
+                          .replace(/{DueDate}/g, formatDateForDisplay(installments
                             .filter(item => item.studentId === student.id && item.status !== 'Paid')
-                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate || 'N/A')
+                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0]?.dueDate, settings?.dateFormat) || 'N/A')
                           .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger')
                       )}`}
                       target="_blank"

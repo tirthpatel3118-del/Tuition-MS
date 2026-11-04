@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -377,7 +378,7 @@ export const Reminders: React.FC = () => {
                                 {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}
                               </td>
                               <td className="px-4 py-3.5 text-center font-medium text-slate-600">
-                                {inst.dueDate}
+                                {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border

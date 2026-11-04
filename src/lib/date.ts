@@ -14,3 +14,25 @@ export function addMonthsToDateInput(value: string, months: number): string {
   target.setDate(Math.min(source.getDate(), lastDayOfTargetMonth));
   return formatLocalDateInput(target);
 }
+
+export function formatDateForDisplay(value: string | null | undefined, format = 'YYYY-MM-DD'): string {
+  if (!value) return '';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+
+  const [, year, month, day] = match;
+  const monthNumber = Number(month);
+  const dayNumber = Number(day);
+  const valid = monthNumber >= 1 && monthNumber <= 12 && dayNumber >= 1 && dayNumber <= new Date(Number(year), monthNumber, 0).getDate();
+  if (!valid) return value;
+
+  switch (format) {
+    case 'DD/MM/YYYY': return `${day}/${month}/${year}`;
+    case 'MM/DD/YYYY': return `${month}/${day}/${year}`;
+    case 'DD-MMM-YYYY': {
+      const monthName = new Date(Number(year), monthNumber - 1, 1).toLocaleString('en', { month: 'short' });
+      return `${day}-${monthName}-${year}`;
+    }
+    default: return value;
+  }
+}
