@@ -547,7 +547,7 @@ export const Settings: React.FC = () => {
                       <div className="flex flex-col gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={handleExportDatabase}
+                          onClick={handleExportWorkspaceSnapshot}
                           className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer"
                         >
                           <Database className="w-3.5 h-3.5 text-slate-400" />
