@@ -95,9 +95,10 @@ export const Receipts: React.FC = () => {
     window.print();
   };
 
-  // Download PDF simulation
-  const handleDownloadPDF = (receiptNo: string) => {
-    showToast(`Receipt PDF (${receiptNo}) downloaded successfully.`, 'success');
+  // Open the browser print dialog so the user can print or save this receipt as a PDF.
+  const handleSaveAsPDF = () => {
+    showToast('Choose “Save as PDF” in your browser print dialog to download this receipt.', 'info');
+    window.print();
   };
 
   // Filtered receipts list
@@ -361,11 +362,11 @@ export const Receipts: React.FC = () => {
               </button>
               
               <button 
-                onClick={() => handleDownloadPDF(activePayment.receiptNumber)}
+                onClick={handleSaveAsPDF}
                 className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
               >
                 <Download className="w-4 h-4 text-slate-400" />
-                <span>Download PDF</span>
+                <span>Save as PDF</span>
               </button>
             </div>
 
