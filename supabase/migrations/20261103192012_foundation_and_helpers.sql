@@ -10,7 +10,8 @@ CREATE OR REPLACE FUNCTION public.try_cast_uuid(p_val TEXT)
 RETURNS UUID
 LANGUAGE plpgsql
 IMMUTABLE
-AS $$
+SET search_path = ''
+AS $
 BEGIN
   RETURN p_val::uuid;
 EXCEPTION WHEN invalid_text_representation THEN
@@ -22,7 +23,8 @@ CREATE OR REPLACE FUNCTION public.try_cast_numeric(p_val TEXT)
 RETURNS NUMERIC
 LANGUAGE plpgsql
 IMMUTABLE
-AS $$
+SET search_path = ''
+AS $
 BEGIN
   RETURN p_val::numeric;
 EXCEPTION WHEN invalid_text_representation THEN
