@@ -148,7 +148,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">Tuition, collection, and outstanding balance overview for {settings?.instituteName || 'your institute'}.</p>
+          <p className="text-sm text-slate-500 mt-1">A snapshot of tuition, collections, and outstanding balances.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ export const Dashboard: React.FC = () => {
                       className="flex items-center justify-center gap-1 border border-emerald-250 bg-emerald-50/20 hover:bg-emerald-50/40 text-emerald-700 font-bold text-[10px] py-1.5 rounded-lg transition-all"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
-                      <span>WhatsApp</span>
+                      <span>{isDemoMode ? 'WhatsApp preview' : 'WhatsApp'}</span>
                     </a>
                     <button
                       onClick={() => navigate(`/payments?student=${student.id}`)}
