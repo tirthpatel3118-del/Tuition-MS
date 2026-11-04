@@ -11,6 +11,7 @@ import { installmentService } from '../services/installmentService';
 import { receiptService } from '../services/receiptService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getActiveInstituteId } from '../lib/tenant';
+import { formatLocalDateInput } from '../lib/date';
 
 import { AppSettings, Batch } from '../types';
 import { settingsService, DEFAULT_SETTINGS } from '../services/settingsService';
@@ -543,7 +544,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Select an installment before recording a payment. Payments must be allocated to a fee installment.');
     }
 
-    const paymentDate = new Date().toISOString().split('T')[0];
+    const paymentDate = formatLocalDateInput();
     const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
     const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
     const storageKey = `eduledger.pendingPayment:${requestKey}`;
