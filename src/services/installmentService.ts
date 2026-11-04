@@ -179,6 +179,4 @@ export const installmentService = {
     }
   },
 
-  }
 };
-
