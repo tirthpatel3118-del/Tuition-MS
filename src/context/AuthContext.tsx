@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -47,12 +48,24 @@ interface AuthContextValue {
   acceptInvitation: (token: string) => Promise<void>;
 }
 
-const ACTIVE_INSTITUTE_KEY = 'edulegder.activeInstituteId';
+const ACTIVE_INSTITUTE_KEY = 'eduledger.activeInstituteId';
+const LEGACY_ACTIVE_INSTITUTE_KEY = 'edulegder.activeInstituteId';
+const AUTH_REQUEST_TIMEOUT_MS = 20_000;
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function withTimeout<T>(request: PromiseLike<T>, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error(message)), AUTH_REQUEST_TIMEOUT_MS);
+    Promise.resolve(request).then(
+      value => { window.clearTimeout(timeout); resolve(value); },
+      error => { window.clearTimeout(timeout); reject(error); },
+    );
+  });
+}
 
 function readSessionValue(key: string): string | null {
   try {
-    return sessionStorage.getItem(key);
+    return sessionStorage.getItem(key) || sessionStorage.getItem(LEGACY_ACTIVE_INSTITUTE_KEY);
   } catch {
     return null;
   }
@@ -61,6 +74,7 @@ function readSessionValue(key: string): string | null {
 function writeSessionValue(key: string, value: string) {
   try {
     sessionStorage.setItem(key, value);
+    sessionStorage.setItem(LEGACY_ACTIVE_INSTITUTE_KEY, value);
   } catch {
     // Persisting the active institute is optional; React state remains authoritative.
   }
@@ -69,6 +83,7 @@ function writeSessionValue(key: string, value: string) {
 function removeSessionValue(key: string) {
   try {
     sessionStorage.removeItem(key);
+    sessionStorage.removeItem(LEGACY_ACTIVE_INSTITUTE_KEY);
   } catch {
     // Storage can be disabled by browser privacy settings.
   }
@@ -95,91 +110,49 @@ function clearAppData() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const configured = isSupabaseConfigured;
-  const [status, setStatus] = useState<AuthStatus>(configured ? 'loading' : 'demo');
-  const [session, setSession] = useState<Session | null>(null);
-  const [verifiedUserId, setVerifiedUserId] = useState<string | null>(null);
+  const [status, setStatusState] = useState<AuthStatus>(configured ? 'loading' : 'demo');
+  const [session, setSessionState] = useState<Session | null>(null);
+  const [verifiedUserId, setVerifiedUserIdState] = useState<string | null>(null);
   const [memberships, setMemberships] = useState<InstituteMembership[]>([]);
   const [activeInstituteId, setActiveInstituteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!configured) return;
+  // Synchronous refs to prevent stale closure reads during concurrent async operations
+  const statusRef = useRef<AuthStatus>(status);
+  const sessionRef = useRef<Session | null>(session);
+  const verifiedUserIdRef = useRef<string | null>(verifiedUserId);
 
-    // Keep this callback synchronous. Supabase auth callbacks must not await
-    // other Supabase operations; verification and membership reads run below.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      setSession(nextSession);
-      setError(null);
-      if (nextSession) {
-        if (event === 'SIGNED_IN') clearAppData();
-        setStatus('verifying');
-      } else {
-        clearAppData();
-        setVerifiedUserId(null);
-        setMemberships([]);
-        setActiveInstituteId(null);
-        setRequestInstituteId(null);
-        setStatus('signed-out');
-      }
-    });
+  const setStatus = useCallback((nextStatus: AuthStatus) => {
+    statusRef.current = nextStatus;
+    setStatusState(nextStatus);
+  }, []);
 
-    return () => subscription.unsubscribe();
-  }, [configured]);
+  const setSession = useCallback((nextSession: Session | null) => {
+    sessionRef.current = nextSession;
+    setSessionState(nextSession);
+  }, []);
+
+  const setVerifiedUserId = useCallback((nextUserId: string | null) => {
+    verifiedUserIdRef.current = nextUserId;
+    setVerifiedUserIdState(nextUserId);
+  }, []);
 
   useEffect(() => {
-    if (!configured || !session) return;
-    let cancelled = false;
+    statusRef.current = status;
+  }, [status]);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+  useEffect(() => {
+    verifiedUserIdRef.current = verifiedUserId;
+  }, [verifiedUserId]);
 
-    const verifySession = async () => {
-      const { data, error: verifyError } = await supabase.auth.getClaims(session.access_token);
-      if (cancelled) return;
-      if (verifyError || !data?.claims?.sub) {
-        setError('Your sign-in could not be verified. Please sign in again.');
-        setStatus('error');
-        await supabase.auth.signOut({ scope: 'local' });
-        return;
-      }
+  const bootstrapSeqRef = useRef(0);
+  const membershipRequests = useRef(new Map<string, { id: number; promise: Promise<void> }>());
+  const membershipRequestId = useRef(0);
 
-      setVerifiedUserId(String(data.claims.sub));
-      setStatus('loading-memberships');
-    };
-
-    void verifySession().catch((verificationError: unknown) => {
-      if (cancelled) return;
-      setError(verificationError instanceof Error ? verificationError.message : 'Unable to verify your sign-in.');
-      setStatus('error');
-    });
-
-    return () => { cancelled = true; };
-  }, [configured, session]);
-
-  const refreshMemberships = useCallback(async () => {
-    if (!configured || !verifiedUserId) return;
-
-    setStatus('loading-memberships');
-    setError(null);
-    const { data, error: membershipError } = await supabase
-      .from('institute_members')
-      .select('institute_id, role, institutes!inner(id, name)')
-      .eq('user_id', verifiedUserId)
-      .order('created_at', { ascending: true });
-
-    if (membershipError) {
-      setRequestInstituteId(null);
-      setError('Could not load your institute memberships. The database setup may be incomplete.');
-      setStatus('error');
-      return;
-    }
-
-    const nextMemberships: InstituteMembership[] = (data ?? []).map((row: any) => {
-      const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
-      return {
-        instituteId: row.institute_id,
-        instituteName: institute?.name ?? 'Institute',
-        role: row.role as InstituteRole,
-      };
-    });
-
+  // Apply loaded memberships to state and activate appropriate tenant
+  const applyMemberships = useCallback((nextMemberships: InstituteMembership[]) => {
     setMemberships(nextMemberships);
     const storedInstituteId = readSessionValue(ACTIVE_INSTITUTE_KEY);
     const storedMembership = nextMemberships.find(item => item.instituteId === storedInstituteId);
@@ -196,13 +169,261 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRequestInstituteId(null);
       removeSessionValue(ACTIVE_INSTITUTE_KEY);
     }
+  }, []);
 
-    setStatus('ready');
-  }, [configured, verifiedUserId]);
+  // Complete, unified bootstrap: verifies claims and loads memberships in a single guaranteed flow
+  const runBootstrap = useCallback(async (sessionToVerify: Session) => {
+    const seq = ++bootstrapSeqRef.current;
+    setStatus('verifying');
+    setError(null);
+
+    try {
+      const { data, error: verifyError } = await withTimeout(
+        supabase.auth.getClaims(sessionToVerify.access_token),
+        'Sign-in verification timed out. Please try again.',
+      );
+
+      if (seq !== bootstrapSeqRef.current) return;
+
+      const sub = data?.claims?.sub;
+      if (verifyError || !sub) {
+        setError('Your sign-in could not be verified. Please sign in again.');
+        setStatus('error');
+        await supabase.auth.signOut({ scope: 'local' });
+        return;
+      }
+
+      const userId = String(sub);
+      setVerifiedUserId(userId);
+      setStatus('loading-memberships');
+
+      const { data: memberRows, error: membershipError } = await withTimeout(
+        supabase
+          .from('institute_members')
+          .select('institute_id, role, institutes!inner(id, name)')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true }),
+        'Loading your institute memberships timed out. Please try again.',
+      );
+
+      if (seq !== bootstrapSeqRef.current) return;
+
+      if (membershipError) throw membershipError;
+
+      const nextMemberships: InstituteMembership[] = (memberRows ?? []).map((row: any) => {
+        const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
+        return {
+          instituteId: row.institute_id,
+          instituteName: institute?.name ?? 'Institute',
+          role: row.role as InstituteRole,
+        };
+      });
+
+      applyMemberships(nextMemberships);
+      setStatus('ready');
+      setError(null);
+    } catch (bootstrapError: unknown) {
+      if (seq !== bootstrapSeqRef.current) return;
+      setRequestInstituteId(null);
+      const message = bootstrapError instanceof Error && bootstrapError.message.includes('timed out')
+        ? bootstrapError.message
+        : (bootstrapError instanceof Error ? bootstrapError.message : 'Could not load your institute workspace. The database setup may be incomplete.');
+      setError(message);
+      setStatus('error');
+    }
+  }, [applyMemberships, setStatus, setVerifiedUserId]);
+
+  const refreshMemberships = useCallback(async () => {
+    if (!configured) return;
+    const currentSession = sessionRef.current;
+    if (!currentSession) {
+      setStatus('signed-out');
+      return;
+    }
+
+    const userId = verifiedUserIdRef.current;
+    if (!userId) {
+      // User claims not yet verified; run full bootstrap
+      await runBootstrap(currentSession);
+      return;
+    }
+
+    const existingRequest = membershipRequests.current.get(userId);
+    if (existingRequest) return existingRequest.promise;
+
+    const requestId = ++membershipRequestId.current;
+    // Only transition visual status if currently in an error state
+    if (statusRef.current === 'error') {
+      setStatus('loading-memberships');
+    }
+    setError(null);
+
+    const request = (async () => {
+      try {
+        const { data, error: membershipError } = await withTimeout(
+          supabase
+            .from('institute_members')
+            .select('institute_id, role, institutes!inner(id, name)')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true }),
+          'Loading your institute memberships timed out. Please try again.',
+        );
+
+        if (requestId !== membershipRequestId.current) return;
+        if (membershipError) throw membershipError;
+
+        const nextMemberships: InstituteMembership[] = (data ?? []).map((row: any) => {
+          const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
+          return {
+            instituteId: row.institute_id,
+            instituteName: institute?.name ?? 'Institute',
+            role: row.role as InstituteRole,
+          };
+        });
+
+        applyMemberships(nextMemberships);
+        setStatus('ready');
+        setError(null);
+      } catch (membershipLoadError) {
+        if (requestId !== membershipRequestId.current) return;
+        setRequestInstituteId(null);
+        setError(membershipLoadError instanceof Error && membershipLoadError.message.includes('timed out')
+          ? membershipLoadError.message
+          : 'Could not load your institute memberships. The database setup may be incomplete.');
+        setStatus('error');
+      } finally {
+        if (membershipRequests.current.get(userId)?.id === requestId) {
+          membershipRequests.current.delete(userId);
+        }
+      }
+    })();
+
+    membershipRequests.current.set(userId, { id: requestId, promise: request });
+    return request;
+  }, [configured, applyMemberships, runBootstrap, setStatus]);
 
   useEffect(() => {
-    if (configured && verifiedUserId) void refreshMemberships();
-  }, [configured, verifiedUserId, refreshMemberships]);
+    if (!configured) return;
+    let active = true;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (!active) return;
+
+      if (!nextSession) {
+        bootstrapSeqRef.current += 1;
+        membershipRequestId.current += 1;
+        membershipRequests.current.clear();
+        clearAppData();
+        setSession(null);
+        setVerifiedUserId(null);
+        setMemberships([]);
+        setActiveInstituteId(null);
+        setRequestInstituteId(null);
+        setError(null);
+        setStatus('signed-out');
+        return;
+      }
+
+      const currentStatus = statusRef.current;
+      const currentVerifiedUserId = verifiedUserIdRef.current;
+      const nextUserId = nextSession.user.id;
+
+      // When the user is already authenticated and active in 'ready' status,
+      // and the auth event belongs to the same user (such as TOKEN_REFRESHED,
+      // tab switch sync, or storage sync), do NOT reset status or unmount the UI!
+      if (currentStatus === 'ready' && currentVerifiedUserId === nextUserId) {
+        setSession(nextSession);
+        return;
+      }
+
+      // If we are already running bootstrap/verification for this user, keep session fresh
+      if ((currentStatus === 'verifying' || currentStatus === 'loading-memberships') && currentVerifiedUserId === nextUserId) {
+        setSession(nextSession);
+        return;
+      }
+
+      // If a different user signed in, clear previous app storage
+      if (event === 'SIGNED_IN' && currentVerifiedUserId !== nextUserId) {
+        clearAppData();
+      }
+
+      setSession(nextSession);
+      void runBootstrap(nextSession);
+    });
+
+    // Fallback: If onAuthStateChange has not yet initialized the status from 'loading'
+    void supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!active) return;
+      if (sessionError) {
+        if (statusRef.current === 'loading') {
+          setStatus('signed-out');
+        }
+        return;
+      }
+      if (statusRef.current === 'loading') {
+        if (data.session) {
+          setSession(data.session);
+          void runBootstrap(data.session);
+        } else {
+          setStatus('signed-out');
+        }
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [configured, runBootstrap, setSession, setStatus, setVerifiedUserId]);
+
+  // Browsers can suspend network work while a tab is in the background. Re-read
+  // the persisted session on return only if a previous bootstrap was suspended.
+  useEffect(() => {
+    if (!configured) return;
+    let active = true;
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState !== 'visible') return;
+
+      // If the app is already in a steady state ('ready', 'signed-out', 'demo'),
+      // do not interrupt the user. Supabase's client handles background token
+      // refresh automatically without tearing down the UI.
+      const currentStatus = statusRef.current;
+      if (currentStatus === 'ready' || currentStatus === 'signed-out' || currentStatus === 'demo') {
+        return;
+      }
+
+      // Only attempt session recovery if bootstrap was suspended mid-load
+      void withTimeout(supabase.auth.getSession(), 'Session restoration timed out. Please try again.')
+        .then(({ data, error: sessionError }) => {
+          if (!active) return;
+          if (sessionError) throw sessionError;
+          const currentSession = sessionRef.current;
+          const restored = data.session;
+          if (restored && (!currentSession || currentSession.access_token !== restored.access_token)) {
+            setSession(restored);
+            void runBootstrap(restored);
+          }
+        })
+        .catch(() => {
+          if (!active) return;
+          const activeStatus = statusRef.current;
+          if (activeStatus === 'loading' || activeStatus === 'verifying' || activeStatus === 'loading-memberships') {
+            setError('Session restoration timed out. Please try again.');
+            setStatus('error');
+          }
+        });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      active = false;
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, [configured, runBootstrap, setSession, setStatus]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null);
@@ -251,10 +472,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshMemberships]);
 
   const signOut = useCallback(async () => {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) throw signOutError;
+    bootstrapSeqRef.current += 1;
+    membershipRequestId.current += 1;
+    membershipRequests.current.clear();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Best effort; proceed to clear local state
+    }
     clearAppData();
-  }, []);
+    setSession(null);
+    setVerifiedUserId(null);
+    setMemberships([]);
+    setActiveInstituteId(null);
+    setRequestInstituteId(null);
+    setError(null);
+    setStatus('signed-out');
+  }, [setSession, setStatus, setVerifiedUserId]);
 
   const selectInstitute = useCallback((instituteId: string) => {
     const membership = memberships.find(item => item.instituteId === instituteId);
@@ -310,4 +544,3 @@ export function useAuth() {
   if (!context) throw new Error('useAuth must be used within AuthProvider.');
   return context;
 }
-
