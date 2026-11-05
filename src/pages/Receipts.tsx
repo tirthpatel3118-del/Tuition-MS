@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useEffect, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -6,13 +7,9 @@ import {
   Printer, 
   ChevronLeft, 
   Sparkles,
-  FileCheck,
   Download,
   CheckCircle2,
-  Calendar,
-  Layers,
   ArrowRight,
-  ArrowUpDown,
   AlertCircle
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
@@ -43,7 +40,6 @@ const numberToWords = (num: number, currencySymbol = '₹'): string => {
 
   let i = 0;
   while (num > 0) {
-    let divider = i === 1 ? 100 : 1000;
     if (i === 0) {
       const rem = num % 1000;
       if (rem > 0) {
@@ -100,9 +96,10 @@ export const Receipts: React.FC = () => {
     window.print();
   };
 
-  // Download PDF simulation
-  const handleDownloadPDF = (receiptNo: string) => {
-    showToast(`Receipt PDF (${receiptNo}) downloaded successfully.`, 'success');
+  // Open the browser print dialog so the user can print or save this receipt as a PDF.
+  const handleSaveAsPDF = () => {
+    showToast('Choose “Save as PDF” in your browser print dialog to download this receipt.', 'info');
+    window.print();
   };
 
   // Filtered receipts list
@@ -230,7 +227,7 @@ export const Receipts: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 border-b border-slate-100 text-xs">
               <div>
                 <span className="text-slate-400 block font-semibold text-[10px] uppercase">Payment Date</span>
-                <span className="font-bold text-slate-800 mt-1 block">{activePayment.paymentDate}</span>
+                <span className="font-bold text-slate-800 mt-1 block">{formatDateForDisplay(activePayment.paymentDate, settings?.dateFormat)}</span>
               </div>
               <div>
                 <span className="text-slate-400 block font-semibold text-[10px] uppercase">Payment Method</span>
@@ -366,11 +363,11 @@ export const Receipts: React.FC = () => {
               </button>
               
               <button 
-                onClick={() => handleDownloadPDF(activePayment.receiptNumber)}
+                onClick={handleSaveAsPDF}
                 className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
               >
                 <Download className="w-4 h-4 text-slate-400" />
-                <span>Download PDF</span>
+                <span>Save as PDF</span>
               </button>
             </div>
 
@@ -440,7 +437,7 @@ export const Receipts: React.FC = () => {
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                             {p.receiptNumber}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-semibold">{p.paymentDate}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold">{formatDateForDisplay(p.paymentDate, settings?.dateFormat)}</span>
                         </div>
 
                         <div className="py-4 space-y-1.5">
@@ -516,3 +513,4 @@ export const Receipts: React.FC = () => {
     </div>
   );
 };
+

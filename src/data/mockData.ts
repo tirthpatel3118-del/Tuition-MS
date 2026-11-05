@@ -1,7 +1,7 @@
 export interface Course {
   id: string;
   name: string;
-  fees: number;
+  fees: number | null;
   duration: string; // e.g. "6 Months"
   subject: string;
 }
@@ -32,7 +32,7 @@ export interface Installment {
   installmentNumber: number;
   dueDate: string;
   amount: number;
-  status: 'Pending' | 'Paid' | 'Overdue';
+  status: 'Pending' | 'Paid' | 'Overdue' | 'Partially_Paid';
   paymentId?: string | null;
   remarks?: string;
   createdAt: string;
@@ -58,7 +58,7 @@ export interface Reminder {
   amountDue: number;
   sentDate: string;
   type: 'WhatsApp' | 'SMS' | 'Email';
-  status: 'Sent' | 'Failed';
+  status: 'queued' | 'manual_opened' | 'sent' | 'delivered' | 'failed';
 }
 
 // Initial Mock Data
@@ -370,7 +370,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 10000,
     sentDate: '2026-06-15 10:30 AM',
     type: 'WhatsApp',
-    status: 'Sent'
+    status: 'manual_opened'
   },
   {
     id: 'r2',
@@ -379,7 +379,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 12000,
     sentDate: '2026-06-15 10:32 AM',
     type: 'Email',
-    status: 'Sent'
+    status: 'manual_opened'
   },
   {
     id: 'r3',
@@ -388,7 +388,7 @@ const INITIAL_REMINDERS: Reminder[] = [
     amountDue: 25000,
     sentDate: '2026-06-20 11:15 AM',
     type: 'SMS',
-    status: 'Sent'
+    status: 'manual_opened'
   }
 ];
 
@@ -442,24 +442,61 @@ export const INITIAL_BATCHES: Batch[] = [
   { id: 'b3', courseId: 'c2', name: 'Evening - Batch C', timing: '06:00 PM - 08:00 PM', capacity: 25, status: 'Active' }
 ];
 
-// Helper functions for Local Storage
-export const getStoredData = () => {
-  const courses = localStorage.getItem('eduledger_courses');
-  const students = localStorage.getItem('eduledger_students');
-  const payments = localStorage.getItem('eduledger_payments');
-  const reminders = localStorage.getItem('eduledger_reminders');
-  const installments = localStorage.getItem('eduledger_installments');
-  const batches = localStorage.getItem('eduledger_batches');
+// Keep demo data usable for this tab when browser storage is blocked or full.
+const memoryStorage = new Map<string, string>();
+let storageWarningSent = false;
 
-  return {
-    courses: courses ? JSON.parse(courses) : INITIAL_COURSES,
-    students: students ? JSON.parse(students) : INITIAL_STUDENTS,
-    payments: payments ? JSON.parse(payments) : INITIAL_PAYMENTS,
-    reminders: reminders ? JSON.parse(reminders) : INITIAL_REMINDERS,
-    installments: installments ? JSON.parse(installments) : INITIAL_INSTALLMENTS,
-    batches: batches ? JSON.parse(batches) : INITIAL_BATCHES,
-  };
+const notifyStorageUnavailable = () => {
+  if (storageWarningSent || typeof window === 'undefined') return;
+  storageWarningSent = true;
+  window.dispatchEvent(new Event('eduledger:storage-unavailable'));
 };
+
+export const getStoredValue = <T,>(key: string, fallback: T): T => {
+  const cached = memoryStorage.get(key);
+  if (cached !== undefined) {
+    try {
+      return JSON.parse(cached) as T;
+    } catch {
+      memoryStorage.delete(key);
+    }
+  }
+
+  try {
+    const stored = localStorage.getItem(key);
+    return stored === null ? fallback : JSON.parse(stored) as T;
+  } catch {
+    // A damaged or unavailable browser store should not prevent demo startup.
+    return fallback;
+  }
+};
+
+export const setStoredValue = (key: string, value: unknown): boolean => {
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) return false;
+  memoryStorage.set(key, serialized);
+  try {
+    localStorage.setItem(key, serialized);
+    return true;
+  } catch {
+    notifyStorageUnavailable();
+    return false;
+  }
+};
+
+const getStoredArray = <T,>(key: string, fallback: T[]): T[] => {
+  const stored = getStoredValue<unknown>(key, null);
+  return Array.isArray(stored) ? stored as T[] : fallback;
+};
+
+export const getStoredData = () => ({
+  courses: getStoredArray('eduledger_courses', INITIAL_COURSES),
+  students: getStoredArray('eduledger_students', INITIAL_STUDENTS),
+  payments: getStoredArray('eduledger_payments', INITIAL_PAYMENTS),
+  reminders: getStoredArray('eduledger_reminders', INITIAL_REMINDERS),
+  installments: getStoredArray('eduledger_installments', INITIAL_INSTALLMENTS),
+  batches: getStoredArray('eduledger_batches', INITIAL_BATCHES),
+});
 
 export const saveStoredData = (data: {
   courses?: Course[];
@@ -469,20 +506,23 @@ export const saveStoredData = (data: {
   installments?: Installment[];
   batches?: Batch[];
 }) => {
-  if (data.courses) localStorage.setItem('eduledger_courses', JSON.stringify(data.courses));
-  if (data.students) localStorage.setItem('eduledger_students', JSON.stringify(data.students));
-  if (data.payments) localStorage.setItem('eduledger_payments', JSON.stringify(data.payments));
-  if (data.reminders) localStorage.setItem('eduledger_reminders', JSON.stringify(data.reminders));
-  if (data.installments) localStorage.setItem('eduledger_installments', JSON.stringify(data.installments));
-  if (data.batches) localStorage.setItem('eduledger_batches', JSON.stringify(data.batches));
+  if (data.courses) setStoredValue('eduledger_courses', data.courses);
+  if (data.students) setStoredValue('eduledger_students', data.students);
+  if (data.payments) setStoredValue('eduledger_payments', data.payments);
+  if (data.reminders) setStoredValue('eduledger_reminders', data.reminders);
+  if (data.installments) setStoredValue('eduledger_installments', data.installments);
+  if (data.batches) setStoredValue('eduledger_batches', data.batches);
 };
 
 export const resetToDefault = () => {
-  localStorage.setItem('eduledger_courses', JSON.stringify(INITIAL_COURSES));
-  localStorage.setItem('eduledger_students', JSON.stringify(INITIAL_STUDENTS));
-  localStorage.setItem('eduledger_payments', JSON.stringify(INITIAL_PAYMENTS));
-  localStorage.setItem('eduledger_reminders', JSON.stringify(INITIAL_REMINDERS));
-  localStorage.setItem('eduledger_installments', JSON.stringify(INITIAL_INSTALLMENTS));
-  localStorage.setItem('eduledger_batches', JSON.stringify(INITIAL_BATCHES));
+  saveStoredData({
+    courses: INITIAL_COURSES,
+    students: INITIAL_STUDENTS,
+    payments: INITIAL_PAYMENTS,
+    reminders: INITIAL_REMINDERS,
+    installments: INITIAL_INSTALLMENTS,
+    batches: INITIAL_BATCHES
+  });
   window.location.reload();
 };
+

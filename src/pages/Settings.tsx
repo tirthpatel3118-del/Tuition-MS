@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatLocalDateInput } from '../lib/date';
+import { renderReminderTemplate } from '../utils/reminderTemplate';
 import { useData } from '../context/DataContext';
 import { 
   Building, 
@@ -10,13 +12,13 @@ import {
   Download, 
   Save, 
   FileText, 
-  CheckCircle2, 
-  AlertCircle, 
   Sparkles, 
   RefreshCw,
-  HelpCircle
+  HelpCircle,
+  Users,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
+import { TeamSettings } from '../components/TeamSettings';
 import { AppSettings } from '../types';
 
 export const Settings: React.FC = () => {
@@ -24,13 +26,13 @@ export const Settings: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup'>('profile');
+  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup' | 'team'>('profile');
 
   // Local state for the settings form
   const [formData, setFormData] = useState<AppSettings>({ ...settings });
   const logoInputRef = useRef<HTMLInputElement>(null);
   const sigInputRef = useRef<HTMLInputElement>(null);
-  const csvImportRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     setFormData({ ...settings });
@@ -38,10 +40,18 @@ export const Settings: React.FC = () => {
     return () => clearTimeout(timer);
   }, [settings]);
 
-  // Handle Base64 file reader for logo & signature
+  // Read an approved raster image into the settings form. Persistence happens when settings are saved.
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'authorizedSignatureUrl') => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
+
+    const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowedImageTypes.includes(file.type)) {
+      showToast('Choose a PNG, JPEG, or WebP image.', 'error');
+      return;
+    }
 
     if (file.size > 2 * 1024 * 1024) {
       showToast('Image file size must be less than 2MB', 'error');
@@ -49,10 +59,11 @@ export const Settings: React.FC = () => {
     }
 
     const reader = new FileReader();
+    reader.onerror = () => showToast('Could not read the selected image.', 'error');
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         setFormData(prev => ({ ...prev, [field]: reader.result as string }));
-        showToast('Image uploaded and processed successfully!', 'success');
+        showToast('Image added to the form. Save settings to keep it.', 'info');
       }
     };
     reader.readAsDataURL(file);
@@ -70,20 +81,23 @@ export const Settings: React.FC = () => {
     }
   };
 
-  // Helper to replace reminder template variables for preview
-  const getTemplatePreview = () => {
-    const template = formData.whatsappReminderTemplate || '';
-    return template
-      .replace(/{StudentName}/g, 'Rahul Sharma')
-      .replace(/{ParentName}/g, 'Mr. Amit Sharma')
-      .replace(/{Amount}/g, `${formData.currencySymbol || '₹'}5,000`)
-      .replace(/{DueDate}/g, '2026-08-15')
-      .replace(/{InstituteName}/g, formData.instituteName || 'EduLedger ERP');
-  };
+  // Use the same token renderer as dashboard and reminder messages.
+  const getTemplatePreview = () =>
+    renderReminderTemplate(formData.whatsappReminderTemplate || '', {
+      studentName: 'Rahul Sharma',
+      parentName: 'Mr. Amit Sharma',
+      installmentNumber: 2,
+      amount: 5000,
+      installmentAmount: 5000,
+      dueDate: '2026-08-15',
+      remainingFee: 10000,
+      instituteName: formData.instituteName,
+      currencySymbol: formData.currencySymbol,
+    });
 
   // BACKUP OPERATIONS
-  // 1. Export database as JSON
-  const handleExportDatabase = () => {
+  // Export currently loaded workspace data as a convenience snapshot, not a database backup.
+  const handleExportWorkspaceSnapshot = () => {
     try {
       const dump = {
         exportDate: new Date().toISOString(),
@@ -97,14 +111,14 @@ export const Settings: React.FC = () => {
       const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dump, null, 2))}`;
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute('href', jsonString);
-      downloadAnchor.setAttribute('download', `eduledger_db_backup_${new Date().toISOString().split('T')[0]}.json`);
+      downloadAnchor.setAttribute('download', `eduledger_workspace_snapshot_${formatLocalDateInput()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast('Database JSON backup downloaded successfully!', 'success');
+      showToast('Workspace snapshot downloaded. This is not a full database backup.', 'success');
     } catch (err) {
       console.error(err);
-      showToast('Failed to export database', 'error');
+      showToast('Failed to export workspace snapshot', 'error');
     }
   };
 
@@ -130,13 +144,19 @@ export const Settings: React.FC = () => {
         s.status || 'Active'
       ]);
 
-      const csvContent = [headers.join(','), ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))].join('\n');
+      const escapeCsvCell = (value: string | number) => {
+        const text = String(value ?? '');
+        const formulaLike = /^[\u0000-\u0020\uFEFF]*[=+\-@＝＋－＠]/u.test(text);
+        const safeText = formulaLike ? `\t${text}` : text;
+        return `"${safeText.replace(/"/g, '""')}"`;
+      };
+      const csvContent = `\uFEFF${[headers, ...rows].map(row => row.map(escapeCsvCell).join(',')).join('\n')}`;
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `eduledger_students_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `eduledger_students_export_${formatLocalDateInput()}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -145,38 +165,6 @@ export const Settings: React.FC = () => {
       console.error(err);
       showToast('Failed to export CSV', 'error');
     }
-  };
-
-  // 3. Import CSV
-  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        if (!text) return;
-
-        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-        if (lines.length < 2) {
-          showToast('CSV file is empty or missing data rows', 'error');
-          return;
-        }
-
-        // Extremely simple CSV parser
-        const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g, '').trim().toLowerCase());
-        const importedStudentsCount = lines.slice(1).length;
-
-        // In a real application, you would iterate and call addStudent for each record.
-        // To prevent corrupting state or database triggers, we show an audit verification to the user.
-        showToast(`Parsed ${importedStudentsCount} student rows successfully! Real-time import simulation completed.`, 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('Error parsing CSV file template.', 'error');
-      }
-    };
-    reader.readAsText(file);
   };
 
   if (isLoading) {
@@ -189,7 +177,7 @@ export const Settings: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Application Settings</h1>
-          <p className="text-sm text-slate-500 mt-1">Configure institute profile details, receipt prefixes, custom whatsapp notification alerts, and database backup routines.</p>
+          <p className="text-sm text-slate-500 mt-1">Configure institute profile details, receipt prefixes, custom whatsapp notification alerts, and workspace exports.</p>
         </div>
       </div>
 
@@ -254,7 +242,14 @@ export const Settings: React.FC = () => {
             }`}
           >
             <Database className="w-4 h-4" />
-            <span>Database Backup & CSV</span>
+            <span>Workspace Export</span>
+          </button>
+          <button
+            onClick={() => setActiveSection('team')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all border ${activeSection === 'team' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-white hover:bg-slate-50 border-slate-100 text-slate-600 hover:text-slate-900'}`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Team Access</span>
           </button>
         </div>
 
@@ -263,6 +258,8 @@ export const Settings: React.FC = () => {
           <form onSubmit={handleSave} className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
             
             <div className="p-6 space-y-6">
+
+              {activeSection === 'team' && <TeamSettings />}
               
               {/* SECTION 1: INSTITUTE PROFILE */}
               {activeSection === 'profile' && (
@@ -311,7 +308,7 @@ export const Settings: React.FC = () => {
                         <input 
                           type="file" 
                           ref={logoInputRef}
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           onChange={(e) => handleImageUpload(e, 'logoUrl')}
                           className="hidden"
                         />
@@ -407,7 +404,7 @@ export const Settings: React.FC = () => {
                         <input 
                           type="file" 
                           ref={sigInputRef}
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           onChange={(e) => handleImageUpload(e, 'authorizedSignatureUrl')}
                           className="hidden"
                         />
@@ -461,7 +458,7 @@ export const Settings: React.FC = () => {
                       <div className="text-[10px] text-slate-500 space-y-1.5">
                         <span className="font-bold text-slate-700 block">Available Template Variables:</span>
                         <div className="flex flex-wrap gap-1">
-                          {['{StudentName}', '{ParentName}', '{Amount}', '{DueDate}', '{InstituteName}', '{InstallmentNumber}'].map(v => (
+                          {['{StudentName}', '{ParentName}', '{InstallmentNumber}', '{Amount}', '{InstallmentAmount}', '{DueDate}', '{RemainingFee}', '{InstituteName}'].map(v => (
                             <code key={v} className="bg-white border border-slate-200 px-1 py-0.5 rounded font-mono font-bold text-blue-600">{v}</code>
                           ))}
                         </div>
@@ -556,7 +553,7 @@ export const Settings: React.FC = () => {
                       <Database className="w-4 h-4 text-blue-600" />
                       <span>Database Backup & CSV Operations</span>
                     </h3>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Export student lists or dump settings to preserve database state.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Export the currently loaded student list or workspace snapshot. These files are not full database backups.</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -565,16 +562,16 @@ export const Settings: React.FC = () => {
                         <Download className="w-4 h-4 text-blue-600" />
                         <span>Export Actions</span>
                       </h4>
-                      <p className="text-[10px] text-slate-500 leading-normal">Download local data backups instantly for offline audits.</p>
+                      <p className="text-[10px] text-slate-500 leading-normal">Download the data currently loaded in this workspace. The JSON snapshot is not a full database backup and cannot restore the database.</p>
                       
                       <div className="flex flex-col gap-2 pt-1">
                         <button
                           type="button"
-                          onClick={handleExportDatabase}
+                          onClick={handleExportWorkspaceSnapshot}
                           className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer"
                         >
                           <Database className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Export Database JSON</span>
+                          <span>Export Workspace Snapshot (JSON)</span>
                         </button>
                         
                         <button
@@ -591,27 +588,21 @@ export const Settings: React.FC = () => {
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
                       <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Upload className="w-4 h-4 text-amber-600" />
-                        <span>Import Actions</span>
+                        <span>Student Import</span>
                       </h4>
-                      <p className="text-[10px] text-slate-500 leading-normal">Import student lists via structured comma-separated-values sheets.</p>
+                      <p className="text-[10px] text-slate-500 leading-normal">CSV import is not available yet. No student records will be changed by selecting a file.</p>
                       
-                      <div className="pt-2">
-                        <input 
-                          type="file"
-                          ref={csvImportRef}
-                          accept=".csv"
-                          onChange={handleImportCSV}
-                          className="hidden"
-                        />
+                                            <div className="pt-2">
                         <button
                           type="button"
-                          onClick={() => csvImportRef.current?.click()}
-                          className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer"
+                          disabled
+                          className="w-full flex items-center justify-center gap-2 bg-slate-100 border border-slate-200 text-slate-400 font-bold py-2 rounded-xl text-xs cursor-not-allowed"
+                          aria-describedby="student-import-unavailable"
                         >
-                          <Upload className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Import Students CSV</span>
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Import Students CSV (Unavailable)</span>
                         </button>
-                        <span className="text-[8px] text-slate-400 mt-1 block text-center">Supported columns: roll_number, full_name, parent_name, mobile</span>
+                        <span id="student-import-unavailable" className="text-[8px] text-slate-400 mt-1 block text-center">Import will be enabled after validated database writes and error handling are implemented.</span>
                       </div>
                     </div>
                   </div>
@@ -621,7 +612,7 @@ export const Settings: React.FC = () => {
             </div>
 
             {/* Actions Footer */}
-            {activeSection !== 'backup' && (
+            {activeSection !== 'backup' && activeSection !== 'team' && (
               <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button
                   type="button"
@@ -652,3 +643,4 @@ export const Settings: React.FC = () => {
     </div>
   );
 };
+

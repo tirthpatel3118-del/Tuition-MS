@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -17,10 +18,12 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { isDemoMode } from '../lib/supabase';
+import { renderReminderTemplate } from '../utils/reminderTemplate';
 
 export const Reminders: React.FC = () => {
-  const { students, reminders, installments, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { students, reminders, installments, installmentPaidTotals, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Loading states
@@ -78,11 +81,16 @@ export const Reminders: React.FC = () => {
       }
       setActiveTab('dues');
     }
-  }, [searchParams, installments]);
+  }, [searchParams, installments, selectedInstallmentIds]);
 
   // Installments that are Pending or Overdue
   const dueInstallments = (installments || [])
     .filter(inst => inst.status !== 'Paid')
+    .map(inst => ({
+      ...inst,
+      amount: Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0)),
+    }))
+    .filter(inst => inst.amount > 0)
     .map(inst => {
       const student = students.find(s => s.id === inst.studentId);
       return {
@@ -159,27 +167,18 @@ export const Reminders: React.FC = () => {
     }
   };
 
-  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) => {
-    const symbol = settings?.currencySymbol || '₹';
-    return templateStr
-      .replace(/{StudentName}/g, inst.studentName || '')
-      .replace(/\[StudentName\]/g, inst.studentName || '')
-      .replace(/{ParentName}/g, inst.parentName || '')
-      .replace(/\[ParentName\]/g, inst.parentName || '')
-      .replace(/{InstallmentNumber}/g, String(inst.installmentNumber || ''))
-      .replace(/\[InstallmentNumber\]/g, String(inst.installmentNumber || ''))
-      .replace(/{Amount}/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[Amount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[InstallmentAmount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/{DueDate}/g, inst.dueDate || '')
-      .replace(/\[DueDate\]/g, inst.dueDate || '')
-      .replace(/{RemainingFee}/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/\[RemainingFee\]/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/\[InstituteName\]/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/{[A-Za-z0-9_]+}/g, '')
-      .replace(/\[[A-Za-z0-9_]+\]/g, '');
-  };
+  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) =>
+    renderReminderTemplate(templateStr, {
+      studentName: inst.studentName,
+      parentName: inst.parentName,
+      installmentNumber: inst.installmentNumber,
+      amount: inst.amount,
+      installmentAmount: inst.amount,
+      dueDate: formatDateForDisplay(inst.dueDate, settings?.dateFormat),
+      remainingFee: inst.remainingFee,
+      instituteName: settings?.instituteName,
+      currencySymbol: settings?.currencySymbol,
+    });
 
   // Parsing function for template preview
   const getParsedPreview = (instId: string | null) => {
@@ -188,7 +187,6 @@ export const Reminders: React.FC = () => {
       inst = dueInstallments[0];
     }
     if (!inst) {
-      const symbol = settings?.currencySymbol || '₹';
       const mockInst = {
         studentName: 'John Doe',
         parentName: 'Robert Doe',
@@ -220,26 +218,19 @@ export const Reminders: React.FC = () => {
 
     confirmAction({
       title: 'Send Fee Reminders',
-      message: `Are you sure you want to dispatch ${selectedInstallmentIds.length} simulated ${reminderType} reminders?`,
-      confirmText: 'Send Reminders',
+      message: `Add reminders for ${selectedInstallmentIds.length} selected installment(s) to the ${reminderType} queue? They will be recorded as queued, not sent automatically.`,
+      confirmText: 'Queue Reminders',
       type: 'primary',
       onConfirm: () => {
-        const studentIds = selectedInstallmentIds.map(id => {
-          const inst = dueInstallments.find(i => i.id === id);
-          return inst ? inst.studentId : '';
-        }).filter(id => id !== '');
-
-        sendBulkReminders(studentIds, reminderType);
-        showToast(`Reminders sent successfully for ${selectedInstallmentIds.length} installment(s).`, 'success');
-        setSelectedInstallmentIds([]);
-        setFocusedInstallmentId(null);
+        void sendBulkReminders(selectedInstallmentIds, reminderType).then(() => {
+          showToast(`Reminders queued for ${selectedInstallmentIds.length} selected installment(s).`, 'success');
+          setSelectedInstallmentIds([]);
+          setFocusedInstallmentId(null);
+        }).catch((error: unknown) => {
+          showToast(error instanceof Error ? error.message : 'Could not queue reminders.', 'error');
+        });
       }
     });
-  };
-
-  const getLastReminderDate = (studentId: string) => {
-    const lastReminder = reminders.find(r => r.studentId === studentId);
-    return lastReminder ? lastReminder.sentDate : 'Never';
   };
 
   return (
@@ -379,7 +370,7 @@ export const Reminders: React.FC = () => {
                                 {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}
                               </td>
                               <td className="px-4 py-3.5 text-center font-medium text-slate-600">
-                                {inst.dueDate}
+                                {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
@@ -391,15 +382,24 @@ export const Reminders: React.FC = () => {
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-center gap-1.5">
                                   <a
-                                    href={getWhatsAppLink(inst)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={() => {
-                                      sendReminder(inst.studentId, 'WhatsApp');
-                                      showToast('WhatsApp reminder logged successfully', 'success');
+                                    href={isDemoMode ? undefined : getWhatsAppLink(inst)}
+                                    target={isDemoMode ? undefined : '_blank'}
+                                    rel={isDemoMode ? undefined : 'noreferrer'}
+                                    aria-disabled={isDemoMode}
+                                    onClick={event => {
+                                      if (isDemoMode) {
+                                        event.preventDefault();
+                                        showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                                        return;
+                                      }
+                                      void sendReminder(inst.studentId, 'WhatsApp', inst.id).then(() => {
+                                        showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
+                                      }).catch((error: unknown) => {
+                                        showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
+                                      });
                                     }}
-                                    title="Send WhatsApp Reminder"
-                                    className="p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                                    title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
+                                    className={`p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
@@ -519,7 +519,7 @@ export const Reminders: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Template Text</label>
-                  <span className="text-[9px] text-slate-400">Available: [StudentName], [ParentName], [InstallmentNumber], [InstallmentAmount], [DueDate], [RemainingFee]</span>
+                  <span className="text-[9px] text-slate-400">Tokens: [StudentName], [ParentName], [InstallmentNumber], [Amount], [InstallmentAmount], [DueDate], [InstituteName], [RemainingFee].</span>
                 </div>
                 <textarea 
                   rows={4}
@@ -606,9 +606,14 @@ export const Reminders: React.FC = () => {
                             {settings?.currencySymbol || '₹'}{log.amountDue.toLocaleString('en-IN')}
                           </td>
                           <td className="px-5 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
+                              log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                              'text-blue-700 bg-blue-50 border-blue-100'
+                            }`}>
                               <CheckCircle2 className="w-3 h-3" />
-                              <span>Sent</span>
+                              <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
                             </span>
                           </td>
                         </tr>
@@ -633,3 +638,4 @@ export const Reminders: React.FC = () => {
     </div>
   );
 };
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { addMonthsToDateInput, formatDateForDisplay, formatLocalDateInput } from '../lib/date';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { Student, Installment } from '../data/mockData';
@@ -15,7 +16,6 @@ import {
   BookOpen, 
   FileText, 
   X,
-  CreditCard,
   AlertCircle,
   ArrowUpDown,
   CheckCircle2,
@@ -29,6 +29,7 @@ export const Admissions: React.FC = () => {
     courses, 
     payments, 
     installments,
+    batches,
     addStudent, 
     updateStudent, 
     deleteStudent,
@@ -79,19 +80,12 @@ export const Admissions: React.FC = () => {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const [selectedInstCount, setSelectedInstCount] = useState<number>(3);
-  const [firstDueDate, setFirstDueDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [firstDueDate, setFirstDueDate] = useState<string>(formatLocalDateInput());
   const [frequency, setFrequency] = useState<string>('monthly');
 
   const calculateDueDate = (start: string, freq: string, index: number): string => {
-    if (!start) return new Date().toISOString().split('T')[0];
-    const date = new Date(start);
-    if (freq === 'custom') {
-      date.setMonth(date.getMonth() + index);
-      return date.toISOString().split('T')[0];
-    }
-    const monthsToAdd = freq === 'monthly' ? 1 : freq === '2months' ? 2 : freq === '3months' ? 3 : 1;
-    date.setMonth(date.getMonth() + index * monthsToAdd);
-    return date.toISOString().split('T')[0];
+    const monthsPerInstallment = freq === 'monthly' || freq === 'custom' ? 1 : freq === '2months' ? 2 : freq === '3months' ? 3 : 1;
+    return addMonthsToDateInput(start || formatLocalDateInput(), index * monthsPerInstallment);
   };
 
   const applyDatesToInstallments = (start: string, freq: string, currentInsts: typeof plannedInstallments) => {
@@ -171,7 +165,7 @@ export const Admissions: React.FC = () => {
         id: '',
         installmentNumber: nextNumber,
         amount: suggestedAmount,
-        dueDate: new Date().toISOString().split('T')[0],
+        dueDate: formatLocalDateInput(),
         status: 'Pending',
         remarks: ''
       }
@@ -216,12 +210,34 @@ export const Admissions: React.FC = () => {
   }, [search, selectedCourse, selectedStatus]);
 
   // Load course fee when a course is selected
+  const batchLabel = (batch: (typeof batches)[number]) => `${batch.name} (${batch.timing})`;
+  const availableBatches = batches.filter(batch =>
+    batch.courseId === formData.courseId &&
+    (batch.status === 'Active' || (isEditing && formData.batch === batchLabel(batch)))
+  );
+
+  const handleBatchChange = (value: string) => {
+    const selectedBatch = batches.find(batch =>
+      batch.courseId === formData.courseId &&
+      (value === batchLabel(batch) || value === batch.name)
+    );
+    const course = courses.find(item => item.id === formData.courseId);
+    setFormData(prev => ({
+      ...prev,
+      batch: value,
+      totalFees: selectedBatch?.courseFee ?? course?.fees ?? prev.totalFees
+    }));
+    if (value.trim()) setFormErrors(prev => ({ ...prev, batch: '' }));
+  };
+
   const handleCourseChange = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
+    const firstBatch = batches.find(batch => batch.courseId === courseId && batch.status === 'Active');
     setFormData(prev => ({
       ...prev,
       courseId,
-      totalFees: course ? course.fees : 0
+      batch: firstBatch ? batchLabel(firstBatch) : '',
+      totalFees: firstBatch?.courseFee ?? course?.fees ?? 0
     }));
     // Clear validation error on selection change
     if (courseId) {
@@ -247,10 +263,35 @@ export const Admissions: React.FC = () => {
     }
 
     if (!formData.courseId) errors.courseId = 'Please select a course package';
-    if (!formData.batch.trim()) errors.batch = 'Batch timings are required';
+    if (!formData.batch.trim()) {
+      errors.batch = 'Batch timings are required';
+    } else {
+      const selectedBatch = batches.find(batch =>
+        batch.courseId === formData.courseId &&
+        (formData.batch === batchLabel(batch) || formData.batch === batch.name)
+      );
+      if (selectedBatch) {
+        const isCurrentBatch = selectedStudentId
+          ? students.find(student => student.id === selectedStudentId)?.batchId === selectedBatch.id
+            || students.find(student => student.id === selectedStudentId)?.batch === batchLabel(selectedBatch)
+          : false;
+        const activeCount = students.filter(student =>
+          student.status === 'Active' &&
+          student.id !== selectedStudentId &&
+          (student.batchId === selectedBatch.id || student.batch === batchLabel(selectedBatch) || student.batch === selectedBatch.name)
+        ).length;
+        if (selectedBatch.status !== 'Active' && !isCurrentBatch) {
+          errors.batch = 'Choose an active batch for this admission';
+        } else if (!isCurrentBatch && activeCount >= selectedBatch.capacity) {
+          errors.batch = 'This batch is at capacity. Choose another batch.';
+        }
+      }
+    }
 
     const totalPlanned = plannedInstallments.reduce((sum, inst) => sum + inst.amount, 0);
-    if (totalPlanned !== formData.totalFees) {
+    const totalPlannedCents = Math.round(totalPlanned * 100);
+    const courseFeeCents = Math.round(formData.totalFees * 100);
+    if (totalPlannedCents !== courseFeeCents) {
       errors.installmentsTotal = `Total planned installments (${settings?.currencySymbol || '₹'}${totalPlanned.toLocaleString('en-IN')}) must exactly match the course fee of ${settings?.currencySymbol || '₹'}${formData.totalFees.toLocaleString('en-IN')}`;
     }
     
@@ -273,7 +314,7 @@ export const Admissions: React.FC = () => {
 
     setIsSubmitting(true);
     setTimeout(() => {
-      const enrollmentDate = new Date().toISOString().split('T')[0];
+      const enrollmentDate = formatLocalDateInput();
       const newStud = addStudent({
         name: formData.name,
         email: formData.email,
@@ -354,7 +395,7 @@ export const Admissions: React.FC = () => {
     if (studentInsts.length > 0) {
       setFirstDueDate(studentInsts[0].dueDate);
     } else {
-      setFirstDueDate(new Date().toISOString().split('T')[0]);
+      setFirstDueDate(formatLocalDateInput());
     }
     setFrequency('custom');
 
@@ -365,13 +406,13 @@ export const Admissions: React.FC = () => {
   // Delete Student wrapper
   const handleDelete = (studentId: string, studentName: string) => {
     confirmAction({
-      title: 'Delete Student Profile',
-      message: `Are you sure you want to permanently delete ${studentName}'s profile? All payment receipts and reminders logs will be deleted. This cannot be undone.`,
-      confirmText: 'Delete Profile',
+      title: 'Deactivate Student',
+      message: `Deactivate ${studentName}'s student profile? The student will be marked inactive and their payment, receipt, and reminder history will be preserved.`,
+      confirmText: 'Deactivate Student',
       type: 'danger',
       onConfirm: () => {
         deleteStudent(studentId);
-        showToast(`Student ${studentName} was removed from the database.`, 'success');
+        showToast(`Student ${studentName} was marked inactive.`, 'success');
         setSelectedStudentId(null);
         setIsEditing(false);
       }
@@ -399,7 +440,7 @@ export const Admissions: React.FC = () => {
 
     let nextDueMonth = 'N/A';
     if (earliestDueInst) {
-      const date = new Date(earliestDueInst.dueDate);
+      const date = new Date(`${earliestDueInst.dueDate}T00:00:00`);
       if (!isNaN(date.getTime())) {
         nextDueMonth = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       }
@@ -409,7 +450,7 @@ export const Admissions: React.FC = () => {
       total: student.totalFees,
       paid: student.feesPaid,
       due: student.feesDue,
-      lastPaymentDate: lastPay ? lastPay.paymentDate : 'No payments',
+      lastPaymentDate: lastPay ? formatDateForDisplay(lastPay.paymentDate, settings?.dateFormat) : 'No payments',
       nextDueMonth
     };
   };
@@ -483,10 +524,12 @@ export const Admissions: React.FC = () => {
             onClick={() => {
               setActiveTab('add');
               setIsEditing(false);
+              const defaultCourse = courses[0];
+              const defaultBatch = batches.find(batch => batch.courseId === defaultCourse?.id && batch.status === 'Active');
               setFormData({
                 name: '', email: '', phone: '', parentName: '', parentPhone: '',
-                courseId: courses[0]?.id || '', batch: 'Morning - Batch A (08:00 AM)',
-                totalFees: courses[0]?.fees || 0, status: 'Active', notes: ''
+                courseId: defaultCourse?.id || '', batch: defaultBatch ? batchLabel(defaultBatch) : '',
+                totalFees: defaultBatch?.courseFee ?? defaultCourse?.fees ?? 0, status: 'Active', notes: ''
               });
               setFormErrors({});
             }}
@@ -761,7 +804,7 @@ export const Admissions: React.FC = () => {
                 >
                   <option value="">-- Choose Course --</option>
                   {courses.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({settings?.currencySymbol || '₹'}{c.fees})</option>
+                    <option key={c.id} value={c.id}>{c.name} ({c.fees == null ? 'fee not configured' : `${settings?.currencySymbol || '₹'}${c.fees.toLocaleString('en-IN')}`})</option>
                   ))}
                 </select>
                 {formErrors.courseId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.courseId}</span>}
@@ -770,16 +813,31 @@ export const Admissions: React.FC = () => {
               {/* Batch Selection */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Batch Timings <span className="text-rose-500">*</span></label>
-                <input 
-                  type="text"
-                  value={formData.batch}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, batch: e.target.value }));
-                    if (e.target.value) setFormErrors(prev => ({ ...prev, batch: '' }));
-                  }}
-                  placeholder="e.g. Morning - Batch A (08:00 AM)"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
-                />
+                {availableBatches.length > 0 ? (
+                  <select
+                    value={formData.batch}
+                    onChange={e => handleBatchChange(e.target.value)}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  >
+                    <option value="">-- Choose Batch --</option>
+                    {availableBatches.map(batch => (
+                      <option key={batch.id} value={batchLabel(batch)}>
+                        {batchLabel(batch)}{batch.courseFee ? ` · ${settings?.currencySymbol || '₹'}${batch.courseFee.toLocaleString('en-IN')}` : ''}
+                      </option>
+                    ))}
+                    {formData.batch && !availableBatches.some(batch => formData.batch === batchLabel(batch)) && (
+                      <option value={formData.batch}>Current assignment: {formData.batch}</option>
+                    )}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.batch}
+                    onChange={e => handleBatchChange(e.target.value)}
+                    placeholder="Enter batch timing"
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  />
+                )}
                 {formErrors.batch && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.batch}</span>}
               </div>
 
@@ -1129,7 +1187,7 @@ export const Admissions: React.FC = () => {
                         <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
                           <div className="text-[10px] text-slate-400">Enrollment Date</div>
-                          <div className="font-semibold text-slate-800">{selectedStudent.enrollmentDate}</div>
+                          <div className="font-semibold text-slate-800">{formatDateForDisplay(selectedStudent.enrollmentDate, settings?.dateFormat)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
@@ -1222,7 +1280,7 @@ export const Admissions: React.FC = () => {
                                   <tr key={inst.id} className="hover:bg-slate-50/50">
                                     <td className="py-2.5 px-3 font-bold text-slate-700">#{inst.installmentNumber}</td>
                                     <td className="py-2.5 px-2 font-semibold text-slate-800">{settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}</td>
-                                    <td className="py-2.5 px-2 text-slate-500">{inst.dueDate}</td>
+                                    <td className="py-2.5 px-2 text-slate-500">{formatDateForDisplay(inst.dueDate, settings?.dateFormat)}</td>
                                     <td className="py-2.5 px-2 text-center">
                                       <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
                                         ${inst.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ''}
@@ -1289,7 +1347,7 @@ export const Admissions: React.FC = () => {
                           <div key={p.id} className="flex justify-between items-center p-2.5 bg-white border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-colors">
                             <div className="text-left">
                               <span className="text-[10px] font-bold text-slate-500 block">{p.receiptNumber}</span>
-                              <span className="text-[10px] text-slate-400 mt-0.5 block">{p.paymentDate} via {p.paymentMethod}</span>
+                              <span className="text-[10px] text-slate-400 mt-0.5 block">{formatDateForDisplay(p.paymentDate, settings?.dateFormat)} via {p.paymentMethod}</span>
                             </div>
                             <div className="text-right">
                               <span className="text-xs font-bold text-slate-800">{settings?.currencySymbol || '₹'}{p.amount.toLocaleString('en-IN')}</span>
@@ -1356,12 +1414,30 @@ export const Admissions: React.FC = () => {
 
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-500">Batch Assignment <span className="text-rose-500">*</span></label>
-                      <input 
-                        type="text" 
-                        value={formData.batch}
-                        onChange={(e) => setFormData(prev => ({ ...prev, batch: e.target.value }))}
-                        className={`w-full px-3 py-1.5 border rounded-lg text-xs ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
-                      />
+                      {availableBatches.length > 0 ? (
+                        <select
+                          value={formData.batch}
+                          onChange={e => handleBatchChange(e.target.value)}
+                          className={`w-full px-3 py-1.5 border rounded-lg text-xs bg-white ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
+                        >
+                          <option value="">Choose batch</option>
+                          {availableBatches.map(batch => (
+                            <option key={batch.id} value={batchLabel(batch)}>
+                              {batchLabel(batch)}{batch.courseFee ? ` · ${settings?.currencySymbol || '₹'}${batch.courseFee.toLocaleString('en-IN')}` : ''}
+                            </option>
+                          ))}
+                          {formData.batch && !availableBatches.some(batch => formData.batch === batchLabel(batch)) && (
+                            <option value={formData.batch}>Current assignment: {formData.batch}</option>
+                          )}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={formData.batch}
+                          onChange={e => handleBatchChange(e.target.value)}
+                          className={`w-full px-3 py-1.5 border rounded-lg text-xs ${formErrors.batch ? 'border-rose-300' : 'border-slate-200'}`}
+                        />
+                      )}
                       {formErrors.batch && <span className="text-[10px] text-rose-600 block font-bold">{formErrors.batch}</span>}
                     </div>
 
@@ -1653,3 +1729,4 @@ export const Admissions: React.FC = () => {
     </div>
   );
 };
+

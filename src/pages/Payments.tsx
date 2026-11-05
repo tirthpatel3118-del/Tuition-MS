@@ -1,26 +1,26 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Payment } from '../data/mockData';
+import { Installment, Payment } from '../data/mockData';
 import { 
   CreditCard, 
   Search, 
   Plus, 
-  Calendar, 
-  User, 
   FileText, 
-  DollarSign,
   AlertCircle,
   Eye,
   CheckCircle2,
   ArrowUpDown,
-  Loader2
+  Loader2,
+  ChevronDown,
+  X
 } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 export const Payments: React.FC = () => {
-  const { students, payments, installments, recordPayment, showToast, confirmAction, settings } = useData();
-  const navigate = useNavigate();
+  const { students, payments, installments, installmentPaidTotals, recordPayment, showToast, confirmAction, settings } = useData();
   const [searchParams] = useSearchParams();
 
   // Tabs: 'ledger' | 'collect'
@@ -50,9 +50,23 @@ export const Payments: React.FC = () => {
   const [transactionId, setTransactionId] = useState('');
   const [remarks, setRemarks] = useState('');
 
+  // Searchable Combobox State
+  const [studentSearchInput, setStudentSearchInput] = useState('');
+  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const comboboxRef = React.useRef<HTMLDivElement>(null);
+
   // Form Validation & Success State
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [successInfo, setSuccessInfo] = useState<{ receiptId: string; amount: number; studentName: string } | null>(null);
+
+  const outstandingInstallmentAmount = (installment: Installment) =>
+    Math.max(0, Number(installment.amount) - (installmentPaidTotals[installment.id] ?? 0));
+  const getUnpaidInstallments = (studentId: string) => installments
+    .filter(installment => installment.studentId === studentId
+      && installment.status !== 'Paid'
+      && outstandingInstallmentAmount(installment) > 0)
+    .sort((a, b) => a.installmentNumber - b.installmentNumber);
 
   // Trigger simulated loader when filter/tab changes
   useEffect(() => {
@@ -71,13 +85,11 @@ export const Payments: React.FC = () => {
         setSelectedStudentId(studentId);
         
         // Find pending/overdue installments for this student
-        const studentInsts = installments.filter(
-          inst => inst.studentId === studentId && inst.status !== 'Paid'
-        ).sort((a, b) => a.installmentNumber - b.installmentNumber);
+        const studentInsts = getUnpaidInstallments(studentId);
 
         if (studentInsts.length > 0) {
           setSelectedInstallmentId(studentInsts[0].id);
-          setPaymentAmount(String(studentInsts[0].amount));
+          setPaymentAmount(String(outstandingInstallmentAmount(studentInsts[0])));
         } else {
           setPaymentAmount(String(student.feesDue));
         }
@@ -85,10 +97,85 @@ export const Payments: React.FC = () => {
         setActiveTab('collect');
       }
     }
-  }, [searchParams, students, installments]);
+  }, [searchParams, students, installments, installmentPaidTotals]);
 
   // Selected student details for validation & helpers
   const selectedStudent = students.find(s => s.id === selectedStudentId);
+  const selectedStudentInstallments = getUnpaidInstallments(selectedStudentId);
+
+  // Filter students based on search term
+  const eligibleStudents = students.filter(s => s.status !== 'Inactive' && s.feesDue > 0);
+  const filteredStudents = eligibleStudents.filter(s => {
+    const term = studentSearchInput.toLowerCase();
+    return (
+      s.name.toLowerCase().includes(term) ||
+      s.rollNumber.toLowerCase().includes(term) ||
+      (s.phone && s.phone.toLowerCase().includes(term))
+    );
+  });
+
+  // Synchronize studentSearchInput when selectedStudentId changes
+  useEffect(() => {
+    if (selectedStudentId) {
+      const student = students.find(s => s.id === selectedStudentId);
+      if (student) {
+        setStudentSearchInput(student.name);
+      }
+    } else {
+      setStudentSearchInput('');
+    }
+  }, [selectedStudentId, students]);
+
+  // Click outside handler for combobox
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
+        setIsComboboxOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Reset highlighted index when filtered list changes
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [studentSearchInput]);
+
+  const handleInputFocus = () => {
+    setIsComboboxOpen(true);
+    setStudentSearchInput('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isComboboxOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        setIsComboboxOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex(prev => 
+        prev < filteredStudents.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex(prev => 
+        prev > 0 ? prev - 1 : filteredStudents.length - 1
+      );
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < filteredStudents.length) {
+        handleStudentChange(filteredStudents[highlightedIndex].id);
+        setIsComboboxOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsComboboxOpen(false);
+    }
+  };
 
   const handleStudentChange = (studentId: string) => {
     setSelectedStudentId(studentId);
@@ -96,13 +183,11 @@ export const Payments: React.FC = () => {
     setFormErrors(prev => ({ ...prev, studentId: '' }));
     
     // Find pending/overdue installments for this student
-    const studentInsts = installments.filter(
-      inst => inst.studentId === studentId && inst.status !== 'Paid'
-    ).sort((a, b) => a.installmentNumber - b.installmentNumber);
+    const studentInsts = getUnpaidInstallments(studentId);
 
     if (studentInsts.length > 0) {
       setSelectedInstallmentId(studentInsts[0].id);
-      setPaymentAmount(String(studentInsts[0].amount));
+      setPaymentAmount(String(outstandingInstallmentAmount(studentInsts[0])));
     } else {
       const student = students.find(s => s.id === studentId);
       setPaymentAmount(student ? String(student.feesDue) : '');
@@ -114,7 +199,7 @@ export const Payments: React.FC = () => {
     setFormErrors(prev => ({ ...prev, installmentId: '' }));
     const inst = installments.find(i => i.id === instId);
     if (inst) {
-      setPaymentAmount(String(inst.amount));
+      setPaymentAmount(String(outstandingInstallmentAmount(inst)));
     }
   };
 
@@ -125,10 +210,8 @@ export const Payments: React.FC = () => {
     }
 
     // Check if the student has pending installments, and one must be selected
-    const studentInsts = installments.filter(
-      inst => inst.studentId === selectedStudentId && inst.status !== 'Paid'
-    );
-    if (studentInsts.length > 0 && !selectedInstallmentId) {
+    const studentInsts = getUnpaidInstallments(selectedStudentId);
+    if ((studentInsts.length > 0 || isSupabaseConfigured) && !selectedInstallmentId) {
       errors.installmentId = 'Please select which installment this payment is for';
     }
 
@@ -138,8 +221,9 @@ export const Payments: React.FC = () => {
     } else if (selectedStudent) {
       if (selectedInstallmentId) {
         const targetInst = installments.find(i => i.id === selectedInstallmentId);
-        if (targetInst && amountNum > targetInst.amount) {
-          errors.amount = `Amount exceeds selected installment value of ${settings?.currencySymbol || '₹'}${targetInst.amount.toLocaleString('en-IN')}`;
+        const outstandingAmount = targetInst ? outstandingInstallmentAmount(targetInst) : 0;
+        if (targetInst && amountNum > outstandingAmount) {
+          errors.amount = `Amount exceeds selected installment balance of ${settings?.currencySymbol || '₹'}${outstandingAmount.toLocaleString('en-IN')}`;
         }
       } else if (amountNum > selectedStudent.feesDue) {
         errors.amount = `Amount exceeds outstanding student due of ${settings?.currencySymbol || '₹'}${selectedStudent.feesDue.toLocaleString('en-IN')}`;
@@ -168,9 +252,9 @@ export const Payments: React.FC = () => {
       type: 'success',
       onConfirm: () => {
         setIsSubmitting(true);
-        setTimeout(() => {
+        void (async () => {
           try {
-            const createdPayment = recordPayment({
+            const createdPayment = await recordPayment({
               studentId: selectedStudentId,
               amount: amountNum,
               paymentMethod,
@@ -199,7 +283,7 @@ export const Payments: React.FC = () => {
           } finally {
             setIsSubmitting(false);
           }
-        }, 800);
+        })();
       }
     });
   };
@@ -373,7 +457,7 @@ export const Payments: React.FC = () => {
                               {p.courseName}
                             </td>
                             <td className="px-5 py-3.5 text-slate-500">
-                              {p.paymentDate}
+                              {formatDateForDisplay(p.paymentDate, settings?.dateFormat)}
                             </td>
                             <td className="px-5 py-3.5">
                               <span className={`px-2 py-0.5 rounded-md font-semibold text-[10px] inline-block
@@ -489,23 +573,104 @@ export const Payments: React.FC = () => {
 
           <form onSubmit={handleFormSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Student Dropdown */}
+              {/* Student Dropdown -> Replaced with searchable combobox */}
               <div className="space-y-1 sm:col-span-2">
                 <label className="text-xs font-bold text-slate-655">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
-                <select 
-                  value={selectedStudentId}
-                  onChange={(e) => handleStudentChange(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
-                >
-                  <option value="">-- Select Student --</option>
-                  {students
-                    .filter(s => s.status !== 'Inactive' && s.feesDue > 0)
-                    .map(s => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.rollNumber}) — Due: {settings?.currencySymbol || '₹'}{s.feesDue.toLocaleString('en-IN')} [{s.courseName}]
-                      </option>
-                    ))}
-                </select>
+                <div className="relative student-combobox-container" ref={comboboxRef}>
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search student by name, roll number, or phone..."
+                      value={isComboboxOpen ? studentSearchInput : (selectedStudent ? `${selectedStudent.name} (${selectedStudent.rollNumber})` : '')}
+                      onFocus={handleInputFocus}
+                      onChange={(e) => {
+                        setStudentSearchInput(e.target.value);
+                        setIsComboboxOpen(true);
+                      }}
+                      onKeyDown={handleKeyDown}
+                      className={`w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-text transition-all ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    />
+                    <div className="absolute right-3.5 top-3 flex items-center gap-1.5">
+                      {selectedStudent && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStudentChange('');
+                          }}
+                          className="p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsComboboxOpen(prev => !prev);
+                        }}
+                        className="p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                      >
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isComboboxOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dropdown Options */}
+                  {isComboboxOpen && (
+                    <div className="absolute z-50 w-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto divide-y divide-slate-100 focus:outline-none animate-in fade-in slide-in-from-top-1 duration-100">
+                      {filteredStudents.length > 0 ? (
+                        filteredStudents.map((s, index) => (
+                          <div
+                            key={s.id}
+                            onClick={() => {
+                              handleStudentChange(s.id);
+                              setIsComboboxOpen(false);
+                            }}
+                            className={`px-4 py-3 cursor-pointer transition-colors duration-150 flex flex-col items-start 
+                              ${highlightedIndex === index 
+                                ? 'bg-blue-600 text-white font-medium' 
+                                : selectedStudentId === s.id 
+                                  ? 'bg-blue-50/50 hover:bg-blue-50' 
+                                  : 'hover:bg-slate-50'
+                              }`}
+                          >
+                            <div className="flex justify-between w-full items-center">
+                              <span className={`font-semibold text-sm ${highlightedIndex === index ? 'text-white' : 'text-slate-800'}`}>{s.name}</span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono 
+                                ${highlightedIndex === index 
+                                  ? 'bg-blue-700/50 text-blue-100' 
+                                  : 'bg-slate-100 text-slate-655'
+                                }`}
+                              >
+                                {s.rollNumber}
+                              </span>
+                            </div>
+                            <div className={`text-[11px] mt-1 flex items-center gap-1 
+                              ${highlightedIndex === index ? 'text-blue-100' : 'text-slate-400'}`}
+                            >
+                              <span>{s.courseName}</span>
+                              <span className={highlightedIndex === index ? 'text-blue-300' : 'text-slate-300'}>•</span>
+                              <span>{s.batch}</span>
+                            </div>
+                            {s.phone && (
+                              <div className={`text-[10px] mt-0.5 font-medium 
+                                ${highlightedIndex === index ? 'text-blue-200' : 'text-slate-400'}`}
+                              >
+                                Phone: {s.phone}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-6 text-center text-slate-400 text-xs">
+                          No active students found matching "{studentSearchInput}"
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {formErrors.studentId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.studentId}</span>}
               </div>
 
@@ -546,15 +711,12 @@ export const Payments: React.FC = () => {
                     onChange={(e) => handleInstallmentChange(e.target.value)}
                     className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.installmentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   >
-                    {installments.filter(inst => inst.studentId === selectedStudentId && inst.status !== 'Paid').length > 0 ? (
+                    {selectedStudentInstallments.length > 0 ? (
                       <>
                         <option value="">-- Choose Installment --</option>
-                        {installments
-                          .filter(inst => inst.studentId === selectedStudentId && inst.status !== 'Paid')
-                          .sort((a, b) => a.installmentNumber - b.installmentNumber)
-                          .map(inst => (
+                        {selectedStudentInstallments.map(inst => (
                             <option key={inst.id} value={inst.id}>
-                              Installment #{inst.installmentNumber} — {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')} (Due: {inst.dueDate}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                              Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
                             </option>
                           ))
                         }
@@ -663,3 +825,4 @@ export const Payments: React.FC = () => {
     </div>
   );
 };
+
