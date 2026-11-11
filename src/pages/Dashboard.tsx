@@ -34,9 +34,9 @@ export const Dashboard: React.FC = () => {
   const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
 
   // Total Outstanding Dues: sum of all Pending/Overdue installments
-  const outstandingDues = (installments || [])
-    .filter(inst => inst.status !== 'Paid')
-    .reduce((sum, inst) => sum + inst.amount, 0);
+  const outstandingDues = students
+    .filter(s => s.status !== 'Inactive')
+    .reduce((sum, s) => sum + s.feesDue, 0);
 
   // Use the browser's local calendar date so due totals stay correct across time zones.
   const today = new Date();

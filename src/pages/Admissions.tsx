@@ -19,6 +19,7 @@ import {
   AlertCircle,
   ArrowUpDown,
   CheckCircle2,
+  Info,
   Loader2
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
@@ -152,7 +153,7 @@ export const Admissions: React.FC = () => {
 
   const totalPlannedInstallments = plannedInstallments.reduce((sum, inst) => sum + inst.amount, 0);
   const remainingAllocation = (formData.totalFees || 0) - totalPlannedInstallments;
-  const isAllocationComplete = remainingAllocation === 0;
+  const isAllocationValid = remainingAllocation >= 0;
 
   const addInstallmentRow = () => {
     const nextNumber = plannedInstallments.length + 1;
@@ -291,8 +292,8 @@ export const Admissions: React.FC = () => {
     const totalPlanned = plannedInstallments.reduce((sum, inst) => sum + inst.amount, 0);
     const totalPlannedCents = Math.round(totalPlanned * 100);
     const courseFeeCents = Math.round(formData.totalFees * 100);
-    if (totalPlannedCents !== courseFeeCents) {
-      errors.installmentsTotal = `Total planned installments (${settings?.currencySymbol || '₹'}${totalPlanned.toLocaleString('en-IN')}) must exactly match the course fee of ${settings?.currencySymbol || '₹'}${formData.totalFees.toLocaleString('en-IN')}`;
+    if (totalPlannedCents > courseFeeCents) {
+      errors.installmentsTotal = `Total planned installments (${settings?.currencySymbol || '₹'}${totalPlanned.toLocaleString('en-IN')}) cannot exceed the course fee of ${settings?.currencySymbol || '₹'}${formData.totalFees.toLocaleString('en-IN')}`;
     }
     
     plannedInstallments.forEach((inst, idx) => {
@@ -1046,12 +1047,13 @@ export const Admissions: React.FC = () => {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-6 border border-dashed border-slate-200 rounded-xl text-slate-400 bg-white">
-                  No installments planned yet. Click "+ Add Installment" to define a payment schedule.
+                <div className="text-center py-6 border border-dashed border-slate-200 rounded-xl text-slate-500 bg-white text-xs space-y-1">
+                  <p className="font-semibold text-slate-600">No installments planned yet (Optional).</p>
+                  <p className="text-slate-400">You can plan installments now or define them later from the student's fee details.</p>
                 </div>
               )}
 
-              {/* Planner Summary (Requirement 5) */}
+              {/* Planner Summary */}
               <div className="space-y-2">
                 <div className="bg-white border border-slate-200/60 p-3 rounded-xl text-xs font-semibold space-y-2">
                   <div className="flex justify-between items-center">
@@ -1064,21 +1066,32 @@ export const Admissions: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-100 pt-2">
                     <span className="text-slate-500 font-medium">Remaining Allocation:</span>
-                    <span className={`font-bold ${remainingAllocation === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    <span className={`font-bold ${
+                      remainingAllocation === 0 ? 'text-emerald-600' : remainingAllocation < 0 ? 'text-rose-600' : 'text-slate-700'
+                    }`}>
                       {settings?.currencySymbol || '₹'}{remainingAllocation.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>
 
-                {remainingAllocation === 0 ? (
+                {remainingAllocation < 0 ? (
+                  <div className="flex items-center gap-1.5 text-[10px] text-rose-600 bg-rose-50/50 border border-rose-100 rounded-lg p-2 font-bold uppercase tracking-wider justify-center">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Planned installments cannot exceed the course fee.</span>
+                  </div>
+                ) : remainingAllocation === 0 ? (
                   <div className="flex items-center gap-1.5 text-[10px] text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded-lg p-2 font-bold uppercase tracking-wider justify-center">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                     <span>Schedule Fully Allocated!</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 text-[10px] text-rose-600 bg-rose-50/50 border border-rose-100 rounded-lg p-2 font-bold uppercase tracking-wider justify-center">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>Remaining Allocation must be {settings?.currencySymbol || '₹'}0 to save.</span>
+                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-blue-50/50 border border-blue-100/80 rounded-lg p-2.5 justify-center text-center">
+                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>
+                      {plannedInstallments.length === 0
+                        ? "Installment planning is optional. You can plan installments later from the student's fee details."
+                        : `Remaining unallocated: ${settings?.currencySymbol || '₹'}${remainingAllocation.toLocaleString('en-IN')}. You can plan installments later from the student's fee details.`}
+                    </span>
                   </div>
                 )}
               </div>
@@ -1110,7 +1123,7 @@ export const Admissions: React.FC = () => {
               </button>
               <button 
                 type="submit" 
-                disabled={isSubmitting || !isAllocationComplete}
+                disabled={isSubmitting || !isAllocationValid}
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -1644,7 +1657,7 @@ export const Admissions: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Planner Summary (Requirement 5) */}
+                      {/* Planner Summary */}
                       <div className="space-y-2">
                         <div className="bg-white border border-slate-200/60 p-2.5 rounded-lg text-[10px] font-semibold space-y-1.5">
                           <div className="flex justify-between items-center">
@@ -1657,21 +1670,32 @@ export const Admissions: React.FC = () => {
                           </div>
                           <div className="flex justify-between items-center border-t border-slate-100 pt-1.5">
                             <span className="text-slate-500 font-medium">Remaining Allocation:</span>
-                            <span className={`font-bold ${remainingAllocation === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            <span className={`font-bold ${
+                              remainingAllocation === 0 ? 'text-emerald-600' : remainingAllocation < 0 ? 'text-rose-600' : 'text-slate-700'
+                            }`}>
                               {settings?.currencySymbol || '₹'}{remainingAllocation.toLocaleString('en-IN')}
                             </span>
                           </div>
                         </div>
 
-                        {remainingAllocation === 0 ? (
+                        {remainingAllocation < 0 ? (
+                          <div className="flex items-center gap-1 text-[9px] text-rose-600 bg-rose-50/50 border border-rose-100 rounded p-1.5 font-bold uppercase justify-center">
+                            <AlertCircle className="w-3 h-3 shrink-0" />
+                            <span>Planned installments cannot exceed course fee.</span>
+                          </div>
+                        ) : remainingAllocation === 0 ? (
                           <div className="flex items-center gap-1 text-[9px] text-emerald-600 bg-emerald-50/50 border border-emerald-100 rounded p-1.5 font-bold uppercase justify-center">
-                            <CheckCircle2 className="w-3 h-3" />
+                            <CheckCircle2 className="w-3 h-3 shrink-0" />
                             <span>Schedule Fully Allocated!</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 text-[9px] text-rose-600 bg-rose-50/50 border border-rose-100 rounded p-1.5 font-bold uppercase justify-center">
-                            <AlertCircle className="w-3 h-3" />
-                            <span>Remaining Allocation must be {settings?.currencySymbol || '₹'}0 to save.</span>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 bg-blue-50/50 border border-blue-100/80 rounded p-1.5 justify-center text-center">
+                            <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            <span>
+                              {plannedInstallments.length === 0
+                                ? "You can plan installments later from the student's fee details."
+                                : `Unallocated: ${settings?.currencySymbol || '₹'}{remainingAllocation.toLocaleString('en-IN')}. You can plan installments later from the student's fee details.`}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1691,7 +1715,7 @@ export const Admissions: React.FC = () => {
                     </button>
                     <button 
                       type="submit" 
-                      disabled={isSubmitting || !isAllocationComplete}
+                      disabled={isSubmitting || !isAllocationValid}
                       className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting && <Loader2 className="w-3 animate-spin" />}

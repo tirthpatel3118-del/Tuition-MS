@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { TableSkeleton } from '../components/TableSkeleton';
-import { isSupabaseConfigured } from '../lib/supabase';
 
 export const Payments: React.FC = () => {
   const { students, payments, installments, installmentPaidTotals, recordPayment, showToast, confirmAction, settings } = useData();
@@ -196,10 +195,14 @@ export const Payments: React.FC = () => {
 
   const handleInstallmentChange = (instId: string) => {
     setSelectedInstallmentId(instId);
-    setFormErrors(prev => ({ ...prev, installmentId: '' }));
-    const inst = installments.find(i => i.id === instId);
-    if (inst) {
-      setPaymentAmount(String(outstandingInstallmentAmount(inst)));
+    setFormErrors(prev => ({ ...prev, installmentId: '', amount: '' }));
+    if (instId) {
+      const inst = installments.find(i => i.id === instId);
+      if (inst) {
+        setPaymentAmount(String(outstandingInstallmentAmount(inst)));
+      }
+    } else if (selectedStudent) {
+      setPaymentAmount(String(selectedStudent.feesDue));
     }
   };
 
@@ -207,12 +210,6 @@ export const Payments: React.FC = () => {
     const errors: { [key: string]: string } = {};
     if (!selectedStudentId) {
       errors.studentId = 'Please select an enrolled student';
-    }
-
-    // Check if the student has pending installments, and one must be selected
-    const studentInsts = getUnpaidInstallments(selectedStudentId);
-    if ((studentInsts.length > 0 || isSupabaseConfigured) && !selectedInstallmentId) {
-      errors.installmentId = 'Please select which installment this payment is for';
     }
 
     const amountNum = parseFloat(paymentAmount);
@@ -702,29 +699,48 @@ export const Payments: React.FC = () => {
                 </div>
               )}
 
-              {/* Installment Selection (Requirement 2) */}
+              {/* Installment Selection (Optional) */}
               {selectedStudent && (
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-655">Select Installment <span className="text-rose-500">*</span></label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-655">
+                      Payment Allocation <span className="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    {selectedInstallmentId && (
+                      <button
+                        type="button"
+                        onClick={() => handleInstallmentChange('')}
+                        className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                      >
+                        Clear installment (Direct Payment)
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={selectedInstallmentId}
                     onChange={(e) => handleInstallmentChange(e.target.value)}
-                    className={`w-full px-3.5 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.installmentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer"
                   >
-                    {selectedStudentInstallments.length > 0 ? (
-                      <>
-                        <option value="">-- Choose Installment --</option>
-                        {selectedStudentInstallments.map(inst => (
-                            <option key={inst.id} value={inst.id}>
-                              Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
-                            </option>
-                          ))
-                        }
-                      </>
-                    ) : (
-                      <option value="">No pending/overdue installments. Collecting a custom payment.</option>
-                    )}
+                    <option value="">
+                      {selectedStudentInstallments.length > 0
+                        ? 'Direct Payment / General Balance (No specific installment)'
+                        : 'Direct Payment / Full Fee Settlement (No installments scheduled)'}
+                    </option>
+                    {selectedStudentInstallments.map(inst => (
+                      <option key={inst.id} value={inst.id}>
+                        Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                      </option>
+                    ))}
                   </select>
+                  {selectedStudentInstallments.length === 0 ? (
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      No installment schedule exists for this student. Payment will be credited directly against their outstanding course balance of {settings?.currencySymbol || '₹'}{selectedStudent.feesDue.toLocaleString('en-IN')}.
+                    </p>
+                  ) : !selectedInstallmentId ? (
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Direct payment mode. You can enter any amount up to the student's balance ({settings?.currencySymbol || '₹'}{selectedStudent.feesDue.toLocaleString('en-IN')}), or select a specific installment above.
+                    </p>
+                  ) : null}
                   {formErrors.installmentId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.installmentId}</span>}
                 </div>
               )}
