@@ -2,6 +2,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { AppSettings } from '../types';
 import { getStoredValue, setStoredValue } from '../data/mockData';
 import { requireActiveInstituteId } from '../lib/tenant';
+import { DEFAULT_INSTALLMENT_REMINDER_TEMPLATE, DEFAULT_DIRECT_REMINDER_TEMPLATE } from '../utils/reminderTemplate';
 
 const useSupabase = isSupabaseConfigured;
 
@@ -15,7 +16,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   receiptPrefix: 'REC',
   receiptFooter: 'This is a computer generated receipt. Signature is not mandatory.',
   authorizedSignatureUrl: '',
-  whatsappReminderTemplate: 'Dear {ParentName}, this is a gentle reminder that Installment #{InstallmentNumber} of {Amount} is due on {DueDate} for {StudentName}. Please clear the dues. Thank you, {InstituteName}.',
+  whatsappReminderTemplate: DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+  directFeeReminderTemplate: DEFAULT_DIRECT_REMINDER_TEMPLATE,
   currencySymbol: '₹',
   dateFormat: 'YYYY-MM-DD',
   timeZone: 'Asia/Kolkata'

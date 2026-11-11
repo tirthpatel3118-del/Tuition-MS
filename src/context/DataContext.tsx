@@ -636,16 +636,52 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     })();
   };
 
+  const getStudentDueItemAmounts = (student: Student): Map<string, number> => {
+    const itemAmounts = new Map<string, number>();
+    if (student.status === 'Inactive' || student.feesDue <= 0) return itemAmounts;
+
+    const unpaidInsts = data.installments
+      .filter(inst => inst.studentId === student.id && inst.status !== 'Paid')
+      .sort((a, b) =>
+        (a.installmentNumber - b.installmentNumber) ||
+        a.dueDate.localeCompare(b.dueDate) ||
+        a.id.localeCompare(b.id)
+      );
+
+    let remainingAllowance = student.feesDue;
+
+    for (const inst of unpaidInsts) {
+      if (remainingAllowance <= 0) break;
+      const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
+      if (nominalBalance <= 0) continue;
+
+      const amount = Math.min(nominalBalance, remainingAllowance);
+      remainingAllowance -= amount;
+      itemAmounts.set(inst.id, amount);
+    }
+
+    if (remainingAllowance > 0) {
+      itemAmounts.set(`direct-${student.id}`, remainingAllowance);
+    }
+
+    return itemAmounts;
+  };
+
   const sendReminder = async (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email', installmentId?: string) => {
     const student = studentsWithFees.find(s => s.id === studentId);
     if (!student) throw new Error('Student not found.');
+    if (student.status === 'Inactive') throw new Error('Cannot send reminder for an Inactive student.');
 
-    const installment = installmentId ? data.installments.find(item => item.id === installmentId) : undefined;
-    if (installmentId && !installment) throw new Error('Installment not found.');
-    const amountDue = installment
-      ? Math.max(0, installment.amount - (installmentPaidTotals[installment.id] ?? 0))
+    const isDirect = !installmentId || installmentId.startsWith('direct-');
+    const installment = !isDirect
+      ? data.installments.find(item => item.id === installmentId)
+      : undefined;
+    if (installmentId && !isDirect && !installment) throw new Error('Installment not found.');
+
+    const amountDue = installmentId
+      ? (getStudentDueItemAmounts(student).get(installmentId) ?? 0)
       : student.feesDue;
-    if (amountDue <= 0) throw new Error('This installment has no outstanding balance.');
+    if (amountDue <= 0) throw new Error('This item has no outstanding balance.');
 
     const newReminder = await reminderService.createReminder({
       studentId,
@@ -662,26 +698,73 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const sendBulkReminders = async (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => {
-    const selected = installmentIds
-      .map(id => data.installments.find(installment => installment.id === id))
-      .filter((installment): installment is Installment => Boolean(installment && installment.status !== 'Paid'))
-      .map(installment => ({
-        installment,
-        amountDue: Math.max(0, installment.amount - (installmentPaidTotals[installment.id] ?? 0)),
-        student: studentsWithFees.find(student => student.id === installment.studentId),
-      }))
-      .filter((item): item is { installment: Installment; amountDue: number; student: Student } => Boolean(item.student && item.amountDue > 0));
-    const created = await reminderService.createManyReminders(selected.map(({ student, amountDue }) => ({
-      studentId: student.id,
+    const uniqueIds = Array.from(new Set(installmentIds));
+    const itemsToQueue: Array<{ studentId: string; studentName: string; amountDue: number }> = [];
+    const studentDueCache = new Map<string, Map<string, number>>();
+    const studentRemaining = new Map<string, number>();
+
+    const getDueMap = (student: Student) => {
+      let dueMap = studentDueCache.get(student.id);
+      if (!dueMap) {
+        dueMap = getStudentDueItemAmounts(student);
+        studentDueCache.set(student.id, dueMap);
+      }
+      return dueMap;
+    };
+
+    for (const id of uniqueIds) {
+      if (id.startsWith('direct-')) {
+        const studentId = id.slice(7);
+        const student = studentsWithFees.find(s => s.id === studentId);
+        if (!student || student.status === 'Inactive' || student.feesDue <= 0) continue;
+
+        const directAmount = getDueMap(student).get(id) ?? 0;
+        const available = studentRemaining.has(student.id)
+          ? studentRemaining.get(student.id)!
+          : student.feesDue;
+        const amountDue = Math.min(directAmount, available);
+        if (amountDue > 0) {
+          itemsToQueue.push({ studentId: student.id, studentName: student.name, amountDue });
+          studentRemaining.set(student.id, available - amountDue);
+        }
+      } else {
+        const installment = data.installments.find(inst => inst.id === id);
+        if (!installment || installment.status === 'Paid') continue;
+        const student = studentsWithFees.find(s => s.id === installment.studentId);
+        if (!student || student.status === 'Inactive' || student.feesDue <= 0) continue;
+
+        const instAmount = getDueMap(student).get(installment.id) ?? 0;
+        const available = studentRemaining.has(student.id)
+          ? studentRemaining.get(student.id)!
+          : student.feesDue;
+        const amountDue = Math.min(instAmount, available);
+        if (amountDue > 0) {
+          itemsToQueue.push({ studentId: student.id, studentName: student.name, amountDue });
+          studentRemaining.set(student.id, available - amountDue);
+        }
+      }
+    }
+
+    if (itemsToQueue.length === 0) return;
+
+    const created = await reminderService.createManyReminders(itemsToQueue.map(({ studentId, amountDue }) => ({
+      studentId,
       amountDue,
       channel: type,
       status: 'queued',
     })));
-    const newReminders = created.map(reminder => ({
+
+    const newReminders = created.map((reminder, idx) => ({
       ...reminder,
-      studentName: selected.find(item => item.installment.studentId === reminder.studentId)?.student.name ?? 'Unknown Student',
+      studentName:
+        itemsToQueue[idx]?.studentName ??
+        studentsWithFees.find(s => s.id === reminder.studentId)?.name ??
+        'Unknown Student',
     }));
-    if (newReminders.length) setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
+
+    if (newReminders.length) {
+      setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
+    }
   };
 
   return (

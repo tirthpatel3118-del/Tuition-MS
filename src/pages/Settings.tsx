@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatLocalDateInput } from '../lib/date';
-import { renderReminderTemplate } from '../utils/reminderTemplate';
+import {
+  renderReminderTemplate,
+  DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+  DEFAULT_DIRECT_REMINDER_TEMPLATE
+} from '../utils/reminderTemplate';
 import { useData } from '../context/DataContext';
 import { 
   Building, 
@@ -82,8 +86,8 @@ export const Settings: React.FC = () => {
   };
 
   // Use the same token renderer as dashboard and reminder messages.
-  const getTemplatePreview = () =>
-    renderReminderTemplate(formData.whatsappReminderTemplate || '', {
+  const getInstallmentPreview = () =>
+    renderReminderTemplate(formData.whatsappReminderTemplate || DEFAULT_INSTALLMENT_REMINDER_TEMPLATE, {
       studentName: 'Rahul Sharma',
       parentName: 'Mr. Amit Sharma',
       installmentNumber: 2,
@@ -93,6 +97,19 @@ export const Settings: React.FC = () => {
       remainingFee: 10000,
       instituteName: formData.instituteName,
       currencySymbol: formData.currencySymbol,
+      isDirect: false,
+    });
+
+  const getDirectPreview = () =>
+    renderReminderTemplate(formData.directFeeReminderTemplate || DEFAULT_DIRECT_REMINDER_TEMPLATE, {
+      studentName: 'Tirth Patel',
+      parentName: 'P. Patel',
+      amount: 12000,
+      remainingFee: 12000,
+      dueDate: '',
+      instituteName: formData.instituteName,
+      currencySymbol: formData.currencySymbol,
+      isDirect: true,
     });
 
   // BACKUP OPERATIONS
@@ -466,9 +483,9 @@ export const Settings: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">WhatsApp reminder Template *</label>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Installment Reminder Template *</label>
                       <textarea 
-                        rows={4}
+                        rows={3}
                         required
                         value={formData.whatsappReminderTemplate}
                         onChange={(e) => setFormData(prev => ({ ...prev, whatsappReminderTemplate: e.target.value }))}
@@ -477,9 +494,28 @@ export const Settings: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Live Output Preview Simulation</label>
-                      <div className="bg-blue-50/20 border border-blue-100/50 rounded-xl p-3.5 text-xs text-slate-600 italic leading-relaxed">
-                        {getTemplatePreview()}
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Direct Fee Reminder Template</label>
+                      <textarea
+                        rows={3}
+                        value={formData.directFeeReminderTemplate || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, directFeeReminderTemplate: e.target.value }))}
+                        placeholder={DEFAULT_DIRECT_REMINDER_TEMPLATE}
+                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 focus:outline-none font-medium leading-relaxed"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Installment Preview</label>
+                        <div className="bg-blue-50/20 border border-blue-100/50 rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
+                          {getInstallmentPreview()}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Direct Fee Preview</label>
+                        <div className="bg-blue-50/20 border border-blue-100/50 rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
+                          {getDirectPreview()}
+                        </div>
                       </div>
                     </div>
                   </div>

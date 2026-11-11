@@ -15,10 +15,14 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
 import { isDemoMode } from '../lib/supabase';
-import { renderReminderTemplate } from '../utils/reminderTemplate';
+import {
+  renderReminderTemplate,
+  DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+  DEFAULT_DIRECT_REMINDER_TEMPLATE
+} from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, settings, sendReminder, showToast } = useData();
+  const { students, payments, courses, installments, installmentPaidTotals, settings, sendReminder, showToast } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -145,22 +149,48 @@ export const Dashboard: React.FC = () => {
 
   const buildReminderMessage = (student: typeof highDuesStudents[number]) => {
     const nextInstallment = installments
-      .filter(item => item.studentId === student.id && item.status !== 'Paid')
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber)[0];
-    const installmentAmount = nextInstallment?.amount ?? student.feesDue;
+      .filter(item =>
+        item.studentId === student.id &&
+        item.status !== 'Paid' &&
+        Math.max(0, item.amount - (installmentPaidTotals[item.id] ?? 0)) > 0
+      )
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id))[0];
+
+    if (!nextInstallment) {
+      return renderReminderTemplate(
+        settings?.directFeeReminderTemplate || DEFAULT_DIRECT_REMINDER_TEMPLATE,
+        {
+          studentName: student.name,
+          parentName: student.parentName,
+          amount: student.feesDue,
+          remainingFee: student.feesDue,
+          dueDate: '',
+          instituteName: settings?.instituteName,
+          currencySymbol: settings?.currencySymbol,
+          isDirect: true,
+        }
+      );
+    }
+
+    const remainingInstallmentDue = Math.max(
+      0,
+      nextInstallment.amount - (installmentPaidTotals[nextInstallment.id] ?? 0)
+    );
+    const installmentAmount = Math.min(remainingInstallmentDue, student.feesDue);
 
     return renderReminderTemplate(
-      settings?.whatsappReminderTemplate || 'Dear {ParentName}, this is a gentle reminder that Installment #{InstallmentNumber} of {Amount} is due on {DueDate} for {StudentName}. Please clear the dues. Thank you, {InstituteName}.',
+      settings?.whatsappReminderTemplate || DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
       {
         studentName: student.name,
         parentName: student.parentName,
-        installmentNumber: nextInstallment?.installmentNumber,
+        installmentNumber: nextInstallment.installmentNumber,
         amount: installmentAmount,
         installmentAmount,
-        dueDate: formatDateForDisplay(nextInstallment?.dueDate, settings?.dateFormat) || 'N/A',
+        dueDate: formatDateForDisplay(nextInstallment.dueDate, settings?.dateFormat) || '',
         remainingFee: student.feesDue,
         instituteName: settings?.instituteName,
         currencySymbol: settings?.currencySymbol,
+        isDirect: false,
       }
     );
   };

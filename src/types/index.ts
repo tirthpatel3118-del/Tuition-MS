@@ -76,6 +76,7 @@ export interface AppSettings {
   receiptFooter: string;
   authorizedSignatureUrl: string;
   whatsappReminderTemplate: string;
+  directFeeReminderTemplate?: string;
   currencySymbol: string;
   dateFormat: string;
   timeZone: string;
