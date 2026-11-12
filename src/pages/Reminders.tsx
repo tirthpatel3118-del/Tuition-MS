@@ -378,7 +378,7 @@ export const Reminders: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Dues & Reminders</h1>
-          <p className="text-sm text-slate-500 mt-1">Audit outstanding student dues, customize reminders, and dispatch batch notifications.</p>
+          <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
         </div>
 
         {/* Tab Toggle buttons */}
@@ -752,7 +752,7 @@ export const Reminders: React.FC = () => {
                   <thead>
                     <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-semibold text-slate-505 uppercase tracking-wider">
                       <th className="px-5 py-3">Recipient Student</th>
-                      <th className="px-5 py-3">Dispatch Date</th>
+                      <th className="px-5 py-3">Recorded</th>
                       <th className="px-5 py-3">Channel</th>
                       <th className="px-5 py-3 text-right">Outstanding Dues</th>
                       <th className="px-5 py-3 text-center">Status</th>
