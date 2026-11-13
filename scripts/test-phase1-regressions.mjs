@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 
 const rosterMigration = await read('../supabase/migrations/20261112000000_fix_teacher_academic_roster_view.sql');
+const hardenedRosterMigration = await read('../supabase/migrations/20261113130602_use_private_academic_roster_function.sql');
 assert.match(rosterMigration, /security_invoker\s*=\s*false/);
 assert.match(rosterMigration, /CREATE TABLE IF NOT EXISTS public\.teacher_batch_assignments/i);
 assert.match(rosterMigration, /PRIMARY KEY \(institute_id, batch_id, teacher_user_id\)/);
@@ -22,6 +23,11 @@ assert.match(rosterMigration, /assignment\.institute_id = s\.institute_id[\s\S]*
 assert.match(rosterMigration, /teacher\.role = 'teacher'/);
 assert.doesNotMatch(rosterMigration, /WHERE private\.is_member_of\(s\.institute_id\);/);
 assert.doesNotMatch(rosterMigration, /s\.parent_name|s\.parent_whatsapp|s\.student_mobile/);
+assert.match(hardenedRosterMigration, /CREATE OR REPLACE FUNCTION private\.get_academic_students/);
+assert.match(hardenedRosterMigration, /SECURITY DEFINER[\s\S]*?private\.is_member_of\(s\.institute_id, ARRAY\['owner'\]\)[\s\S]*?assignment\.teacher_user_id = auth\.uid\(\)/);
+assert.match(hardenedRosterMigration, /REVOKE ALL ON FUNCTION private\.get_academic_students\(\) FROM PUBLIC, anon/);
+assert.match(hardenedRosterMigration, /GRANT EXECUTE ON FUNCTION private\.get_academic_students\(\) TO authenticated/);
+assert.match(hardenedRosterMigration, /CREATE OR REPLACE VIEW public\.academic_students[\s\S]*?security_invoker\s*=\s*true[\s\S]*?SELECT \* FROM private\.get_academic_students\(\)/);
 
 // Authorization regression matrix. The migration predicates establish each
 // result at the database layer: same-tenant assigned batch is allowed;
