@@ -14,6 +14,7 @@ interface RosterStudent {
 interface AssignedBatch {
   id: string;
   name: string;
+  courseName: string;
 }
 
 export function TeacherWorkspace() {
@@ -57,14 +58,15 @@ export function TeacherWorkspace() {
         setError('Could not load the academic roster. Check that the approved database security setup is deployed.');
       } else {
         setStudents((rosterResult.data ?? []) as RosterStudent[]);
-        setCourses(Object.fromEntries((coursesResult.data ?? []).map(course => [course.id, course.course_name])));
+        const courseNames = Object.fromEntries((coursesResult.data ?? []).map(course => [course.id, course.course_name]));
+        setCourses(courseNames);
         const batchRows = batchesResult.data ?? [];
         const batchNames = Object.fromEntries(batchRows.map(batch => [batch.id, batch.name]));
         const assignedIds = new Set((assignmentsResult.data ?? []).map(assignment => assignment.batch_id));
         setBatches(batchNames);
         setAssignedBatches(batchRows
           .filter(batch => assignedIds.has(batch.id))
-          .map(batch => ({ id: batch.id, name: batch.name })));
+          .map(batch => ({ id: batch.id, name: batch.name, courseName: courseNames[batch.course_id] ?? 'Course' })));
         setError(null);
       }
       setLoading(false);
@@ -106,7 +108,7 @@ export function TeacherWorkspace() {
             <h3 className="text-sm font-semibold text-slate-800">Assigned batches</h3>
             {assignedBatches.length === 0
               ? <p className="mt-1 text-sm text-slate-500">No batches are currently assigned to you.</p>
-              : <ul className="mt-2 flex flex-wrap gap-2">{assignedBatches.map(batch => <li key={batch.id} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">{batch.name}</li>)}</ul>}
+              : <ul className="mt-2 flex flex-wrap gap-2">{assignedBatches.map(batch => <li key={batch.id} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">{batch.courseName} — {batch.name}</li>)}</ul>}
           </div>}
           {error && <p role="alert" className="p-5 text-sm text-rose-700">{error}</p>}
           {loading && <p className="p-5 text-sm text-slate-500">Loading roster…</p>}
