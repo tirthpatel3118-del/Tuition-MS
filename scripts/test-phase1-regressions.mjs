@@ -12,6 +12,7 @@ assert.match(rosterMigration, /FOREIGN KEY \(institute_id, teacher_user_id\)[\s\
 assert.match(rosterMigration, /teacher_batch_assignments_owner_insert[\s\S]*?private\.is_member_of\(institute_id, ARRAY\['owner'\]\)[\s\S]*?teacher\.role = 'teacher'/);
 assert.match(rosterMigration, /teacher_batch_assignments_owner_delete[\s\S]*?private\.is_member_of\(institute_id, ARRAY\['owner'\]\)/);
 assert.match(rosterMigration, /CREATE OR REPLACE FUNCTION public\.set_teacher_batch_assignments/);
+assert.match(rosterMigration, /set_teacher_batch_assignments\([\s\S]*?SECURITY INVOKER/);
 assert.match(rosterMigration, /set_teacher_batch_assignments[\s\S]*?private\.is_member_of\(p_institute_id, ARRAY\['owner'\]\)[\s\S]*?teacher\.role = 'teacher'[\s\S]*?DELETE FROM public\.teacher_batch_assignments[\s\S]*?INSERT INTO public\.teacher_batch_assignments/);
 assert.match(rosterMigration, /REVOKE ALL ON FUNCTION public\.set_teacher_batch_assignments\(UUID, UUID, UUID\[\]\) FROM PUBLIC, anon/);
 assert.match(rosterMigration, /GRANT EXECUTE ON FUNCTION public\.set_teacher_batch_assignments\(UUID, UUID, UUID\[\]\) TO authenticated/);
@@ -39,6 +40,11 @@ assert.match(assignmentService, /rpc\('set_teacher_batch_assignments'/);
 assert.match(coursesPage, /Assign teachers/);
 assert.match(coursesPage, /Save assignments/);
 assert.match(coursesPage, /activeMembership\?\.role === 'owner'/);
+const teacherWorkspace = await read('../src/pages/TeacherWorkspace.tsx');
+assert.match(teacherWorkspace, /\.from\('teacher_batch_assignments'\)/);
+assert.match(teacherWorkspace, /Assigned batches/);
+assert.match(teacherWorkspace, /\.on\('postgres_changes'/);
+assert.match(teacherWorkspace, /\.from\('academic_students'\)/);
 
 const dataContext = await read('../src/context/DataContext.tsx');
 const paymentService = await read('../src/services/paymentService.ts');

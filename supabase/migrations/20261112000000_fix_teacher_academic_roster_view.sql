@@ -52,9 +52,23 @@ CREATE POLICY teacher_batch_assignments_owner_delete
     ON public.teacher_batch_assignments FOR DELETE TO authenticated
     USING (private.is_member_of(institute_id, ARRAY['owner']));
 
--- Change the teachers on a batch as one owner-checked transaction. RLS remains
--- enabled on the table for every direct read/write path; this RPC also rejects
--- non-teacher members before making any changes.
+-- Let active teacher workspaces refresh immediately after Owner changes.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime')
+       AND NOT EXISTS (
+           SELECT 1 FROM pg_publication_tables
+           WHERE pubname = 'supabase_realtime'
+             AND schemaname = 'public'
+             AND tablename = 'teacher_batch_assignments'
+       ) THEN
+        EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.teacher_batch_assignments';
+    END IF;
+END $$;
+
+-- Change the teachers on a batch as one Owner-checked transaction. This is a
+-- security-invoker function: the assignment table's RLS policies and grants
+-- are enforced for the authenticated caller on every statement.
 CREATE OR REPLACE FUNCTION public.set_teacher_batch_assignments(
     p_institute_id UUID,
     p_batch_id UUID,
@@ -62,7 +76,7 @@ CREATE OR REPLACE FUNCTION public.set_teacher_batch_assignments(
 )
 RETURNS VOID
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $$
 DECLARE
