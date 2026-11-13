@@ -15,6 +15,7 @@ export function TeacherWorkspace() {
   const { activeMembership, email, signOut } = useAuth();
   const [students, setStudents] = useState<RosterStudent[]>([]);
   const [courses, setCourses] = useState<Record<string, string>>({});
+  const [batches, setBatches] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +24,7 @@ export function TeacherWorkspace() {
     const load = async () => {
       if (!isSupabaseConfigured || !activeMembership) return;
       setLoading(true);
-      const [rosterResult, coursesResult] = await Promise.all([
+      const [rosterResult, coursesResult, batchesResult] = await Promise.all([
         supabase.from('academic_students')
           .select('id, roll_number, full_name, status, course_id, batch_id')
           .eq('institute_id', activeMembership.instituteId)
@@ -31,13 +32,17 @@ export function TeacherWorkspace() {
         supabase.from('courses')
           .select('id, course_name')
           .eq('institute_id', activeMembership.instituteId),
+        supabase.from('batches')
+          .select('id, name')
+          .eq('institute_id', activeMembership.instituteId),
       ]);
       if (cancelled) return;
-      if (rosterResult.error || coursesResult.error) {
+      if (rosterResult.error || coursesResult.error || batchesResult.error) {
         setError('Could not load the academic roster. Check that the approved database security setup is deployed.');
       } else {
         setStudents((rosterResult.data ?? []) as RosterStudent[]);
         setCourses(Object.fromEntries((coursesResult.data ?? []).map(course => [course.id, course.course_name])));
+        setBatches(Object.fromEntries((batchesResult.data ?? []).map(batch => [batch.id, batch.name])));
         setError(null);
       }
       setLoading(false);
@@ -69,13 +74,14 @@ export function TeacherWorkspace() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr><th className="px-5 py-3">Roll number</th><th className="px-5 py-3">Student</th><th className="px-5 py-3">Course</th><th className="px-5 py-3">Status</th></tr>
+                  <tr><th className="px-5 py-3">Roll number</th><th className="px-5 py-3">Student</th><th className="px-5 py-3">Course</th><th className="px-5 py-3">Batch</th><th className="px-5 py-3">Status</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {students.map(student => <tr key={student.id}>
                     <td className="px-5 py-3 font-medium text-slate-700">{student.roll_number}</td>
                     <td className="px-5 py-3 text-slate-900">{student.full_name}</td>
                     <td className="px-5 py-3 text-slate-600">{student.course_id ? (courses[student.course_id] ?? 'Course') : '—'}</td>
+                    <td className="px-5 py-3 text-slate-600">{student.batch_id ? (batches[student.batch_id] ?? 'Batch') : '—'}</td>
                     <td className="px-5 py-3 text-slate-600">{student.status}</td>
                   </tr>)}
                 </tbody>
