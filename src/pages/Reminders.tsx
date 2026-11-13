@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { formatDateForDisplay } from '../lib/date';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
@@ -17,10 +18,16 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { isDemoMode } from '../lib/supabase';
+import {
+  renderReminderTemplate,
+  DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+  DEFAULT_DIRECT_REMINDER_TEMPLATE
+} from '../utils/reminderTemplate';
 
 export const Reminders: React.FC = () => {
-  const { students, reminders, installments, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { students, reminders, installments, installmentPaidTotals, sendBulkReminders, sendReminder, showToast, confirmAction, settings } = useData();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Loading states
@@ -34,15 +41,21 @@ export const Reminders: React.FC = () => {
   const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<string[]>([]);
   const [reminderType, setReminderType] = useState<'WhatsApp' | 'SMS' | 'Email'>('WhatsApp');
   
-  // Custom message template
-  const [messageTemplate, setMessageTemplate] = useState(() =>
-    settings?.whatsappReminderTemplate ||
-    'Dear {ParentName}, this is a gentle reminder that Installment #{InstallmentNumber} of {Amount} is due on {DueDate} for {StudentName}. Please clear the dues. Thank you, {InstituteName}.'
+  // Message templates
+  const [installmentTemplate, setInstallmentTemplate] = useState(() =>
+    settings?.whatsappReminderTemplate || DEFAULT_INSTALLMENT_REMINDER_TEMPLATE
   );
+  const [directFeeTemplate, setDirectFeeTemplate] = useState(() =>
+    settings?.directFeeReminderTemplate || DEFAULT_DIRECT_REMINDER_TEMPLATE
+  );
+  const [selectedTemplateType, setSelectedTemplateType] = useState<'installment' | 'direct'>('installment');
 
   useEffect(() => {
     if (settings?.whatsappReminderTemplate) {
-      setMessageTemplate(settings.whatsappReminderTemplate);
+      setInstallmentTemplate(settings.whatsappReminderTemplate);
+    }
+    if (settings?.directFeeReminderTemplate) {
+      setDirectFeeTemplate(settings.directFeeReminderTemplate);
     }
   }, [settings]);
 
@@ -64,46 +77,134 @@ export const Reminders: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search, activeTab]);
 
+  // Installments and Direct Dues that are Pending or Overdue
+  const dueItems = useMemo(() => {
+    const items: Array<{
+      id: string;
+      isDirect: boolean;
+      studentId: string;
+      student?: (typeof students)[0];
+      studentName: string;
+      studentRoll: string;
+      courseName: string;
+      parentName: string;
+      parentPhone: string;
+      installmentNumber?: number;
+      displayInstallment: string;
+      amount: number;
+      dueDate: string;
+      displayDueDate: string;
+      status: 'Pending' | 'Overdue';
+      remarks?: string;
+      remainingFee: number;
+    }> = [];
+
+    // Filter active students with positive feesDue
+    const activeStudentsWithDue = (students || []).filter(
+      s => s.status !== 'Inactive' && s.feesDue > 0
+    );
+
+    // Group installments by studentId
+    const installmentsByStudent = new Map<string, typeof installments>();
+    for (const inst of installments || []) {
+      if (!installmentsByStudent.has(inst.studentId)) {
+        installmentsByStudent.set(inst.studentId, []);
+      }
+      installmentsByStudent.get(inst.studentId)!.push(inst);
+    }
+
+    for (const student of activeStudentsWithDue) {
+      const studentInsts = installmentsByStudent.get(student.id) || [];
+      // Unpaid installments, sorted deterministically by installmentNumber, then dueDate, then id
+      const unpaidInsts = studentInsts
+        .filter(inst => inst.status !== 'Paid')
+        .sort((a, b) => (a.installmentNumber - b.installmentNumber) || a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id));
+
+      let remainingAllowance = student.feesDue;
+
+      for (const inst of unpaidInsts) {
+        if (remainingAllowance <= 0) break;
+
+        const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
+        if (nominalBalance <= 0) continue;
+
+        // Cap installment reminder amount so sum never exceeds student.feesDue
+        const amount = Math.min(nominalBalance, remainingAllowance);
+        remainingAllowance -= amount;
+
+        const isOverdue = inst.status === 'Overdue';
+
+        items.push({
+          id: inst.id,
+          isDirect: false,
+          studentId: student.id,
+          student,
+          studentName: student.name,
+          studentRoll: student.rollNumber || '',
+          courseName: student.courseName || '',
+          parentName: student.parentName || '',
+          parentPhone: student.parentPhone || '',
+          installmentNumber: inst.installmentNumber,
+          displayInstallment: `#${inst.installmentNumber}`,
+          amount,
+          dueDate: inst.dueDate,
+          displayDueDate: formatDateForDisplay(inst.dueDate, settings?.dateFormat) || inst.dueDate,
+          status: isOverdue ? 'Overdue' : 'Pending',
+          remarks: inst.remarks,
+          remainingFee: student.feesDue,
+        });
+      }
+
+      // If student has direct remainder after accounting for all eligible unpaid installments
+      if (remainingAllowance > 0) {
+        items.push({
+          id: `direct-${student.id}`,
+          isDirect: true,
+          studentId: student.id,
+          student,
+          studentName: student.name,
+          studentRoll: student.rollNumber || '',
+          courseName: student.courseName || '',
+          parentName: student.parentName || '',
+          parentPhone: student.parentPhone || '',
+          installmentNumber: undefined,
+          displayInstallment: 'Direct Fee',
+          amount: remainingAllowance,
+          dueDate: '',
+          displayDueDate: '—',
+          status: 'Pending',
+          remarks: 'Direct fee balance',
+          remainingFee: student.feesDue,
+        });
+      }
+    }
+
+    return items;
+  }, [students, installments, installmentPaidTotals, settings?.dateFormat]);
+
   // Load focused student from dashboard query parameters
   useEffect(() => {
     const queryStudentId = searchParams.get('student');
     if (queryStudentId) {
-      // Find the first pending installment for this student
-      const firstDue = installments.find(inst => inst.studentId === queryStudentId && inst.status !== 'Paid');
+      // Find the first due item (installment or direct) for this student
+      const firstDue = dueItems.find(item => item.studentId === queryStudentId);
       if (firstDue) {
         setFocusedInstallmentId(firstDue.id);
-        if (!selectedInstallmentIds.includes(firstDue.id)) {
-          setSelectedInstallmentIds([firstDue.id]);
-        }
+        setSelectedTemplateType(firstDue.isDirect ? 'direct' : 'installment');
+        setSelectedInstallmentIds(prev => (prev.includes(firstDue.id) ? prev : [firstDue.id]));
+        setActiveTab('dues');
       }
-      setActiveTab('dues');
     }
-  }, [searchParams, installments]);
+  }, [searchParams, dueItems]);
 
-  // Installments that are Pending or Overdue
-  const dueInstallments = (installments || [])
-    .filter(inst => inst.status !== 'Paid')
-    .map(inst => {
-      const student = students.find(s => s.id === inst.studentId);
-      return {
-        ...inst,
-        student,
-        studentName: student ? student.name : 'Unknown Student',
-        studentRoll: student ? student.rollNumber : '',
-        courseName: student ? student.courseName : '',
-        parentName: student ? student.parentName : '',
-        parentPhone: student ? student.parentPhone : '',
-        remainingFee: student ? student.feesDue : 0
-      };
-    });
-
-  // Filtered due installments list
-  const filteredDueInstallments = dueInstallments.filter(inst => {
+  // Filtered due items list
+  const filteredDueInstallments = dueItems.filter(inst => {
     return (
       inst.studentName.toLowerCase().includes(search.toLowerCase()) ||
       inst.studentRoll.toLowerCase().includes(search.toLowerCase()) ||
       inst.courseName.toLowerCase().includes(search.toLowerCase()) ||
       inst.parentName.toLowerCase().includes(search.toLowerCase()) ||
+      inst.displayInstallment.toLowerCase().includes(search.toLowerCase()) ||
       (inst.remarks && inst.remarks.toLowerCase().includes(search.toLowerCase()))
     );
   });
@@ -124,7 +225,10 @@ export const Reminders: React.FC = () => {
     if (sortField === 'name') {
       comparison = a.studentName.localeCompare(b.studentName);
     } else if (sortField === 'due_date') {
-      comparison = a.dueDate.localeCompare(b.dueDate);
+      if (!a.dueDate && !b.dueDate) comparison = a.studentName.localeCompare(b.studentName);
+      else if (!a.dueDate) comparison = 1;
+      else if (!b.dueDate) comparison = -1;
+      else comparison = a.dueDate.localeCompare(b.dueDate);
     } else if (sortField === 'amount') {
       comparison = a.amount - b.amount;
     }
@@ -151,6 +255,10 @@ export const Reminders: React.FC = () => {
     if (checked) {
       setSelectedInstallmentIds(prev => [...prev, instId]);
       setFocusedInstallmentId(instId);
+      const clickedItem = dueItems.find(i => i.id === instId);
+      if (clickedItem) {
+        setSelectedTemplateType(clickedItem.isDirect ? 'direct' : 'installment');
+      }
     } else {
       setSelectedInstallmentIds(prev => prev.filter(id => id !== instId));
       if (focusedInstallmentId === instId) {
@@ -159,53 +267,82 @@ export const Reminders: React.FC = () => {
     }
   };
 
-  const parseTemplate = (templateStr: string, inst: typeof dueInstallments[0]) => {
-    const symbol = settings?.currencySymbol || '₹';
-    return templateStr
-      .replace(/{StudentName}/g, inst.studentName || '')
-      .replace(/\[StudentName\]/g, inst.studentName || '')
-      .replace(/{ParentName}/g, inst.parentName || '')
-      .replace(/\[ParentName\]/g, inst.parentName || '')
-      .replace(/{InstallmentNumber}/g, String(inst.installmentNumber || ''))
-      .replace(/\[InstallmentNumber\]/g, String(inst.installmentNumber || ''))
-      .replace(/{Amount}/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[Amount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/\[InstallmentAmount\]/g, `${symbol}${(inst.amount || 0).toLocaleString('en-IN')}`)
-      .replace(/{DueDate}/g, inst.dueDate || '')
-      .replace(/\[DueDate\]/g, inst.dueDate || '')
-      .replace(/{RemainingFee}/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/\[RemainingFee\]/g, `${symbol}${(inst.remainingFee || 0).toLocaleString('en-IN')}`)
-      .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/\[InstituteName\]/g, settings?.instituteName || 'EduLedger ERP')
-      .replace(/{[A-Za-z0-9_]+}/g, '')
-      .replace(/\[[A-Za-z0-9_]+\]/g, '');
+  const parseItemReminder = (
+    inst: (typeof dueItems)[0],
+    customTemplate?: string
+  ) => {
+    const templateToUse = customTemplate || (inst.isDirect ? directFeeTemplate : installmentTemplate);
+    return renderReminderTemplate(templateToUse, {
+      studentName: inst.studentName,
+      parentName: inst.parentName,
+      installmentNumber: inst.isDirect ? undefined : inst.installmentNumber,
+      amount: inst.amount,
+      installmentAmount: inst.amount,
+      dueDate: inst.isDirect ? '' : (formatDateForDisplay(inst.dueDate, settings?.dateFormat) || ''),
+      remainingFee: inst.remainingFee,
+      instituteName: settings?.instituteName,
+      currencySymbol: settings?.currencySymbol,
+      isDirect: inst.isDirect,
+    });
   };
 
-  // Parsing function for template preview
-  const getParsedPreview = (instId: string | null) => {
-    let inst = instId ? dueInstallments.find(i => i.id === instId) : null;
-    if (!inst && dueInstallments.length > 0) {
-      inst = dueInstallments[0];
-    }
-    if (!inst) {
-      const symbol = settings?.currencySymbol || '₹';
-      const mockInst = {
-        studentName: 'John Doe',
-        parentName: 'Robert Doe',
+  // Resolve target item for live preview based on selected reminder type
+  const getPreviewItem = () => {
+    const focusedItem = focusedInstallmentId ? dueItems.find(i => i.id === focusedInstallmentId) : null;
+    if (selectedTemplateType === 'direct') {
+      if (focusedItem?.isDirect) return focusedItem;
+      const firstDirect = dueItems.find(i => i.isDirect);
+      if (firstDirect) return firstDirect;
+      return {
+        id: 'mock-direct',
+        isDirect: true,
+        studentId: 'mock-1',
+        studentName: 'Tirth Patel',
+        studentRoll: 'ROLL-001',
+        courseName: 'General Course',
+        parentName: 'P. Patel',
+        parentPhone: '9876543210',
+        installmentNumber: undefined,
+        displayInstallment: 'Direct Fee',
+        amount: 12000,
+        dueDate: '',
+        displayDueDate: '—',
+        status: 'Pending' as const,
+        remainingFee: 12000,
+      };
+    } else {
+      if (focusedItem && !focusedItem.isDirect) return focusedItem;
+      const firstInstallment = dueItems.find(i => !i.isDirect);
+      if (firstInstallment) return firstInstallment;
+      return {
+        id: 'mock-inst',
+        isDirect: false,
+        studentId: 'mock-2',
+        studentName: 'Rahul Sharma',
+        studentRoll: 'ROLL-002',
+        courseName: 'Foundation Batch',
+        parentName: 'Mr. Amit Sharma',
+        parentPhone: '9876543210',
         installmentNumber: 1,
+        displayInstallment: '#1',
         amount: 5000,
         dueDate: '2026-08-15',
+        displayDueDate: '2026-08-15',
+        status: 'Pending' as const,
         remainingFee: 10000,
-        parentPhone: '9876543210'
       };
-      return parseTemplate(messageTemplate, mockInst as any);
     }
-    return parseTemplate(messageTemplate, inst);
   };
 
+  const previewItem = getPreviewItem();
+  const previewMessage = parseItemReminder(
+    previewItem,
+    selectedTemplateType === 'direct' ? directFeeTemplate : installmentTemplate
+  );
+
   // Generate dynamic WhatsApp link using parsed template text
-  const getWhatsAppLink = (inst: typeof dueInstallments[0]) => {
-    const message = parseTemplate(messageTemplate, inst);
+  const getWhatsAppLink = (inst: (typeof dueItems)[0]) => {
+    const message = parseItemReminder(inst);
     const cleanPhone = (inst.parentPhone || '').replace(/[^0-9]/g, '');
     const phoneWithCountry = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
     return `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
@@ -214,32 +351,25 @@ export const Reminders: React.FC = () => {
   // Send single/bulk reminder trigger
   const handleSendReminders = () => {
     if (selectedInstallmentIds.length === 0) {
-      showToast('Please select at least one installment to send reminders.', 'error');
+      showToast('Please select at least one item to send reminders.', 'error');
       return;
     }
 
     confirmAction({
       title: 'Send Fee Reminders',
-      message: `Are you sure you want to dispatch ${selectedInstallmentIds.length} simulated ${reminderType} reminders?`,
-      confirmText: 'Send Reminders',
+      message: `Add reminders for ${selectedInstallmentIds.length} selected item(s) to the ${reminderType} queue? They will be recorded as queued, not sent automatically.`,
+      confirmText: 'Queue Reminders',
       type: 'primary',
       onConfirm: () => {
-        const studentIds = selectedInstallmentIds.map(id => {
-          const inst = dueInstallments.find(i => i.id === id);
-          return inst ? inst.studentId : '';
-        }).filter(id => id !== '');
-
-        sendBulkReminders(studentIds, reminderType);
-        showToast(`Reminders sent successfully for ${selectedInstallmentIds.length} installment(s).`, 'success');
-        setSelectedInstallmentIds([]);
-        setFocusedInstallmentId(null);
+        void sendBulkReminders(selectedInstallmentIds, reminderType).then(() => {
+          showToast(`Reminders queued for ${selectedInstallmentIds.length} selected item(s).`, 'success');
+          setSelectedInstallmentIds([]);
+          setFocusedInstallmentId(null);
+        }).catch((error: unknown) => {
+          showToast(error instanceof Error ? error.message : 'Could not queue reminders.', 'error');
+        });
       }
     });
-  };
-
-  const getLastReminderDate = (studentId: string) => {
-    const lastReminder = reminders.find(r => r.studentId === studentId);
-    return lastReminder ? lastReminder.sentDate : 'Never';
   };
 
   return (
@@ -248,7 +378,7 @@ export const Reminders: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Dues & Reminders</h1>
-          <p className="text-sm text-slate-500 mt-1">Audit outstanding student dues, customize reminders, and dispatch batch notifications.</p>
+          <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
         </div>
 
         {/* Tab Toggle buttons */}
@@ -351,7 +481,10 @@ export const Reminders: React.FC = () => {
                           paginatedInstallments.map(inst => (
                             <tr 
                               key={inst.id} 
-                              onClick={() => setFocusedInstallmentId(inst.id)}
+                              onClick={() => {
+                                setFocusedInstallmentId(inst.id);
+                                setSelectedTemplateType(inst.isDirect ? 'direct' : 'installment');
+                              }}
                               className={`hover:bg-slate-50/40 cursor-pointer transition-colors
                                 ${focusedInstallmentId === inst.id ? 'bg-blue-50/30' : ''}
                               `}
@@ -373,13 +506,19 @@ export const Reminders: React.FC = () => {
                                 <div className="text-[10px] text-slate-400 mt-0.5">{inst.parentPhone}</div>
                               </td>
                               <td className="px-4 py-3.5 text-center font-semibold text-slate-700">
-                                #{inst.installmentNumber}
+                                {inst.isDirect ? (
+                                  <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    Direct Fee
+                                  </span>
+                                ) : (
+                                  inst.displayInstallment
+                                )}
                               </td>
                               <td className="px-4 py-3.5 text-right font-bold text-slate-800">
                                 {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}
                               </td>
                               <td className="px-4 py-3.5 text-center font-medium text-slate-600">
-                                {inst.dueDate}
+                                {inst.displayDueDate}
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
@@ -391,15 +530,24 @@ export const Reminders: React.FC = () => {
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex items-center justify-center gap-1.5">
                                   <a
-                                    href={getWhatsAppLink(inst)}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={() => {
-                                      sendReminder(inst.studentId, 'WhatsApp');
-                                      showToast('WhatsApp reminder logged successfully', 'success');
+                                    href={isDemoMode ? undefined : getWhatsAppLink(inst)}
+                                    target={isDemoMode ? undefined : '_blank'}
+                                    rel={isDemoMode ? undefined : 'noreferrer'}
+                                    aria-disabled={isDemoMode}
+                                    onClick={event => {
+                                      if (isDemoMode) {
+                                        event.preventDefault();
+                                        showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                                        return;
+                                      }
+                                      void sendReminder(inst.studentId, 'WhatsApp', inst.id).then(() => {
+                                        showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
+                                      }).catch((error: unknown) => {
+                                        showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
+                                      });
                                     }}
-                                    title="Send WhatsApp Reminder"
-                                    className="p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                                    title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
+                                    className={`p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
@@ -516,16 +664,49 @@ export const Reminders: React.FC = () => {
               </div>
 
               {/* Message Template input */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Template Text</label>
-                  <span className="text-[9px] text-slate-400">Available: [StudentName], [ParentName], [InstallmentNumber], [InstallmentAmount], [DueDate], [RemainingFee]</span>
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplateType('installment')}
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                        selectedTemplateType === 'installment'
+                          ? 'bg-white text-slate-800 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      Installment Template
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplateType('direct')}
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                        selectedTemplateType === 'direct'
+                          ? 'bg-white text-slate-800 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      Direct Fee Template
+                    </button>
+                  </div>
+                  <span className="text-[9px] text-slate-400">
+                    {selectedTemplateType === 'installment'
+                      ? 'Tokens: [StudentName], [ParentName], [InstallmentNumber], [Amount], [DueDate], [RemainingFee], [InstituteName]'
+                      : 'Tokens: [StudentName], [ParentName], [Amount], [RemainingFee], [InstituteName]'}
+                  </span>
                 </div>
                 <textarea 
                   rows={4}
-                  value={messageTemplate}
-                  onChange={(e) => setMessageTemplate(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 leading-relaxed"
+                  value={selectedTemplateType === 'direct' ? directFeeTemplate : installmentTemplate}
+                  onChange={(e) => {
+                    if (selectedTemplateType === 'direct') {
+                      setDirectFeeTemplate(e.target.value);
+                    } else {
+                      setInstallmentTemplate(e.target.value);
+                    }
+                  }}
+                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 leading-relaxed font-sans"
                 />
               </div>
 
@@ -549,16 +730,10 @@ export const Reminders: React.FC = () => {
               
               <div className="space-y-2">
                 <div className="text-[10px] text-slate-450">
-                  {focusedInstallmentId ? (
-                    <>Showing parsed message for <span className="font-bold text-slate-700">{dueInstallments.find(i => i.id === focusedInstallmentId)?.studentName}</span>:</>
-                  ) : dueInstallments.length > 0 ? (
-                    <>Showing parsed message for <span className="font-bold text-slate-700">{dueInstallments[0]?.studentName}</span> (Default):</>
-                  ) : (
-                    <>Showing parsed message preview (Sample Data):</>
-                  )}
+                  Showing parsed message for <span className="font-bold text-slate-700">{previewItem.studentName}</span> ({previewItem.isDirect ? 'Direct Fee' : `Installment #${previewItem.installmentNumber || 1}`}):
                 </div>
                 <div className="bg-white border border-slate-100 rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed shadow-sm font-medium whitespace-pre-wrap">
-                  {getParsedPreview(focusedInstallmentId)}
+                  {previewMessage}
                 </div>
               </div>
             </div>
@@ -577,7 +752,7 @@ export const Reminders: React.FC = () => {
                   <thead>
                     <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-semibold text-slate-505 uppercase tracking-wider">
                       <th className="px-5 py-3">Recipient Student</th>
-                      <th className="px-5 py-3">Dispatch Date</th>
+                      <th className="px-5 py-3">Recorded</th>
                       <th className="px-5 py-3">Channel</th>
                       <th className="px-5 py-3 text-right">Outstanding Dues</th>
                       <th className="px-5 py-3 text-center">Status</th>
@@ -606,9 +781,14 @@ export const Reminders: React.FC = () => {
                             {settings?.currencySymbol || '₹'}{log.amountDue.toLocaleString('en-IN')}
                           </td>
                           <td className="px-5 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
+                              log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
+                              log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
+                              'text-blue-700 bg-blue-50 border-blue-100'
+                            }`}>
                               <CheckCircle2 className="w-3 h-3" />
-                              <span>Sent</span>
+                              <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
                             </span>
                           </td>
                         </tr>
@@ -633,3 +813,4 @@ export const Reminders: React.FC = () => {
     </div>
   );
 };
+

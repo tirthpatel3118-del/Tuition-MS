@@ -74,36 +74,7 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE receipts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE installments ENABLE ROW LEVEL SECURITY;
 
--- Create policies for all users (anon and authenticated)
-CREATE POLICY "Allow public CRUD on courses"
-    ON courses
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Allow public CRUD on students"
-    ON students
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Allow public CRUD on payments"
-    ON payments
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Allow public CRUD on receipts"
-    ON receipts
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Allow public CRUD on installments"
-    ON installments
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
+-- Keep RLS enabled with no policies until the final tenant authorization migration is applied.
 
 -- Create view to calculate Total Paid and Remaining Fee dynamically
 CREATE VIEW student_balances AS
@@ -164,9 +135,3 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Enable RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
--- Create policy for public CRUD
-CREATE POLICY "Allow public CRUD on settings"
-    ON settings
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);

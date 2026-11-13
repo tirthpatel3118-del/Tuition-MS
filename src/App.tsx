@@ -1,21 +1,28 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { Suspense, lazy, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './pages/Dashboard';
-import { Admissions } from './pages/Admissions';
-import { Payments } from './pages/Payments';
-import { Receipts } from './pages/Receipts';
-import { Reminders } from './pages/Reminders';
-import { Courses } from './pages/Courses';
-import { Settings } from './pages/Settings';
-import { Menu, RotateCcw, Bell } from 'lucide-react';
+import { Menu, RotateCcw, Bell, LogOut } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
+import { isDemoMode } from './lib/supabase';
+import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
+import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
+
+const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const Admissions = lazy(() => import('./pages/Admissions').then(module => ({ default: module.Admissions })));
+const Payments = lazy(() => import('./pages/Payments').then(module => ({ default: module.Payments })));
+const Receipts = lazy(() => import('./pages/Receipts').then(module => ({ default: module.Receipts })));
+const Reminders = lazy(() => import('./pages/Reminders').then(module => ({ default: module.Reminders })));
+const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: module.Courses })));
+const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
+const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { confirmAction } = useData();
+  const auth = useAuth();
 
   return (
     <div className="flex min-h-screen bg-slate-50/50 font-sans">
@@ -29,6 +36,11 @@ function AppContent() {
 
       {/* Main App Container */}
       <div className="flex-1 flex flex-col min-w-0">
+        {isDemoMode && (
+          <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
+            Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
+          </div>
+        )}
         {/* Top Navigation Bar */}
         <header className="bg-white border-b border-slate-100 h-16 flex items-center justify-between px-6 sticky top-0 z-30 select-none no-print">
           {/* Left header: mobile toggle & search */}
@@ -48,8 +60,27 @@ function AppContent() {
 
           {/* Right header actions */}
           <div className="flex items-center gap-4">
-            {/* Reset Data Button */}
-            <button 
+            {auth.configured && auth.activeMembership && (
+              <div className="hidden sm:flex items-center gap-2">
+                {auth.memberships.length > 1 && (
+                  <select
+                    aria-label="Active institute"
+                    value={auth.activeMembership.instituteId}
+                    onChange={event => auth.selectInstitute(event.target.value)}
+                    className="max-w-44 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600"
+                  >
+                    {auth.memberships.map(item => <option key={item.instituteId} value={item.instituteId}>{item.instituteName}</option>)}
+                  </select>
+                )}
+                <span className="hidden lg:inline text-xs text-slate-500" title={auth.email ?? undefined}>{auth.email}</span>
+                <button onClick={() => void auth.signOut()} title="Sign out" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Reset only affects local demo data. */}
+            {!auth.configured && <button 
               onClick={() => {
                 confirmAction({
                   title: 'Reset System Data',
@@ -66,7 +97,7 @@ function AppContent() {
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset System Data</span>
-            </button>
+            </button>}
 
             <div className="h-4 w-[1px] bg-slate-200"></div>
 
@@ -79,15 +110,17 @@ function AppContent() {
 
         {/* Page Router Body */}
         <main className="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/admissions" element={<Admissions />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/receipts" element={<Receipts />} />
-            <Route path="/reminders" element={<Reminders />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
+          <Suspense fallback={<div className="py-12 text-center text-sm text-slate-500">Loading workspace…</div>}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/admissions" element={<Admissions />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/receipts" element={<Receipts />} />
+              <Route path="/reminders" element={<Reminders />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </main>
 
         {/* Global Layout Footer */}
@@ -95,7 +128,7 @@ function AppContent() {
           <div className="max-w-7xl mx-auto px-6 space-y-1">
             <div className="text-slate-500 font-semibold">EduLedger ERP v1.0.0</div>
             <div className="text-slate-400">
-              © 2026 EduLedger ERP • Developed & Maintained by Tirth Patel • <a href="mailto:Tirth.freelancer31@gmail.com" className="text-slate-400 hover:text-blue-600 transition-colors font-medium">Tirth.freelancer31@gmail.com</a>
+              © 2026 EduLedger ERP
             </div>
           </div>
         </footer>
@@ -104,14 +137,73 @@ function AppContent() {
   );
 }
 
+function AppEntry() {
+  const auth = useAuth();
+  const location = useLocation();
+  const isInvitationRoute = location.pathname === '/accept-invitation';
+
+  if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
+  if (location.pathname === '/terms') return <TermsPage />;
+
+  if (!auth.configured) {
+    if (import.meta.env.PROD && !isDemoMode) {
+      return (
+        <main className="min-h-screen bg-slate-50 px-4 flex items-center justify-center">
+          <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h1 className="text-xl font-bold text-slate-900">Workspace setup required</h1>
+            <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">
+              EduLedger is not connected to its authentication and database service. Please contact your administrator.
+            </p>
+          </section>
+        </main>
+      );
+    }
+    return <DataProvider><AppContent /></DataProvider>;
+  }
+
+  if (auth.status === 'loading' || auth.status === 'verifying' || auth.status === 'loading-memberships') {
+    return <AuthLoading />;
+  }
+
+  if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
+  if (location.pathname === '/reset-password') return <PasswordResetPage />;
+
+  if (auth.status === 'signed-out') return <AuthPage />;
+
+  if (auth.status === 'error') {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 flex items-center justify-center">
+        <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <h1 className="text-xl font-bold text-slate-900">Could not open your workspace</h1>
+          <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">{auth.error}</p>
+          <button onClick={() => void auth.refreshMemberships()} className="mt-6 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700">Try again</button>
+          <button onClick={() => void auth.signOut()} className="ml-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 hover:text-slate-800">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+
+  if (isInvitationRoute) return <InvitationAcceptancePage />;
+  if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
+
+  if (auth.memberships.length === 0) return <CreateInstitutePage />;
+  if (!auth.activeMembership) return <SelectInstitutePage />;
+  if (auth.activeMembership.role === 'teacher') {
+    return <Suspense fallback={<AuthLoading />}><TeacherWorkspace /></Suspense>;
+  }
+
+  return <DataProvider key={auth.activeMembership.instituteId}><AppContent /></DataProvider>;
+}
+
 function App() {
   return (
-    <DataProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </DataProvider>
+    <Router>
+      <AuthProvider>
+        <AppEntry />
+      </AuthProvider>
+    </Router>
   );
 }
 
 export default App;
+

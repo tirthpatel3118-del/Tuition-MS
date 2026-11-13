@@ -8,18 +8,22 @@ import {
   Flame, 
   BookMarked, 
   Code,
-  AlertCircle,
   PlusCircle,
   Loader2,
   Trash2,
   X,
   Edit3,
-  Users
+  Users,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { Batch } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { loadTeacherBatchAssignments, saveBatchTeachers, type TeacherBatchAssignment } from '../services/teacherBatchAssignmentService';
+import type { InstituteMember } from '../services/memberService';
 
 export const Courses: React.FC = () => {
+  const { activeMembership } = useAuth();
+  const isOwner = activeMembership?.role === 'owner';
   const { 
     courses, 
     students, 
@@ -52,11 +56,19 @@ export const Courses: React.FC = () => {
   // Batch Form & Modal States
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+  const [assignmentBatch, setAssignmentBatch] = useState<Batch | null>(null);
+  const [assignmentTeachers, setAssignmentTeachers] = useState<InstituteMember[]>([]);
+  const [teacherAssignments, setTeacherAssignments] = useState<TeacherBatchAssignment[]>([]);
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState<string[]>([]);
+  const [assignmentDataReady, setAssignmentDataReady] = useState(false);
+  const [isSavingAssignments, setIsSavingAssignments] = useState(false);
+  const [assignmentError, setAssignmentError] = useState('');
   const [batchFormData, setBatchFormData] = useState({
     courseId: '',
     name: '',
     timing: '',
-    capacity: '',
+    capacity: '30',
     courseFee: '',
     status: 'Active' as 'Active' | 'Inactive'
   });
@@ -65,6 +77,50 @@ export const Courses: React.FC = () => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let cancelled = false;
+    setAssignmentDataReady(false);
+    void loadTeacherBatchAssignments().then(({ teachers, assignments }) => {
+      if (cancelled) return;
+      setAssignmentTeachers(teachers);
+      setTeacherAssignments(assignments);
+      setAssignmentDataReady(true);
+    }).catch(() => {
+      if (!cancelled) {
+        setAssignmentError('Could not load teacher assignments. Check the database security setup.');
+        setAssignmentDataReady(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [isOwner, batches]);
+
+  const openTeacherAssignments = (batch: Batch) => {
+    setAssignmentBatch(batch);
+    if (assignmentDataReady) setAssignmentError('');
+    setSelectedTeacherIds(teacherAssignments
+      .filter(assignment => assignment.batch_id === batch.id)
+      .map(assignment => assignment.teacher_user_id));
+  };
+
+  const handleSaveTeacherAssignments = async () => {
+    if (!assignmentBatch) return;
+    setIsSavingAssignments(true);
+    setAssignmentError('');
+    try {
+      await saveBatchTeachers(assignmentBatch.id, selectedTeacherIds);
+      const { teachers, assignments } = await loadTeacherBatchAssignments();
+      setAssignmentTeachers(teachers);
+      setTeacherAssignments(assignments);
+      setAssignmentBatch(null);
+      showToast('Batch teachers updated', 'success');
+    } catch {
+      setAssignmentError('Could not save teacher assignments. Your changes have not been confirmed.');
+    } finally {
+      setIsSavingAssignments(false);
+    }
+  };
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -118,6 +174,33 @@ export const Courses: React.FC = () => {
     });
   };
 
+  const openAddBatchModal = (courseId?: string) => {
+    setEditingBatchId(null);
+    const resolvedCourseId = courseId || (courses.length === 1 ? courses[0].id : '');
+    setBatchFormData({
+      courseId: resolvedCourseId,
+      name: '',
+      timing: '',
+      capacity: '30',
+      courseFee: '',
+      status: 'Active'
+    });
+    setShowBatchModal(true);
+  };
+
+  const handleCloseBatchModal = () => {
+    setShowBatchModal(false);
+    setEditingBatchId(null);
+    setBatchFormData({
+      courseId: '',
+      name: '',
+      timing: '',
+      capacity: '30',
+      courseFee: '',
+      status: 'Active'
+    });
+  };
+
   const validateBatchForm = () => {
     if (!batchFormData.courseId) {
       showToast('Mapped course is required', 'error');
@@ -131,10 +214,17 @@ export const Courses: React.FC = () => {
       showToast('Timing is required', 'error');
       return false;
     }
-    const cap = parseInt(batchFormData.capacity);
-    if (isNaN(cap) || cap <= 0) {
-      showToast('Capacity must be a positive number', 'error');
+    const cap = Number(batchFormData.capacity);
+    if (!Number.isInteger(cap) || cap <= 0) {
+      showToast('Capacity must be a positive whole number', 'error');
       return false;
+    }
+    if (batchFormData.courseFee.trim()) {
+      const fee = Number(batchFormData.courseFee);
+      if (!Number.isFinite(fee) || fee <= 0) {
+        showToast('Batch fee must be a valid amount greater than 0', 'error');
+        return false;
+      }
     }
     return true;
   };
@@ -145,29 +235,26 @@ export const Courses: React.FC = () => {
 
     const data = {
       courseId: batchFormData.courseId,
-      name: batchFormData.name,
-      timing: batchFormData.timing,
-      capacity: parseInt(batchFormData.capacity),
-      courseFee: batchFormData.courseFee ? parseFloat(batchFormData.courseFee) : undefined,
+      name: batchFormData.name.trim(),
+      timing: batchFormData.timing.trim(),
+      capacity: Number(batchFormData.capacity),
+      courseFee: batchFormData.courseFee.trim() ? Number(batchFormData.courseFee) : undefined,
       status: batchFormData.status
     };
 
-    if (editingBatchId) {
-      await updateBatch(editingBatchId, data);
-    } else {
-      await addBatch(data);
+    setIsBatchSubmitting(true);
+    try {
+      if (editingBatchId) {
+        await updateBatch(editingBatchId, data);
+      } else {
+        await addBatch(data);
+      }
+      handleCloseBatchModal();
+    } catch {
+      // Error notifications are triggered in DataContext; keep modal open with current data
+    } finally {
+      setIsBatchSubmitting(false);
     }
-
-    setShowBatchModal(false);
-    setEditingBatchId(null);
-    setBatchFormData({
-      courseId: '',
-      name: '',
-      timing: '',
-      capacity: '',
-      courseFee: '',
-      status: 'Active'
-    });
   };
 
   const handleEditBatch = (batch: Batch) => {
@@ -177,7 +264,7 @@ export const Courses: React.FC = () => {
       name: batch.name,
       timing: batch.timing,
       capacity: String(batch.capacity),
-      courseFee: batch.courseFee ? String(batch.courseFee) : '',
+      courseFee: batch.courseFee != null ? String(batch.courseFee) : '',
       status: batch.status
     });
     setShowBatchModal(true);
@@ -211,7 +298,7 @@ export const Courses: React.FC = () => {
   const courseStats = courses.map(course => {
     const enrolledStudents = students.filter(s => s.courseId === course.id);
     const activeCount = enrolledStudents.filter(s => s.status === 'Active').length;
-    const courseBatches = Array.from(new Set(enrolledStudents.map(s => s.batch))).filter(Boolean);
+    const courseBatches = (batches || []).filter(b => b.courseId === course.id);
 
     return {
       ...course,
@@ -387,6 +474,15 @@ export const Courses: React.FC = () => {
                         {course.subject}
                       </span>
                       <button 
+                        type="button"
+                        onClick={() => openAddBatchModal(course.id)}
+                        title={`Add Batch to ${course.name}`}
+                        className="flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Batch</span>
+                      </button>
+                      <button 
                         onClick={() => handleDeleteCourse(course.id, course.name)}
                         title="Delete Course"
                         className="p-1.5 border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors cursor-pointer"
@@ -402,13 +498,29 @@ export const Courses: React.FC = () => {
                       <Clock className="w-3.5 h-3.5" />
                       <span>Duration: {course.duration}</span>
                     </div>
+
+                    {course.batches.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">Batches:</span>
+                        {course.batches.map(b => (
+                          <span 
+                            key={b.id} 
+                            className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-650 px-2 py-0.5 rounded-md border border-slate-200/60"
+                            title={`${b.name} (${b.timing})`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${b.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                            <span>{b.name}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Course Fee</span>
-                    <span className="text-sm font-bold text-blue-600">{settings?.currencySymbol || '₹'}{course.fees.toLocaleString('en-IN')}</span>
+                    <span className="text-sm font-bold text-blue-600">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
                   </div>
                   
                   <div className="text-right">
@@ -426,18 +538,7 @@ export const Courses: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch occupancy & management</h3>
             <button
-              onClick={() => {
-                setEditingBatchId(null);
-                setBatchFormData({
-                  courseId: '',
-                  name: '',
-                  timing: '',
-                  capacity: '',
-                  courseFee: '',
-                  status: 'Active'
-                });
-                setShowBatchModal(true);
-              }}
+              onClick={() => openAddBatchModal()}
               className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
             >
               <Plus className="w-3 h-3" />
@@ -465,6 +566,11 @@ export const Courses: React.FC = () => {
                         <div className="text-[9px] text-slate-450 mt-0.5 block max-w-[200px] truncate">
                           Course: {batch.courseName}
                         </div>
+                        {isOwner && teacherAssignments.some(assignment => assignment.batch_id === batch.id) && <div className="mt-1 max-w-[220px] text-[9px] text-slate-500">
+                          Teachers: {teacherAssignments.filter(assignment => assignment.batch_id === batch.id)
+                            .map(assignment => assignmentTeachers.find(teacher => teacher.userId === assignment.teacher_user_id)?.email || 'Teacher')
+                            .join(', ')}
+                        </div>}
                         {batch.courseFee && (
                           <div className="text-[9px] text-blue-650 font-bold mt-0.5">
                             Batch Fee: {settings?.currencySymbol || '₹'}{batch.courseFee.toLocaleString('en-IN')}
@@ -478,6 +584,15 @@ export const Courses: React.FC = () => {
                           <span className="text-[10px] text-slate-400 block font-medium">/ {batch.count} registered (Cap: {batch.capacity})</span>
                         </div>
                         <div className="flex items-center gap-1">
+                          {isOwner && <button
+                            type="button"
+                            onClick={() => openTeacherAssignments(batch as Batch)}
+                            title="Assign teachers"
+                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
+                          >
+                            <Users className="h-3 w-3" />
+                            Teachers ({teacherAssignments.filter(assignment => assignment.batch_id === batch.id).length})
+                          </button>}
                           <button
                             onClick={() => handleEditBatch(batch as any)}
                             title="Edit Batch"
@@ -515,6 +630,30 @@ export const Courses: React.FC = () => {
 
       </div>
 
+      {assignmentBatch && isOwner && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 id="batch-teachers-title" className="text-lg font-bold text-slate-900">Assign teachers</h2>
+              <p className="mt-1 text-sm text-slate-500">{assignmentBatch.name} · {assignmentBatch.timing}</p>
+            </div>
+            <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Close teacher assignments"><X className="h-4 w-4" /></button>
+          </div>
+          {assignmentError && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{assignmentError}</p>}
+          <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-200">
+            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50">
+              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+              <span className="text-sm font-medium text-slate-800">{teacher.email || 'Account email unavailable'}</span>
+            </label>)}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">Teachers will see academic roster details only for students in batches assigned to them.</p>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
+            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
+          </div>
+        </section>
+      </div>}
+
       {/* Batch Modal */}
       {showBatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in no-print">
@@ -524,17 +663,45 @@ export const Courses: React.FC = () => {
                 {editingBatchId ? 'Edit Batch details' : 'Add New Batch'}
               </h3>
               <button 
-                onClick={() => {
-                  setShowBatchModal(false);
-                  setEditingBatchId(null);
-                }}
-                className="text-slate-400 hover:text-slate-650 transition-colors"
+                type="button"
+                onClick={handleCloseBatchModal}
+                className="text-slate-400 hover:text-slate-650 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleBatchSubmit} className="space-y-4">
+              {/* Course Selector */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase">
+                  Course Package <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={batchFormData.courseId}
+                  onChange={(e) => setBatchFormData(prev => ({ ...prev, courseId: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  required
+                >
+                  <option value="" disabled>Select a course program</option>
+                  {courses.map(course => (
+                    <option key={course.id} value={course.id}>
+                      {course.name} ({course.subject})
+                    </option>
+                  ))}
+                  {editingBatchId && batchFormData.courseId && !courses.some(c => c.id === batchFormData.courseId) && (
+                    <option value={batchFormData.courseId}>
+                      Current Course ({batchFormData.courseId})
+                    </option>
+                  )}
+                </select>
+                {courses.length === 0 && (
+                  <p className="text-[10px] text-amber-600 font-medium">
+                    No active course packages found. Please create a course first.
+                  </p>
+                )}
+              </div>
+
               {/* Batch Name */}
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase">Batch Name *</label>
@@ -581,7 +748,11 @@ export const Courses: React.FC = () => {
                     type="number" 
                     value={batchFormData.courseFee}
                     onChange={(e) => setBatchFormData(prev => ({ ...prev, courseFee: e.target.value }))}
-                    placeholder="Inherit course fee"
+                    placeholder={
+                      courses.find(c => c.id === batchFormData.courseId)?.fees != null
+                        ? `Default: ${settings?.currencySymbol || '₹'}${courses.find(c => c.id === batchFormData.courseId)?.fees?.toLocaleString('en-IN')}`
+                        : "Inherit course fee"
+                    }
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
                   />
                 </div>
@@ -603,19 +774,19 @@ export const Courses: React.FC = () => {
               <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button 
                   type="button" 
-                  onClick={() => {
-                    setShowBatchModal(false);
-                    setEditingBatchId(null);
-                  }}
+                  onClick={handleCloseBatchModal}
+                  disabled={isBatchSubmitting}
                   className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-655 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                  disabled={isBatchSubmitting || courses.length === 0}
+                  className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
-                  {editingBatchId ? 'Save Changes' : 'Create Batch'}
+                  {isBatchSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
+                  <span>{editingBatchId ? 'Save Changes' : 'Create Batch'}</span>
                 </button>
               </div>
             </form>
@@ -625,3 +796,4 @@ export const Courses: React.FC = () => {
     </div>
   );
 };
+

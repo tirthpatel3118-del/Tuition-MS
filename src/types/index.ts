@@ -15,6 +15,7 @@ export interface Course {
   course_name: string;
   batch_name: string;
   duration_months: number;
+  course_fee?: number | null;
   created_at: string;
 }
 
@@ -58,7 +59,7 @@ export interface Installment {
   installment_number: number;
   due_date: string;
   amount: number;
-  status: 'Pending' | 'Paid' | 'Overdue';
+  status: 'Pending' | 'Paid' | 'Overdue' | 'Partially_Paid';
   payment_id: string | null;
   remarks: string | null;
   created_at: string;
@@ -75,6 +76,7 @@ export interface AppSettings {
   receiptFooter: string;
   authorizedSignatureUrl: string;
   whatsappReminderTemplate: string;
+  directFeeReminderTemplate?: string;
   currencySymbol: string;
   dateFormat: string;
   timeZone: string;
@@ -89,3 +91,4 @@ export interface Batch {
   courseFee?: number;
   status: 'Active' | 'Inactive';
 }
+

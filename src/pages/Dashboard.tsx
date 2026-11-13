@@ -1,3 +1,4 @@
+import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { 
@@ -13,9 +14,15 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
+import { isDemoMode } from '../lib/supabase';
+import {
+  renderReminderTemplate,
+  DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+  DEFAULT_DIRECT_REMINDER_TEMPLATE
+} from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, settings, sendReminder } = useData();
+  const { students, payments, courses, installments, installmentPaidTotals, settings, sendReminder, showToast } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,16 +38,19 @@ export const Dashboard: React.FC = () => {
   const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
 
   // Total Outstanding Dues: sum of all Pending/Overdue installments
-  const outstandingDues = (installments || [])
-    .filter(inst => inst.status !== 'Paid')
-    .reduce((sum, inst) => sum + inst.amount, 0);
+  const outstandingDues = students
+    .filter(s => s.status !== 'Inactive')
+    .reduce((sum, s) => sum + s.feesDue, 0);
 
-  // Today's date relative to Temporal Context: 2026-07-06
-  const todayStr = '2026-07-06';
-  const today = new Date(todayStr);
+  // Use the browser's local calendar date so due totals stay correct across time zones.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const toDateKey = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const todayStr = toDateKey(today);
   const sevenDaysLater = new Date(today);
   sevenDaysLater.setDate(today.getDate() + 7);
-  const sevenDaysLaterStr = sevenDaysLater.toISOString().split('T')[0];
+  const sevenDaysLaterStr = toDateKey(sevenDaysLater);
 
   // Today's Due: Pending or Overdue installments due today (or overdue in the past)
   const todaysDue = (installments || [])
@@ -61,20 +71,22 @@ export const Dashboard: React.FC = () => {
     .filter(s => s.status !== 'Inactive')
     .reduce((sum, s) => sum + s.totalFees, 0);
 
-  const collectionRate = totalFeesExpected > 0 
-    ? Math.round((totalRevenue / totalFeesExpected) * 100) 
+  const totalFeesCollected = students
+    .filter(s => s.status !== 'Inactive')
+    .reduce((sum, s) => sum + s.feesPaid, 0);
+  const collectionRate = totalFeesExpected > 0
+    ? Math.round((totalFeesCollected / totalFeesExpected) * 100)
     : 0;
 
-  // 2. Prepare Data for Monthly Revenue Trend Chart (Custom Interactive SVG Chart)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-  const monthlyRevenueMap: { [key: string]: number } = {
-    'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0
-  };
+  // 2. Prepare year-to-date monthly revenue for the interactive SVG chart.
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = monthNames.slice(0, today.getMonth() + 1);
+  const monthlyRevenueMap: Record<string, number> = Object.fromEntries(months.map(month => [month, 0]));
 
   payments.forEach(p => {
-    const monthIndex = parseInt(p.paymentDate.split('-')[1], 10);
-    if (!isNaN(monthIndex) && monthIndex >= 1 && monthIndex <= 7) {
-      const monthName = months[monthIndex - 1];
+    const [paymentYear, paymentMonth] = p.paymentDate.split('-').map(Number);
+    if (paymentYear === today.getFullYear() && paymentMonth >= 1 && paymentMonth <= months.length) {
+      const monthName = months[paymentMonth - 1];
       monthlyRevenueMap[monthName] += p.amount;
     }
   });
@@ -135,6 +147,54 @@ export const Dashboard: React.FC = () => {
     .sort((a, b) => b.feesDue - a.feesDue)
     .slice(0, 4);
 
+  const buildReminderMessage = (student: typeof highDuesStudents[number]) => {
+    const nextInstallment = installments
+      .filter(item =>
+        item.studentId === student.id &&
+        item.status !== 'Paid' &&
+        Math.max(0, item.amount - (installmentPaidTotals[item.id] ?? 0)) > 0
+      )
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id))[0];
+
+    if (!nextInstallment) {
+      return renderReminderTemplate(
+        settings?.directFeeReminderTemplate || DEFAULT_DIRECT_REMINDER_TEMPLATE,
+        {
+          studentName: student.name,
+          parentName: student.parentName,
+          amount: student.feesDue,
+          remainingFee: student.feesDue,
+          dueDate: '',
+          instituteName: settings?.instituteName,
+          currencySymbol: settings?.currencySymbol,
+          isDirect: true,
+        }
+      );
+    }
+
+    const remainingInstallmentDue = Math.max(
+      0,
+      nextInstallment.amount - (installmentPaidTotals[nextInstallment.id] ?? 0)
+    );
+    const installmentAmount = Math.min(remainingInstallmentDue, student.feesDue);
+
+    return renderReminderTemplate(
+      settings?.whatsappReminderTemplate || DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
+      {
+        studentName: student.name,
+        parentName: student.parentName,
+        installmentNumber: nextInstallment.installmentNumber,
+        amount: installmentAmount,
+        installmentAmount,
+        dueDate: formatDateForDisplay(nextInstallment.dueDate, settings?.dateFormat) || '',
+        remainingFee: student.feesDue,
+        instituteName: settings?.instituteName,
+        currencySymbol: settings?.currencySymbol,
+        isDirect: false,
+      }
+    );
+  };
+
   if (isLoading) {
     return <PageLoader />;
   }
@@ -145,7 +205,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">Here is a summary of {settings?.instituteName || 'EduLedger'} ERP database statistics.</p>
+          <p className="text-sm text-slate-500 mt-1">A snapshot of tuition, collections, and outstanding balances.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -179,8 +239,8 @@ export const Dashboard: React.FC = () => {
           <div className="mt-4">
             <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalRevenue.toLocaleString('en-IN')}</h3>
             <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>+18.4% monthly</span>
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>{payments.length} payments recorded</span>
             </div>
           </div>
           <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600"></div>
@@ -265,7 +325,7 @@ export const Dashboard: React.FC = () => {
           <div className="mt-4">
             <h3 className="text-2xl font-bold text-slate-800">{collectionRate}%</h3>
             <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
-              <span>Excellent Collection health</span>
+              <span>Collected from active students</span>
             </div>
           </div>
           <div className="absolute bottom-0 inset-x-0 h-1 bg-emerald-600"></div>
@@ -278,7 +338,7 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-base">Collection History (2026)</h3>
+              <h3 className="font-bold text-slate-800 text-base">Collection History ({today.getFullYear()})</h3>
               <p className="text-xs text-slate-400">Monthly aggregate collection performance.</p>
             </div>
             <div className="flex items-center gap-2">
@@ -466,21 +526,26 @@ export const Dashboard: React.FC = () => {
                   {/* Actions buttons */}
                   <div className="grid grid-cols-2 gap-2 mt-0.5">
                     <a
-                      href={`https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(
-                        (settings?.whatsappReminderTemplate || 'Dear {ParentName}, this is a gentle reminder that an outstanding fee of {Amount} is due for {StudentName}.')
-                          .replace(/{ParentName}/g, student.parentName)
-                          .replace(/{StudentName}/g, student.name)
-                          .replace(/{Amount}/g, `${settings?.currencySymbol || '₹'}${student.feesDue.toLocaleString('en-IN')}`)
-                          .replace(/{DueDate}/g, 'N/A')
-                          .replace(/{InstituteName}/g, settings?.instituteName || 'EduLedger')
-                      )}`}
+                      href={isDemoMode ? undefined : `https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(buildReminderMessage(student))}`}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => sendReminder(student.id, 'WhatsApp')}
+                      aria-disabled={isDemoMode}
+                      onClick={event => {
+                        if (isDemoMode) {
+                          event.preventDefault();
+                          showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                          return;
+                        }
+                        void sendReminder(student.id, 'WhatsApp').then(() => {
+                          showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
+                        }).catch((error: unknown) => {
+                          showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
+                        });
+                      }}
                       className="flex items-center justify-center gap-1 border border-emerald-250 bg-emerald-50/20 hover:bg-emerald-50/40 text-emerald-700 font-bold text-[10px] py-1.5 rounded-lg transition-all"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
-                      <span>WhatsApp</span>
+                      <span>{isDemoMode ? 'WhatsApp preview' : 'WhatsApp'}</span>
                     </a>
                     <button
                       onClick={() => navigate(`/payments?student=${student.id}`)}
@@ -558,3 +623,4 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
