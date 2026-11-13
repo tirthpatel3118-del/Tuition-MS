@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint src",
+    "test": "node scripts/test-phase1-regressions.mjs && node scripts/test-direct-payment.mjs && node scripts/test-reminder-dues.mjs && node scripts/test-auth-lifecycle.mjs && node scripts/test-batch-workflow.mjs && node scripts/test-enrollment-flexibility.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

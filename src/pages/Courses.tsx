@@ -13,11 +13,17 @@ import {
   Trash2,
   X,
   Edit3,
+  Users,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { Batch } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { loadTeacherBatchAssignments, saveBatchTeachers, type TeacherBatchAssignment } from '../services/teacherBatchAssignmentService';
+import type { InstituteMember } from '../services/memberService';
 
 export const Courses: React.FC = () => {
+  const { activeMembership } = useAuth();
+  const isOwner = activeMembership?.role === 'owner';
   const { 
     courses, 
     students, 
@@ -51,6 +57,13 @@ export const Courses: React.FC = () => {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
   const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+  const [assignmentBatch, setAssignmentBatch] = useState<Batch | null>(null);
+  const [assignmentTeachers, setAssignmentTeachers] = useState<InstituteMember[]>([]);
+  const [teacherAssignments, setTeacherAssignments] = useState<TeacherBatchAssignment[]>([]);
+  const [selectedTeacherIds, setSelectedTeacherIds] = useState<string[]>([]);
+  const [assignmentDataReady, setAssignmentDataReady] = useState(false);
+  const [isSavingAssignments, setIsSavingAssignments] = useState(false);
+  const [assignmentError, setAssignmentError] = useState('');
   const [batchFormData, setBatchFormData] = useState({
     courseId: '',
     name: '',
@@ -64,6 +77,50 @@ export const Courses: React.FC = () => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    let cancelled = false;
+    setAssignmentDataReady(false);
+    void loadTeacherBatchAssignments().then(({ teachers, assignments }) => {
+      if (cancelled) return;
+      setAssignmentTeachers(teachers);
+      setTeacherAssignments(assignments);
+      setAssignmentDataReady(true);
+    }).catch(() => {
+      if (!cancelled) {
+        setAssignmentError('Could not load teacher assignments. Check the database security setup.');
+        setAssignmentDataReady(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [isOwner, batches]);
+
+  const openTeacherAssignments = (batch: Batch) => {
+    setAssignmentBatch(batch);
+    if (assignmentDataReady) setAssignmentError('');
+    setSelectedTeacherIds(teacherAssignments
+      .filter(assignment => assignment.batch_id === batch.id)
+      .map(assignment => assignment.teacher_user_id));
+  };
+
+  const handleSaveTeacherAssignments = async () => {
+    if (!assignmentBatch) return;
+    setIsSavingAssignments(true);
+    setAssignmentError('');
+    try {
+      await saveBatchTeachers(assignmentBatch.id, selectedTeacherIds);
+      const { teachers, assignments } = await loadTeacherBatchAssignments();
+      setAssignmentTeachers(teachers);
+      setTeacherAssignments(assignments);
+      setAssignmentBatch(null);
+      showToast('Batch teachers updated', 'success');
+    } catch {
+      setAssignmentError('Could not save teacher assignments. Your changes have not been confirmed.');
+    } finally {
+      setIsSavingAssignments(false);
+    }
+  };
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
@@ -509,6 +566,11 @@ export const Courses: React.FC = () => {
                         <div className="text-[9px] text-slate-450 mt-0.5 block max-w-[200px] truncate">
                           Course: {batch.courseName}
                         </div>
+                        {isOwner && teacherAssignments.some(assignment => assignment.batch_id === batch.id) && <div className="mt-1 max-w-[220px] text-[9px] text-slate-500">
+                          Teachers: {teacherAssignments.filter(assignment => assignment.batch_id === batch.id)
+                            .map(assignment => assignmentTeachers.find(teacher => teacher.userId === assignment.teacher_user_id)?.email || 'Teacher')
+                            .join(', ')}
+                        </div>}
                         {batch.courseFee && (
                           <div className="text-[9px] text-blue-650 font-bold mt-0.5">
                             Batch Fee: {settings?.currencySymbol || '₹'}{batch.courseFee.toLocaleString('en-IN')}
@@ -522,6 +584,15 @@ export const Courses: React.FC = () => {
                           <span className="text-[10px] text-slate-400 block font-medium">/ {batch.count} registered (Cap: {batch.capacity})</span>
                         </div>
                         <div className="flex items-center gap-1">
+                          {isOwner && <button
+                            type="button"
+                            onClick={() => openTeacherAssignments(batch as Batch)}
+                            title="Assign teachers"
+                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
+                          >
+                            <Users className="h-3 w-3" />
+                            Teachers ({teacherAssignments.filter(assignment => assignment.batch_id === batch.id).length})
+                          </button>}
                           <button
                             onClick={() => handleEditBatch(batch as any)}
                             title="Edit Batch"
@@ -558,6 +629,30 @@ export const Courses: React.FC = () => {
         </div>
 
       </div>
+
+      {assignmentBatch && isOwner && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 id="batch-teachers-title" className="text-lg font-bold text-slate-900">Assign teachers</h2>
+              <p className="mt-1 text-sm text-slate-500">{assignmentBatch.name} · {assignmentBatch.timing}</p>
+            </div>
+            <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Close teacher assignments"><X className="h-4 w-4" /></button>
+          </div>
+          {assignmentError && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{assignmentError}</p>}
+          <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-200">
+            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50">
+              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+              <span className="text-sm font-medium text-slate-800">{teacher.email || 'Account email unavailable'}</span>
+            </label>)}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">Teachers will see academic roster details only for students in batches assigned to them.</p>
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
+            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
+          </div>
+        </section>
+      </div>}
 
       {/* Batch Modal */}
       {showBatchModal && (

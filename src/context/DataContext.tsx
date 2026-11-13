@@ -549,10 +549,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const student = data.students.find(s => s.id === paymentData.studentId);
     if (!student) throw new Error('Student not found');
 
-    if (isSupabaseConfigured && !installmentId) {
-      throw new Error('Select an installment before recording a payment. Payments must be allocated to a fee installment.');
-    }
-
     const paymentDate = formatLocalDateInput();
     const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
     const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
@@ -580,7 +576,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       amount: paymentData.amount,
       paymentMode: paymentData.paymentMethod,
       paymentDate,
-      installmentId: installmentId ?? '',
+      installmentId,
       remarks: [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | '),
       idempotencyKey,
     });

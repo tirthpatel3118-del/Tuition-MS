@@ -13,7 +13,8 @@ import {
   ChevronRight,
   X,
   Sparkles,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   setMobileOpen
 }) => {
-  const { settings } = useData();
+  const { settings, showToast } = useData();
   const auth = useAuth();
   const role = auth.activeMembership?.role;
   const navItems = [
@@ -110,6 +111,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
         </div>
+
+        {auth.configured && role === 'owner' && (
+          <button
+            type="button"
+            onClick={() => void auth.signOut().catch(() => showToast('Could not sign out. Please try again.', 'error'))}
+            className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-rose-50 hover:text-rose-700 transition-colors ${collapsed ? 'justify-center px-2' : ''}`}
+            title={collapsed ? 'Sign out' : undefined}
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+        )}
 
         {/* Collapse Button - Desktop Only */}
         <button
