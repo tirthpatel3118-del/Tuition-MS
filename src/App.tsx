@@ -62,19 +62,19 @@ function AppContent() {
           {/* Right header actions */}
           <div className="flex items-center gap-4">
             {auth.configured && auth.activeMembership && (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden items-center gap-2 sm:flex">
                 {auth.memberships.length > 1 && (
                   <select
                     aria-label="Active institute"
                     value={auth.activeMembership.instituteId}
                     onChange={event => auth.selectInstitute(event.target.value)}
-                    className="max-w-44 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-600"
+                    className="max-w-44 rounded-lg border border-[#E5DDE0] bg-white px-3 py-2 text-xs font-semibold text-slate-700"
                   >
                     {auth.memberships.map(item => <option key={item.instituteId} value={item.instituteId}>{item.instituteName}</option>)}
                   </select>
                 )}
                 <span className="hidden lg:inline text-xs text-slate-500" title={auth.email ?? undefined}>{auth.email}</span>
-                <button onClick={() => void auth.signOut()} title="Sign out" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+                <button onClick={() => void auth.signOut()} title="Sign out" className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-[#F8E9ED] hover:text-[#6B1F38]">
                   <LogOut className="h-4 w-4" />
                 </button>
               </div>
@@ -93,7 +93,7 @@ function AppContent() {
                   }
                 });
               }}
-              className="flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-2 rounded-lg border border-[#E5DDE0] bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-[#F8E9ED] hover:text-[#6B1F38]"
               title="Reset application mock data back to factory defaults"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -102,9 +102,9 @@ function AppContent() {
 
             <div className="h-4 w-[1px] bg-slate-200"></div>
 
-            <div className="relative p-2 text-slate-400 hover:text-slate-655 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-[#F8E9ED] hover:text-[#6B1F38]">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600"></span>
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#A03B5E]"></span>
             </div>
           </div>
         </header>
