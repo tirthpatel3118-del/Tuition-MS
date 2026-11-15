@@ -87,6 +87,15 @@ export function AttendancePage() {
   const visibleBatches = useMemo(() => batchFilter === 'all' ? batches : batches.filter(batch => batch.id === batchFilter), [batchFilter, batches]);
   const recordsByStudent = useMemo(() => new Map(records.map(record => [`${record.batch_id}:${record.student_id}`, record])), [records]);
   const pendingByAttendance = useMemo(() => new Map(corrections.filter(item => item.decision === 'Pending').map(item => [item.attendance_id, item])), [corrections]);
+  const studentsByBatch = useMemo(() => {
+    const groups = new Map<string, StudentRow[]>();
+    for (const student of students) {
+      if (!student.batch_id || !assignedBatchIds.has(student.batch_id)) continue;
+      const group = groups.get(student.batch_id) ?? [];
+      group.push(student); groups.set(student.batch_id, group);
+    }
+    return groups;
+  }, [assignedBatchIds, students]);
   const attendanceSummary = useMemo(() => {
     const counts = { Present: 0, Absent: 0, Late: 0, Leave: 0, unmarked: 0 };
     for (const batch of visibleBatches) {
@@ -98,15 +107,6 @@ export function AttendancePage() {
     }
     return counts;
   }, [visibleBatches, studentsByBatch, recordsByStudent]);
-  const studentsByBatch = useMemo(() => {
-    const groups = new Map<string, StudentRow[]>();
-    for (const student of students) {
-      if (!student.batch_id || !assignedBatchIds.has(student.batch_id)) continue;
-      const group = groups.get(student.batch_id) ?? [];
-      group.push(student); groups.set(student.batch_id, group);
-    }
-    return groups;
-  }, [assignedBatchIds, students]);
 
   const runAction = async (key: string, action: () => Promise<unknown>, success: string) => {
     setBusyId(key); setError(null); setNotice(null);
