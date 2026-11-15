@@ -312,7 +312,7 @@ export const Receipts: React.FC = () => {
 
             {/* Remarks if any */}
             {activePayment.remarks && (
-              <div className="mt-4 p-3 bg-[#F8E9ED]/20 border border-blue-100/50 text-[11px] text-slate-600 rounded-xl">
+              <div className="mt-4 p-3 bg-[#F8E9ED]/20 border border-[#E5DDE0] text-[11px] text-slate-600 rounded-xl">
                 <span className="font-bold">Remarks: </span>{activePayment.remarks}
               </div>
             )}
