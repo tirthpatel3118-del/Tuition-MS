@@ -505,19 +505,19 @@ export const Admissions: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 relative min-h-[calc(100vh-80px)]">
+    <div className="relative min-h-[calc(100vh-80px)] space-y-7">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Student Admissions</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Student lifecycle</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Admissions & students</h1>
           <p className="text-sm text-slate-500 mt-1">Manage enrollments, view student directory details, and register new candidates.</p>
         </div>
         
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => { setActiveTab('directory'); setIsEditing(false); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'directory' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'directory' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             Student Directory
           </button>
@@ -542,10 +542,16 @@ export const Admissions: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Student summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total students</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.length}</p><p className="mt-1 text-xs text-slate-500">All student records</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active students</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status === 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Currently enrolled</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Inactive / completed</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Not currently active</p></div>
+      </section>
+
       {activeTab === 'directory' ? (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-[#E5DDE0] shadow-sm no-print">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ui-card p-4 no-print">
             {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -554,7 +560,7 @@ export const Admissions: React.FC = () => {
                 placeholder="Search name, roll, phone..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
               />
             </div>
 
@@ -593,11 +599,11 @@ export const Admissions: React.FC = () => {
             <TableSkeleton columnCount={6} rowCount={itemsPerPage} />
           ) : (
             <div className="space-y-4">
-              <div className="bg-white border border-[#E5DDE0] rounded-xl shadow-sm overflow-hidden">
+              <div className="ui-card overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-xs font-semibold text-slate-550 uppercase tracking-wider select-none">
+                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-550 uppercase tracking-wider select-none">
                         <th 
                           onClick={() => handleSort('roll')} 
                           className="px-5 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
@@ -1166,7 +1172,7 @@ export const Admissions: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
               {!isEditing ? (
                 /* Detail View */
-                <div className="space-y-6">
+                <div className="space-y-7">
                   {/* Student Title Profile Card */}
                   <div className="flex items-center gap-4 border-b border-[#E5DDE0] pb-5">
                     <div className="w-14 h-14 rounded-xl bg-[#F8E9ED] text-[#6B1F38] flex items-center justify-center font-bold text-xl border border-blue-100 shadow-inner">
