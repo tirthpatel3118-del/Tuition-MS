@@ -126,7 +126,7 @@ function AppContent() {
         </main>
 
         {/* Mobile primary navigation */}
-        <nav aria-label="Mobile primary navigation" className="no-print fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-[#E5DDE0] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-6px_24px_rgba(31,41,55,0.06)] backdrop-blur md:hidden">
+        <nav aria-label="Mobile primary navigation" className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-[#E5DDE0] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-6px_24px_rgba(31,41,55,0.06)] backdrop-blur md:hidden">
           {[
             { to: '/', label: 'Home', icon: LayoutDashboard },
             { to: '/admissions', label: 'Admissions', icon: UserPlus },
@@ -136,7 +136,7 @@ function AppContent() {
           ].map(item => {
             const Icon = item.icon;
             return (
-              <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-medium transition-colors ${isActive ? 'text-[#6B1F38]' : 'text-slate-500'}`}>
+              <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-medium transition-colors ${isActive ? 'text-[#6B1F38]' : 'text-slate-500'}`}>
                 {({ isActive }) => <><Icon className="h-[19px] w-[19px]" strokeWidth={isActive ? 2.2 : 1.8} /><span>{item.label}</span></>}
               </NavLink>
             );
