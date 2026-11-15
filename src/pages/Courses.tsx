@@ -441,7 +441,7 @@ export const Courses: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)}
-                className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-655 hover:bg-slate-50 transition-colors"
+                className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
@@ -465,7 +465,7 @@ export const Courses: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Course catalogue</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {courseStats.length === 0 ? <div className="ui-card border-dashed p-8 text-center"><BookOpen className="mx-auto h-8 w-8 text-slate-300" /><h4 className="mt-3 text-sm font-semibold text-slate-800">Your course catalogue is empty</h4><p className="mt-1 text-sm text-slate-500">Create your first course package to start organising batches and enrollments.</p><button type="button" onClick={() => setShowAddForm(true)} className="ui-button-primary mt-4"><Plus className="h-4 w-4" /> Create first course</button></div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {courseStats.map(course => (
               <div 
                 key={course.id}
@@ -501,7 +501,7 @@ export const Courses: React.FC = () => {
 
                   <div>
                     <h4 className="font-bold text-slate-800 text-sm leading-tight truncate" title={course.name}>{course.name}</h4>
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-405 mt-1.5 font-semibold">
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1.5 font-semibold">
                       <Clock className="w-3.5 h-3.5" />
                       <span>Duration: {course.duration}</span>
                     </div>
@@ -512,7 +512,7 @@ export const Courses: React.FC = () => {
                         {course.batches.map(b => (
                           <span 
                             key={b.id} 
-                            className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-650 px-2 py-0.5 rounded-md border border-slate-200/60"
+                            className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200/60"
                             title={`${b.name} (${b.timing})`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${b.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
@@ -537,7 +537,7 @@ export const Courses: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* Batches occupancy */}
@@ -561,16 +561,16 @@ export const Courses: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="text-xs font-bold text-slate-850 leading-tight">{batch.name}</h4>
+                          <h4 className="text-xs font-bold text-slate-800 leading-tight">{batch.name}</h4>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${batch.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
                             {batch.status}
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-505 mt-1 font-semibold flex items-center gap-1">
+                        <div className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1">
                           <Clock className="w-3 h-3 text-slate-400" />
                           <span>{batch.timing}</span>
                         </div>
-                        <div className="text-[9px] text-slate-450 mt-0.5 block max-w-[200px] truncate">
+                        <div className="text-[9px] text-slate-500 mt-0.5 block max-w-[200px] truncate">
                           Course: {batch.courseName}
                         </div>
                         {isOwner && teacherAssignments.some(assignment => assignment.batch_id === batch.id) && <div className="mt-1 max-w-[220px] text-[9px] text-slate-500">
@@ -579,7 +579,7 @@ export const Courses: React.FC = () => {
                             .join(', ')}
                         </div>}
                         {batch.courseFee && (
-                          <div className="text-[9px] text-blue-650 font-bold mt-0.5">
+                          <div className="text-[9px] text-[#6B1F38] font-bold mt-0.5">
                             Batch Fee: {settings?.currencySymbol || '₹'}{batch.courseFee.toLocaleString('en-IN')}
                           </div>
                         )}
@@ -610,7 +610,7 @@ export const Courses: React.FC = () => {
                           <button
                             onClick={() => handleDeleteBatch(batch.id, batch.name)}
                             title="Delete Batch"
-                            className="p-1 border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-650 rounded transition-colors cursor-pointer"
+                            className="p-1 border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -664,7 +664,7 @@ export const Courses: React.FC = () => {
       {/* Batch Modal */}
       {showBatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in no-print">
-          <div className="bg-white border border-slate-150 rounded-xl shadow-xl p-6 w-full max-w-md animate-scale-up">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xl p-6 w-full max-w-md animate-scale-up">
             <div className="flex items-center justify-between border-b border-[#E5DDE0] pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800">
                 {editingBatchId ? 'Edit Batch details' : 'Add New Batch'}
@@ -672,7 +672,7 @@ export const Courses: React.FC = () => {
               <button 
                 type="button"
                 onClick={handleCloseBatchModal}
-                className="text-slate-400 hover:text-slate-650 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -783,7 +783,7 @@ export const Courses: React.FC = () => {
                   type="button" 
                   onClick={handleCloseBatchModal}
                   disabled={isBatchSubmitting}
-                  className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-655 hover:bg-slate-50 transition-colors"
+                  className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
