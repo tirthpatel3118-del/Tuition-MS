@@ -515,7 +515,7 @@ export const Payments: React.FC = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-505 no-print">
+                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-500 no-print">
                   <div>
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedPayments.length)} of {sortedPayments.length} entries
                   </div>
@@ -534,7 +534,7 @@ export const Payments: React.FC = () => {
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
                             ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
-                            : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
                         {idx + 1}
@@ -586,7 +586,7 @@ export const Payments: React.FC = () => {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Student Dropdown -> Replaced with searchable combobox */}
               <div className="space-y-1 sm:col-span-2">
-                <label className="text-xs font-bold text-slate-655">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
+                <label className="text-xs font-bold text-slate-600">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
                 <div className="relative student-combobox-container" ref={comboboxRef}>
                   <div className="relative">
                     <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -651,23 +651,23 @@ export const Payments: React.FC = () => {
                               <span className={`font-semibold text-sm ${highlightedIndex === index ? 'text-white' : 'text-slate-800'}`}>{s.name}</span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono 
                                 ${highlightedIndex === index 
-                                  ? 'bg-blue-700/50 text-blue-100' 
-                                  : 'bg-slate-100 text-slate-655'
+                                  ? 'bg-[#57172D] text-[#F8E9ED]' 
+                                  : 'bg-slate-100 text-slate-600'
                                 }`}
                               >
                                 {s.rollNumber}
                               </span>
                             </div>
                             <div className={`text-[11px] mt-1 flex items-center gap-1 
-                              ${highlightedIndex === index ? 'text-blue-100' : 'text-slate-400'}`}
+                              ${highlightedIndex === index ? 'text-[#F8E9ED]' : 'text-slate-400'}`}
                             >
                               <span>{s.courseName}</span>
-                              <span className={highlightedIndex === index ? 'text-blue-300' : 'text-slate-300'}>•</span>
+                              <span className={highlightedIndex === index ? 'text-[#E8C9D4]' : 'text-slate-300'}>•</span>
                               <span>{s.batch}</span>
                             </div>
                             {s.phone && (
                               <div className={`text-[10px] mt-0.5 font-medium 
-                                ${highlightedIndex === index ? 'text-blue-200' : 'text-slate-400'}`}
+                                ${highlightedIndex === index ? 'text-[#F8E9ED]' : 'text-slate-400'}`}
                               >
                                 Phone: {s.phone}
                               </div>
@@ -717,7 +717,7 @@ export const Payments: React.FC = () => {
               {selectedStudent && (
                 <div className="space-y-1 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-655">
+                    <label className="text-xs font-bold text-slate-600">
                       Payment Allocation <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     {selectedInstallmentId && (
@@ -777,7 +777,7 @@ export const Payments: React.FC = () => {
                       if (e.target.value) setFormErrors(prev => ({ ...prev, amount: '' }));
                     }}
                     placeholder="Enter amount"
-                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] font-semibold text-slate-850 ${formErrors.amount ? 'border-rose-305 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] font-semibold text-slate-800 ${formErrors.amount ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                 </div>
                 {formErrors.amount && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.amount}</span>}
@@ -849,7 +849,7 @@ export const Payments: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{isSubmitting ? 'Recording...' : 'Record Payment'}</span>
