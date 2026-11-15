@@ -81,6 +81,7 @@ export function AttendancePage() {
   }, [date, instituteId, isOwner, isTeacher]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setDraftStatuses({}); }, [date]);
 
   const assignedBatchIds = useMemo(() => new Set(batches.map(batch => batch.id)), [batches]);
   const visibleBatches = useMemo(() => batchFilter === 'all' ? batches : batches.filter(batch => batch.id === batchFilter), [batchFilter, batches]);
@@ -113,7 +114,7 @@ export function AttendancePage() {
     if (!instituteId || isBulkSubmitting) return;
     const pending = Object.entries(draftStatuses).filter(([key]) => {
       const [batchId, studentId] = key.split(':');
-      return visibleBatches.some(batch => batch.id === batchId)
+      return batches.some(batch => batch.id === batchId)
         && students.some(student => student.id === studentId && student.status === 'Active')
         && !recordsByStudent.has(key);
     });
