@@ -760,8 +760,10 @@ export const Admissions: React.FC = () => {
             <span>New Student Enrollment Form</span>
           </h3>
 
-          <form onSubmit={handleAddSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleAddSubmit} className="space-y-6">
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Student & contact information</h4><p className="mt-1 text-xs text-slate-500">Enter the learner's identity and guardian contact details.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Student Name */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Student Name <span className="text-rose-500">*</span></label>
@@ -807,6 +809,11 @@ export const Admissions: React.FC = () => {
                 {formErrors.phone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.phone}</span>}
               </div>
 
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Academic placement & fees</h4><p className="mt-1 text-xs text-slate-500">Choose the course and batch, then confirm the fee amount.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Course Selection */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Select Course Program <span className="text-rose-500">*</span></label>
@@ -897,10 +904,11 @@ export const Admissions: React.FC = () => {
                 />
                 {formErrors.parentPhone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.parentPhone}</span>}
               </div>
-            </div>
+              </div>
+            </section>
 
             {/* Installment Planner (Requirement 4) */}
-            <div className="bg-slate-50 border border-[#E5DDE0] rounded-xl p-4 space-y-4">
+            <div className="rounded-xl border border-[#E5DDE0] bg-[#FCFAFB] p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-bold text-slate-800">Installment Schedule Planner</h4>
