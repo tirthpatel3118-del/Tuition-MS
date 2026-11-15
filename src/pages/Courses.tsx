@@ -335,11 +335,12 @@ export const Courses: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Courses & Batches</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Academic setup</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Courses & batches</h1>
           <p className="text-sm text-slate-500 mt-1">Configure curriculum offerings, manage tuition packages, and audit batch occupancy.</p>
         </div>
 
@@ -348,16 +349,22 @@ export const Courses: React.FC = () => {
             setShowAddForm(!showAddForm);
             setFormErrors({});
           }}
-          className="flex items-center justify-center gap-1.5 bg-[#6B1F38] hover:bg-[#57172D] text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+          className="ui-button-primary"
         >
           <Plus className="w-4 h-4" />
           <span>{showAddForm ? 'Hide Form' : 'Create Course'}</span>
         </button>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Course and batch summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Course packages</p><p className="mt-2 text-2xl font-semibold text-slate-900">{courseStats.length}</p><p className="mt-1 text-xs text-slate-500">Configured curriculum offerings</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active batches</p><p className="mt-2 text-2xl font-semibold text-slate-900">{batchesList.filter(batch => batch.status === 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Available for student enrollment</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active enrollments</p><p className="mt-2 text-2xl font-semibold text-slate-900">{courseStats.reduce((total, course) => total + course.activeEnrolled, 0)}</p><p className="mt-1 text-xs text-slate-500">Across all course packages</p></div>
+      </section>
+
       {/* Add Course Form (Expandable) */}
       {showAddForm && (
-        <div className="max-w-xl bg-white border border-slate-150 rounded-xl shadow-sm p-5 transition-all animate-slide-in">
+        <div className="ui-card max-w-2xl p-5 transition-all animate-slide-in">
           <h3 className="text-sm font-bold text-slate-800 mb-3.5 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#6B1F38]" />
             <span>Add New Course Package</span>
@@ -456,13 +463,13 @@ export const Courses: React.FC = () => {
         
         {/* Courses Listing */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Active Curriculum Packages</h3>
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Course catalogue</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {courseStats.map(course => (
               <div 
                 key={course.id}
-                className="bg-white border border-[#E5DDE0] rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="ui-card relative flex flex-col justify-between overflow-hidden p-5 transition-shadow hover:shadow-md"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
@@ -536,7 +543,7 @@ export const Courses: React.FC = () => {
         {/* Batches occupancy */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch occupancy & management</h3>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch capacity & management</h3>
             <button
               onClick={() => openAddBatchModal()}
               className="flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] cursor-pointer"
@@ -546,7 +553,7 @@ export const Courses: React.FC = () => {
             </button>
           </div>
           
-          <div className="bg-white border border-[#E5DDE0] rounded-xl p-4 shadow-sm space-y-4">
+          <div className="ui-card space-y-4 p-4">
             {batchesList.length > 0 ? (
               <div className="space-y-4">
                 {batchesList.map((batch, index) => (
