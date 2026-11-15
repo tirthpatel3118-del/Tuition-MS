@@ -3,6 +3,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { AttendancePage } from './Attendance';
+import { PWAControls } from '../components/PWAControls';
 
 interface RosterStudent {
   id: string;
@@ -106,6 +107,7 @@ export function TeacherWorkspace() {
             <p className="mt-1 text-sm text-slate-500">Your assigned academic roster · {email}</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <PWAControls />
             <Link to="/attendance" className="ui-button-primary"> <span>Open attendance</span> </Link>
             <button onClick={() => void signOut()} className="ui-button-secondary">Sign out</button>
           </div>
