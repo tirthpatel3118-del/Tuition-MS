@@ -17,6 +17,7 @@ const Reminders = lazy(() => import('./pages/Reminders').then(module => ({ defau
 const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: module.Courses })));
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
+const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({ default: module.AttendancePage })));
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
@@ -118,6 +119,7 @@ function AppContent() {
               <Route path="/receipts" element={<Receipts />} />
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/attendance" element={auth.activeMembership?.role === 'owner' ? <AttendancePage /> : <Navigate to="/" replace />} />
               <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
             </Routes>
           </Suspense>
