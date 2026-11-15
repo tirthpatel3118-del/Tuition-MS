@@ -580,8 +580,10 @@ export const Payments: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Student account</h4><p className="mt-1 text-xs text-slate-500">Find the student and review their current fee balance before recording a collection.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Student Dropdown -> Replaced with searchable combobox */}
               <div className="space-y-1 sm:col-span-2">
                 <label className="text-xs font-bold text-slate-655">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
@@ -685,7 +687,7 @@ export const Payments: React.FC = () => {
 
               {/* Student Ledger Quick summary */}
               {selectedStudent && (
-                <div className="sm:col-span-2 bg-slate-50 border border-[#E5DDE0] rounded-xl p-3.5 space-y-2 animate-fade-in">
+                <div className="sm:col-span-2 rounded-xl border border-[#E5DDE0] bg-[#FCFAFB] p-4 space-y-2 animate-fade-in">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-semibold text-slate-500">Selected Course:</span>
                     <span className="font-bold text-slate-800">{selectedStudent.courseName}</span>
@@ -757,6 +759,11 @@ export const Payments: React.FC = () => {
                 </div>
               )}
 
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Payment details</h4><p className="mt-1 text-xs text-slate-500">Choose the allocation, amount and payment method.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Payment Amount */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Payment Amount ({settings?.currencySymbol || '₹'}) <span className="text-rose-500">*</span></label>
@@ -827,7 +834,8 @@ export const Payments: React.FC = () => {
                   className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
                 />
               </div>
-            </div>
+              </div>
+            </section>
 
             {/* Form actions */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E5DDE0]">
