@@ -383,7 +383,7 @@ export const Payments: React.FC = () => {
               <select 
                 value={methodFilter}
                 onChange={(e) => setMethodFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Methods</option>
                 <option value="UPI">UPI</option>
@@ -555,8 +555,8 @@ export const Payments: React.FC = () => {
         </div>
       ) : (
         /* Record Payment Form */
-        <div className="max-w-2xl bg-white border border-[#E5DDE0] rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-1.5">
+        <div className="ui-card w-full max-w-3xl p-4 sm:p-6">
+          <h3 className="mb-5 flex items-center gap-3 border-b border-[#E5DDE0] pb-4 text-lg font-semibold text-slate-900">
             <CreditCard className="w-5 h-5 text-[#6B1F38]" />
             <span>Collect Course Fee Payment</span>
           </h3>
@@ -598,7 +598,7 @@ export const Payments: React.FC = () => {
                         setIsComboboxOpen(true);
                       }}
                       onKeyDown={handleKeyDown}
-                      className={`w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-text transition-all ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                      className={`w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-text transition-all ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                     />
                     <div className="absolute right-3.5 top-3 flex items-center gap-1.5">
                       {selectedStudent && (
@@ -731,7 +731,7 @@ export const Payments: React.FC = () => {
                   <select
                     value={selectedInstallmentId}
                     onChange={(e) => handleInstallmentChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer"
                   >
                     <option value="">
                       {selectedStudentInstallments.length > 0
@@ -770,7 +770,7 @@ export const Payments: React.FC = () => {
                       if (e.target.value) setFormErrors(prev => ({ ...prev, amount: '' }));
                     }}
                     placeholder="Enter amount"
-                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 font-semibold text-slate-850 ${formErrors.amount ? 'border-rose-305 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] font-semibold text-slate-850 ${formErrors.amount ? 'border-rose-305 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                 </div>
                 {formErrors.amount && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.amount}</span>}
@@ -782,7 +782,7 @@ export const Payments: React.FC = () => {
                 <select 
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as Payment['paymentMethod'])}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer"
                 >
                   <option value="UPI">UPI</option>
                   <option value="Cash">Cash</option>
@@ -810,7 +810,7 @@ export const Payments: React.FC = () => {
                       paymentMethod === 'Cheque' ? 'Cheque Number (e.g. CHQ-554433)' :
                       'Reference Transaction ID number'
                     }
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.transactionId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.transactionId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                   {formErrors.transactionId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.transactionId}</span>}
                 </div>
@@ -824,7 +824,7 @@ export const Payments: React.FC = () => {
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="e.g. Second installment paid, partial payment."
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
                 />
               </div>
             </div>
