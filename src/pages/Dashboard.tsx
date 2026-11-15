@@ -4,7 +4,6 @@ import {
   DollarSign, 
   Users, 
   Percent, 
-  TrendingUp, 
   Plus, 
   AlertTriangle,
   ArrowRight,
@@ -19,7 +18,7 @@ import {
 } from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, installmentPaidTotals, settings } = useData();
+  const { students, payments, courses, installments, settings } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
