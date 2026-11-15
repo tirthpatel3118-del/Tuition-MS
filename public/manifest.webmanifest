@@ -11,7 +11,7 @@
   "theme_color": "#6B1F38",
   "categories": ["education", "productivity"],
   "icons": [
-    { "src": "/pwa-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/pwa-maskable.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/pwa-icon.svg", "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/pwa-maskable.svg", "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
