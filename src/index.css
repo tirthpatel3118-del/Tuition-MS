@@ -173,3 +173,56 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Reusable UI primitives for consistent module-by-module migration. */
+@layer components {
+  .ui-card {
+    @apply rounded-xl border bg-white;
+    border-color: hsl(var(--border));
+    box-shadow: 0 1px 2px rgb(31 41 55 / 4%);
+  }
+
+  .ui-button {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ui-button-primary {
+    @apply ui-button text-white;
+    background: #6B1F38;
+  }
+  .ui-button-primary:hover {
+    background: #57172D;
+  }
+
+  .ui-button-secondary {
+    @apply ui-button border bg-white text-slate-700;
+    border-color: hsl(var(--border));
+  }
+  .ui-button-secondary:hover {
+    background: #F8E9ED;
+    color: #6B1F38;
+  }
+
+  .ui-field {
+    @apply min-h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400;
+    border-color: hsl(var(--input));
+  }
+  .ui-field:focus {
+    border-color: #A03B5E;
+    outline: 2px solid rgb(160 59 94 / 14%);
+    outline-offset: 1px;
+  }
+
+  .ui-label {
+    @apply mb-1.5 block text-xs font-semibold text-slate-700;
+  }
+
+  .ui-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+  .ui-badge-brand {
+    background: #F8E9ED;
+    color: #6B1F38;
+  }
+}
