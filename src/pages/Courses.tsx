@@ -383,7 +383,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, name: '' }));
                   }}
                   placeholder="e.g. Science Board Prep"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.name ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.name ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.name && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.name}</span>}
               </div>
@@ -399,7 +399,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, subject: '' }));
                   }}
                   placeholder="e.g. Physics, Chemistry, Math"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.subject ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.subject ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.subject && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.subject}</span>}
               </div>
@@ -415,7 +415,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, duration: '' }));
                   }}
                   placeholder="e.g. 10 Months, 1 Year"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.duration ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.duration ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.duration && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.duration}</span>}
               </div>
@@ -431,7 +431,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, fees: '' }));
                   }}
                   placeholder="Total base fee amount"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.fees ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.fees ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.fees && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.fees}</span>}
               </div>
@@ -448,7 +448,7 @@ export const Courses: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="w-3 animate-spin shrink-0" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Course'}</span>
@@ -484,7 +484,7 @@ export const Courses: React.FC = () => {
                         type="button"
                         onClick={() => openAddBatchModal(course.id)}
                         title={`Add Batch to ${course.name}`}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                        className="flex items-center gap-1 text-[10px] font-semibold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] hover:bg-[#F8E9ED] px-2 py-1 rounded-lg transition-colors cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Add Batch</span>
@@ -595,7 +595,7 @@ export const Courses: React.FC = () => {
                             type="button"
                             onClick={() => openTeacherAssignments(batch as Batch)}
                             title="Assign teachers"
-                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-[#F8E9ED] px-2 py-1 text-[10px] font-semibold text-[#6B1F38] hover:bg-blue-100"
+                            className="inline-flex items-center gap-1 rounded border border-[#E5DDE0] bg-[#F8E9ED] px-2 py-1 text-[10px] font-semibold text-[#6B1F38] hover:bg-[#F8E9ED]"
                           >
                             <Users className="h-3 w-3" />
                             Teachers ({teacherAssignments.filter(assignment => assignment.batch_id === batch.id).length})
@@ -687,7 +687,7 @@ export const Courses: React.FC = () => {
                 <select
                   value={batchFormData.courseId}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, courseId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 >
                   <option value="" disabled>Select a course program</option>
@@ -717,7 +717,7 @@ export const Courses: React.FC = () => {
                   value={batchFormData.name}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g. Evening Batch A"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 />
               </div>
@@ -730,7 +730,7 @@ export const Courses: React.FC = () => {
                   value={batchFormData.timing}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, timing: e.target.value }))}
                   placeholder="e.g. 04:00 PM - 06:00 PM"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 />
               </div>
@@ -744,7 +744,7 @@ export const Courses: React.FC = () => {
                     value={batchFormData.capacity}
                     onChange={(e) => setBatchFormData(prev => ({ ...prev, capacity: e.target.value }))}
                     placeholder="e.g. 30"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                     required
                   />
                 </div>
@@ -760,7 +760,7 @@ export const Courses: React.FC = () => {
                         ? `Default: ${settings?.currencySymbol || '₹'}${courses.find(c => c.id === batchFormData.courseId)?.fees?.toLocaleString('en-IN')}`
                         : "Inherit course fee"
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   />
                 </div>
               </div>
@@ -771,7 +771,7 @@ export const Courses: React.FC = () => {
                 <select
                   value={batchFormData.status}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -790,7 +790,7 @@ export const Courses: React.FC = () => {
                 <button 
                   type="submit" 
                   disabled={isBatchSubmitting || courses.length === 0}
-                  className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {isBatchSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
                   <span>{editingBatchId ? 'Save Changes' : 'Create Batch'}</span>
