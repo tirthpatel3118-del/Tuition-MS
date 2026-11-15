@@ -197,7 +197,7 @@ export function AttendancePage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          {isTeacher && <Link to="/" className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B1F38] hover:text-blue-900"><ArrowLeft className="h-3.5 w-3.5" /> Teacher workspace</Link>}
+          {isTeacher && <Link to="/" className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B1F38] hover:text-[#57172D]"><ArrowLeft className="h-3.5 w-3.5" /> Teacher workspace</Link>}
           <p className="text-xs font-bold uppercase tracking-wider text-[#6B1F38]">EduLedger · Attendance</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Attendance</h1>
           <p className="mt-1 text-sm text-slate-500">{isOwner ? 'Institute attendance, corrections, and audit history.' : 'Mark attendance for your assigned batches and request corrections.'}</p>
@@ -246,7 +246,7 @@ export function AttendancePage() {
                       {!record && student.status !== 'Active' && <span className="text-xs text-slate-400">Inactive student</span>}
                       {!record && draftStatuses[key] && <span className="text-[11px] font-semibold text-[#6B1F38]">Selected: {draftStatuses[key]}</span>}
                       {record && isOwner && <button type="button" onClick={() => { setOwnerEdit({ recordId: record.id, status: record.status, reason: '' }); setError(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Edit</button>}
-                    {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-[#E5DDE0] bg-[#F8E9ED] text-blue-800 hover:bg-blue-100`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
+                    {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38] hover:bg-[#F8E9ED]`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
                       {pending && <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Correction pending</span>}
                     </div>
                     {record && isTeacher && !pending && correctionStatuses[record.id] && <div className="grid w-full gap-2 border-t border-[#E5DDE0] pt-3 sm:grid-cols-[minmax(140px,0.7fr)_minmax(200px,1.3fr)_auto] lg:basis-full">
