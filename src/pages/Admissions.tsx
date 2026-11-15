@@ -570,7 +570,7 @@ export const Admissions: React.FC = () => {
               <select 
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Courses</option>
                 {courses.map(c => (
@@ -584,7 +584,7 @@ export const Admissions: React.FC = () => {
               <select 
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
@@ -754,8 +754,8 @@ export const Admissions: React.FC = () => {
         </div>
       ) : (
         /* Admissions Registration Form */
-        <div className="max-w-2xl bg-white border border-[#E5DDE0] rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-1.5">
+        <div className="ui-card w-full max-w-3xl p-4 sm:p-6">
+          <h3 className="mb-5 flex items-center gap-3 border-b border-[#E5DDE0] pb-4 text-lg font-semibold text-slate-900">
             <User className="w-5 h-5 text-[#6B1F38]" />
             <span>New Student Enrollment Form</span>
           </h3>
@@ -773,7 +773,7 @@ export const Admissions: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, name: '' }));
                   }}
                   placeholder="e.g. Rahul Sen"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.name ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.name ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.name && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.name}</span>}
               </div>
@@ -786,7 +786,7 @@ export const Admissions: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="e.g. rahul@example.com"
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
                 />
               </div>
 
@@ -802,7 +802,7 @@ export const Admissions: React.FC = () => {
                   }}
                   placeholder="10 digit number"
                   maxLength={10}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.phone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.phone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.phone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.phone}</span>}
               </div>
@@ -813,7 +813,7 @@ export const Admissions: React.FC = () => {
                 <select 
                   value={formData.courseId}
                   onChange={(e) => handleCourseChange(e.target.value)}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.courseId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer ${formErrors.courseId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 >
                   <option value="">-- Choose Course --</option>
                   {courses.map(c => (
@@ -830,7 +830,7 @@ export const Admissions: React.FC = () => {
                   <select
                     value={formData.batch}
                     onChange={e => handleBatchChange(e.target.value)}
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   >
                     <option value="">-- Choose Batch --</option>
                     {availableBatches.map(batch => (
@@ -848,7 +848,7 @@ export const Admissions: React.FC = () => {
                     value={formData.batch}
                     onChange={e => handleBatchChange(e.target.value)}
                     placeholder="Enter batch timing"
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                 )}
                 {formErrors.batch && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.batch}</span>}
@@ -861,7 +861,7 @@ export const Admissions: React.FC = () => {
                   type="number" 
                   value={formData.totalFees}
                   onChange={(e) => setFormData(prev => ({ ...prev, totalFees: parseFloat(e.target.value) || 0 }))}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50 font-semibold"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50 font-semibold"
                 />
               </div>
 
@@ -876,7 +876,7 @@ export const Admissions: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, parentName: '' }));
                   }}
                   placeholder="e.g. Sunil Sen"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.parentName ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.parentName ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.parentName && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.parentName}</span>}
               </div>
@@ -893,7 +893,7 @@ export const Admissions: React.FC = () => {
                   }}
                   placeholder="10 digit contact number"
                   maxLength={10}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.parentPhone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.parentPhone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.parentPhone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.parentPhone}</span>}
               </div>
@@ -1006,7 +1006,7 @@ export const Admissions: React.FC = () => {
                               disabled={inst.status === 'Paid'}
                               value={inst.amount || ''}
                               onChange={(e) => updateInstallmentRow(idx, { amount: parseFloat(e.target.value) || 0 })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                             />
                             {formErrors[`inst_amount_${idx}`] && (
                               <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
@@ -1020,7 +1020,7 @@ export const Admissions: React.FC = () => {
                               disabled={inst.status === 'Paid'}
                               value={inst.dueDate}
                               onChange={(e) => updateInstallmentRow(idx, { dueDate: e.target.value })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                             />
                             {formErrors[`inst_date_${idx}`] && (
                               <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
@@ -1035,7 +1035,7 @@ export const Admissions: React.FC = () => {
                               value={inst.remarks || ''}
                               onChange={(e) => updateInstallmentRow(idx, { remarks: e.target.value })}
                               placeholder="Remarks"
-                              className="w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E]"
                             />
                           </td>
                           <td className="py-2.5 pl-2 text-center">
@@ -1120,7 +1120,7 @@ export const Admissions: React.FC = () => {
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="e.g. Scholar student, paid half, reference from school principal."
-                className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
               />
             </div>
 
@@ -1146,8 +1146,10 @@ export const Admissions: React.FC = () => {
         </div>
       )}
 
+      {/* Student detail backdrop and drawer */}
+      {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
       {/* Side Details drawer (Slides in from the right when student clicked) */}
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print
+      <div role="dialog" aria-modal="true" aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print
         ${selectedStudentId ? 'translate-x-0' : 'translate-x-full'}
       `}>
         {selectedStudent ? (
@@ -1623,7 +1625,7 @@ export const Admissions: React.FC = () => {
                                       disabled={inst.status === 'Paid'}
                                       value={inst.amount || ''}
                                       onChange={(e) => updateInstallmentRow(idx, { amount: parseFloat(e.target.value) || 0 })}
-                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                                     />
                                   </td>
                                   <td className="py-1.5 px-1">
@@ -1632,7 +1634,7 @@ export const Admissions: React.FC = () => {
                                       disabled={inst.status === 'Paid'}
                                       value={inst.dueDate}
                                       onChange={(e) => updateInstallmentRow(idx, { dueDate: e.target.value })}
-                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                                     />
                                   </td>
                                   <td className="py-1.5 px-1">
@@ -1642,7 +1644,7 @@ export const Admissions: React.FC = () => {
                                       value={inst.remarks || ''}
                                       onChange={(e) => updateInstallmentRow(idx, { remarks: e.target.value })}
                                       placeholder="Remarks"
-                                      className="w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      className="w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E]"
                                     />
                                   </td>
                                   <td className="py-1.5 pl-1 text-center">
