@@ -445,7 +445,7 @@ export const Reminders: React.FC = () => {
                               type="checkbox"
                               onChange={handleSelectAll}
                               checked={paginatedInstallments.length > 0 && paginatedInstallments.every(i => selectedInstallmentIds.includes(i.id))}
-                              className="rounded text-[#6B1F38] focus:ring-blue-500 cursor-pointer"
+                              className="rounded text-[#6B1F38] focus:ring-[#F8E9ED] cursor-pointer"
                             />
                           </th>
                           <th 
@@ -499,7 +499,7 @@ export const Reminders: React.FC = () => {
                                   type="checkbox"
                                   checked={selectedInstallmentIds.includes(inst.id)}
                                   onChange={(e) => handleSelectOne(inst.id, e.target.checked)}
-                                  className="rounded text-[#6B1F38] focus:ring-blue-500 cursor-pointer"
+                                  className="rounded text-[#6B1F38] focus:ring-[#F8E9ED] cursor-pointer"
                                 />
                               </td>
                               <td className="px-4 py-3.5">
@@ -552,14 +552,14 @@ export const Reminders: React.FC = () => {
                                       });
                                     }}
                                     title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
-                                    className={`p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
+                                    className={`p-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
                                   <button
                                     onClick={() => navigate(`/payments?student=${inst.studentId}`)}
                                     title="Collect Fee Payment"
-                                    className="p-1.5 border border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38] rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                                    className="p-1.5 border border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38] rounded-lg hover:bg-[#F8E9ED] transition-colors cursor-pointer"
                                   >
                                     <CreditCard className="w-3.5 h-3.5" />
                                   </button>
@@ -711,7 +711,7 @@ export const Reminders: React.FC = () => {
                       setInstallmentTemplate(e.target.value);
                     }
                   }}
-                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 leading-relaxed font-sans"
+                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED]/20 focus:border-blue-600 leading-relaxed font-sans"
                 />
               </div>
 
