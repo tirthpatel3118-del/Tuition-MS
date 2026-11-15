@@ -169,7 +169,7 @@ export const Receipts: React.FC = () => {
       `}</style>
 
       {/* Page Header (no-print) */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-5 no-print">
+      <div className="flex items-center justify-between border-b border-[#E5DDE0] pb-5 no-print">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Fee Receipts</h1>
           <p className="text-sm text-slate-500 mt-1">Browse, view details, print or download official tuition fee receipts.</p>
@@ -202,9 +202,9 @@ export const Receipts: React.FC = () => {
             </div>
 
             {/* Receipt Header Banner */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-100 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-[#E5DDE0] gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-200 overflow-hidden shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#6B1F38] flex items-center justify-center text-white shadow-md shadow-blue-200 overflow-hidden shrink-0">
                   {settings?.logoUrl ? (
                     <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                   ) : (
@@ -218,13 +218,13 @@ export const Receipts: React.FC = () => {
               </div>
               
               <div className="text-left sm:text-right">
-                <h2 className="text-xs font-bold text-blue-600 uppercase tracking-widest leading-none">Official Fee Receipt</h2>
+                <h2 className="text-xs font-bold text-[#6B1F38] uppercase tracking-widest leading-none">Official Fee Receipt</h2>
                 <p className="text-[10px] text-slate-400 font-semibold mt-1">Receipt No: <span className="text-slate-800 font-bold">{activePayment.receiptNumber}</span></p>
               </div>
             </div>
 
             {/* Meta Dates Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 border-b border-slate-100 text-xs">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 border-b border-[#E5DDE0] text-xs">
               <div>
                 <span className="text-slate-400 block font-semibold text-[10px] uppercase">Payment Date</span>
                 <span className="font-bold text-slate-800 mt-1 block">{formatDateForDisplay(activePayment.paymentDate, settings?.dateFormat)}</span>
@@ -281,7 +281,7 @@ export const Receipts: React.FC = () => {
             </div>
 
             {/* Financial ledger statement */}
-            <div className="mt-2 rounded-2xl bg-slate-50 border border-slate-100 p-5 space-y-4">
+            <div className="mt-2 rounded-xl bg-slate-50 border border-[#E5DDE0] p-5 space-y-4">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -300,7 +300,7 @@ export const Receipts: React.FC = () => {
                   </tr>
                   <tr className="font-bold text-sm text-slate-800">
                     <td className="pt-3 pb-1">Total Paid Amount</td>
-                    <td className="pt-3 pb-1 text-right text-blue-600">{settings?.currencySymbol || '₹'}{activePayment.amount.toLocaleString('en-IN')}.00</td>
+                    <td className="pt-3 pb-1 text-right text-[#6B1F38]">{settings?.currencySymbol || '₹'}{activePayment.amount.toLocaleString('en-IN')}.00</td>
                   </tr>
                 </tbody>
               </table>
@@ -312,14 +312,14 @@ export const Receipts: React.FC = () => {
 
             {/* Remarks if any */}
             {activePayment.remarks && (
-              <div className="mt-4 p-3 bg-blue-50/20 border border-blue-100/50 text-[11px] text-slate-600 rounded-xl">
+              <div className="mt-4 p-3 bg-[#F8E9ED]/20 border border-blue-100/50 text-[11px] text-slate-600 rounded-xl">
                 <span className="font-bold">Remarks: </span>{activePayment.remarks}
               </div>
             )}
 
             {/* Balance Dues summary */}
             {correspondingStudent && (
-              <div className="mt-5 grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-xs">
+              <div className="mt-5 grid grid-cols-2 gap-4 pt-4 border-t border-[#E5DDE0] text-xs">
                 <div>
                   <span className="text-slate-400 block font-semibold text-[10px] uppercase">Course Ledger Total</span>
                   <span className="font-bold text-slate-700 mt-1 block">{settings?.currencySymbol || '₹'}{correspondingStudent.totalFees.toLocaleString('en-IN')}</span>
@@ -334,7 +334,7 @@ export const Receipts: React.FC = () => {
             )}
 
             {/* Footer Signatures */}
-            <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-6">
+            <div className="mt-8 pt-8 border-t border-[#E5DDE0] flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-6">
               <p className="text-center sm:text-left text-[10px]">
                 {settings?.receiptFooter || "This is a computer generated receipt. Signature is not mandatory."}
               </p>
@@ -351,12 +351,12 @@ export const Receipts: React.FC = () => {
 
           {/* Action buttons sidebar (no-print) */}
           <div className="w-full lg:w-60 space-y-3 no-print">
-            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3.5">
+            <div className="bg-white border border-[#E5DDE0] rounded-xl p-4 shadow-sm space-y-3.5">
               <h4 className="text-xs font-bold text-slate-700">Receipt Actions</h4>
               
               <button 
                 onClick={handlePrint}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm shadow-blue-100 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm shadow-blue-100 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print Receipt</span>
@@ -371,7 +371,7 @@ export const Receipts: React.FC = () => {
               </button>
             </div>
 
-            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 space-y-2 text-xs">
+            <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-2 text-xs">
               <h5 className="font-bold text-slate-700">Audit Info</h5>
               <div className="text-slate-500 space-y-1.5">
                 <p>Status: <span className="text-emerald-600 font-bold">Cleared</span></p>
@@ -387,7 +387,7 @@ export const Receipts: React.FC = () => {
         <div className="space-y-4">
           
           {/* Search bar & Sorting bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
+          <div className="bg-white p-4 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
             <div className="relative max-w-md w-full">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input 
@@ -404,19 +404,19 @@ export const Receipts: React.FC = () => {
               <span className="self-center">Sort By:</span>
               <button 
                 onClick={() => handleSort('date')}
-                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'date' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white border-slate-200'}`}
+                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'date' ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0]' : 'bg-white border-slate-200'}`}
               >
                 Date {sortField === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
               </button>
               <button 
                 onClick={() => handleSort('amount')}
-                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'amount' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white border-slate-200'}`}
+                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'amount' ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0]' : 'bg-white border-slate-200'}`}
               >
                 Amount {sortField === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}
               </button>
               <button 
                 onClick={() => handleSort('name')}
-                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'name' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white border-slate-200'}`}
+                className={`px-3 py-1.5 rounded-xl border transition-colors cursor-pointer ${sortField === 'name' ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0]' : 'bg-white border-slate-200'}`}
               >
                 Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </button>
@@ -431,7 +431,7 @@ export const Receipts: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {paginatedReceipts.length > 0 ? (
                   paginatedReceipts.map(p => (
-                    <div key={p.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
+                    <div key={p.id} className="bg-white border border-[#E5DDE0] rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between border-b border-slate-50 pb-3">
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
@@ -445,14 +445,14 @@ export const Receipts: React.FC = () => {
                           <p className="text-xs text-slate-500 truncate">{p.courseName}</p>
                           <div className="flex justify-between items-center pt-2">
                             <span className="text-[10px] text-slate-400 font-medium">Method: {p.paymentMethod}</span>
-                            <span className="text-sm font-bold text-blue-600">{settings?.currencySymbol || '₹'}{p.amount.toLocaleString('en-IN')}</span>
+                            <span className="text-sm font-bold text-[#6B1F38]">{settings?.currencySymbol || '₹'}{p.amount.toLocaleString('en-IN')}</span>
                           </div>
                         </div>
                       </div>
 
                       <Link 
                         to={`/receipts?id=${p.id}`}
-                        className="w-full flex items-center justify-center gap-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 text-slate-600 font-semibold py-2 rounded-xl text-xs transition-colors border border-slate-100 cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1 bg-slate-50 hover:bg-[#F8E9ED] hover:text-[#6B1F38] text-slate-600 font-semibold py-2 rounded-xl text-xs transition-colors border border-[#E5DDE0] cursor-pointer"
                       >
                         <span>Open Invoice</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -460,7 +460,7 @@ export const Receipts: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-full bg-white border border-slate-100 rounded-2xl p-10 text-center text-slate-400 text-xs">
+                  <div className="col-span-full bg-white border border-[#E5DDE0] rounded-xl p-10 text-center text-slate-400 text-xs">
                     <div className="flex flex-col items-center justify-center gap-1.5 py-6">
                       <AlertCircle className="w-7 h-7 text-slate-300" />
                       <span>No receipts matching search parameters.</span>
@@ -489,7 +489,7 @@ export const Receipts: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                            ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
                             : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
