@@ -609,7 +609,7 @@ export const Admissions: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-550 uppercase tracking-wider select-none">
+                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
                         <th 
                           onClick={() => handleSort('roll')} 
                           className="px-5 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
@@ -732,7 +732,7 @@ export const Admissions: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
+                            ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
@@ -1366,8 +1366,8 @@ export const Admissions: React.FC = () => {
                   {selectedStudent.notes && (
                     <div className="space-y-2">
                       <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Academic / Admin Notes</h4>
-                      <div className="p-3 bg-[#F8E9ED]/30 border border-blue-50 text-xs text-slate-600 rounded-xl leading-relaxed flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                      <div className="p-3 bg-[#F8E9ED]/30 border border-[#F8E9ED] text-xs text-slate-600 rounded-xl leading-relaxed flex items-start gap-2">
+                        <FileText className="w-4 h-4 text-[#A03B5E] mt-0.5 shrink-0" />
                         <span>{selectedStudent.notes}</span>
                       </div>
                     </div>
