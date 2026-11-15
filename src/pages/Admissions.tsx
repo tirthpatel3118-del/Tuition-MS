@@ -1288,7 +1288,7 @@ export const Admissions: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500 font-medium">Next Due Month</span>
-                        <span className="font-semibold text-amber-605 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
+                        <span className="font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
                           {getFeeSummary(selectedStudent).nextDueMonth}
                         </span>
                       </div>
