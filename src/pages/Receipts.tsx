@@ -143,7 +143,7 @@ export const Receipts: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Print styles inserted directly to restrict prints strictly to the receipt card */}
       <style>{`
         @media print {
@@ -169,16 +169,16 @@ export const Receipts: React.FC = () => {
       `}</style>
 
       {/* Page Header (no-print) */}
-      <div className="flex items-center justify-between border-b border-[#E5DDE0] pb-5 no-print">
+      <div className="flex flex-col items-start justify-between gap-4 border-b border-[#E5DDE0] pb-5 sm:flex-row sm:items-end no-print">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Fee Receipts</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Finance records</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Fee receipts</h1>
           <p className="text-sm text-slate-500 mt-1">Browse, view details, print or download official tuition fee receipts.</p>
         </div>
 
         {activeReceiptId && (
           <button 
             onClick={() => setSearchParams({})}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
+            className="ui-button-secondary"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Back to list</span>
@@ -193,7 +193,7 @@ export const Receipts: React.FC = () => {
           {/* Printable Receipt Card */}
           <div 
             id="print-receipt-area"
-            className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden max-w-3xl w-full"
+            className="flex-1 ui-card relative w-full max-w-3xl overflow-hidden p-6 md:p-8 relative overflow-hidden max-w-3xl w-full"
           >
             {/* Stamp decoration */}
             <div className="absolute right-8 top-28 border-4 border-emerald-500/20 text-emerald-500/40 rounded-full font-bold text-xs uppercase tracking-widest px-4 py-1.5 rotate-12 select-none pointer-events-none flex items-center gap-1">
@@ -395,7 +395,7 @@ export const Receipts: React.FC = () => {
                 placeholder="Search receipt ID, student, course..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
               />
             </div>
 
