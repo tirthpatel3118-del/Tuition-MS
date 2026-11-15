@@ -9,6 +9,7 @@ import {
   Receipt, 
   BellRing, 
   BookOpen, 
+  ClipboardCheck,
   ChevronLeft, 
   ChevronRight,
   X,
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { to: '/receipts', label: 'Receipts', icon: Receipt },
     { to: '/reminders', label: 'Dues & Reminders', icon: BellRing },
     { to: '/courses', label: 'Courses & Batches', icon: BookOpen },
+    ...(role === 'owner' ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
     ...(role === 'owner' || !auth.configured ? [{ to: '/settings', label: 'Settings', icon: Settings }] : []),
   ];
 

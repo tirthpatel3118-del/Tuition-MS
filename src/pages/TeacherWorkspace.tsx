@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
+import { AttendancePage } from './Attendance';
 
 interface RosterStudent {
   id: string;
@@ -18,6 +20,7 @@ interface AssignedBatch {
 }
 
 export function TeacherWorkspace() {
+  const location = useLocation();
   const { activeMembership, email, session, signOut } = useAuth();
   const instituteId = activeMembership?.instituteId;
   const userId = session?.user.id;
@@ -27,6 +30,7 @@ export function TeacherWorkspace() {
   const [assignedBatches, setAssignedBatches] = useState<AssignedBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -88,16 +92,18 @@ export function TeacherWorkspace() {
     };
   }, [instituteId, userId]);
 
+  if (location.pathname === '/attendance') return <AttendancePage />;
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-8 flex items-center justify-between gap-4">
+        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-blue-700">Teacher workspace</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900">{activeMembership?.instituteName}</h1>
             <p className="mt-1 text-sm text-slate-500">Academic roster · {email}</p>
           </div>
-          <button onClick={() => void signOut()} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">Sign out</button>
+          <div className="flex items-center gap-2"><Link to="/attendance" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Attendance</Link><button onClick={() => void signOut()} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">Sign out</button></div>
         </header>
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
