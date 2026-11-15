@@ -331,19 +331,19 @@ export const Payments: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Fee Collection</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Finance operations</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Payments & collections</h1>
           <p className="text-sm text-slate-500 mt-1">Record student tuition payments, manage receipt registers, and audit transaction logs.</p>
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => { setActiveTab('ledger'); setSuccessInfo(null); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             Collection Ledger
           </button>
@@ -357,10 +357,16 @@ export const Payments: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Collection summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total collected</p><p className="mt-2 text-2xl font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Across recorded transactions</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Transactions</p><p className="mt-2 text-2xl font-semibold text-slate-900">{payments.length}</p><p className="mt-1 text-xs text-slate-500">Payments in the ledger</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with pending dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Inactive' && student.feesDue > 0).length}</p><p className="mt-1 text-xs text-slate-500">Require fee follow-up</p></div>
+      </section>
+
       {activeTab === 'ledger' ? (
         <div className="space-y-4">
           {/* Search and Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-xl border border-[#E5DDE0] shadow-sm no-print">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ui-card p-4 no-print">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input 
@@ -368,7 +374,7 @@ export const Payments: React.FC = () => {
                 placeholder="Search student, receipt, transaction..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
               />
             </div>
 
@@ -394,11 +400,11 @@ export const Payments: React.FC = () => {
             <TableSkeleton columnCount={7} rowCount={itemsPerPage} />
           ) : (
             <div className="space-y-4">
-              <div className="bg-white border border-[#E5DDE0] rounded-xl shadow-sm overflow-hidden">
+              <div className="ui-card overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
+                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
                         <th 
                           onClick={() => handleSort('receipt')}
                           className="px-5 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
