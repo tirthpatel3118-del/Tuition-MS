@@ -200,427 +200,70 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-7">
+      <section className="flex flex-col gap-4 border-b border-[#E5DDE0] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Overview</h1>
-          <p className="text-sm text-slate-500 mt-1">A snapshot of tuition, collections, and outstanding balances.</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Institute overview</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Good {today.getHours() < 12 ? 'morning' : today.getHours() < 17 ? 'afternoon' : 'evening'}</h1>
+          <p className="mt-1.5 text-sm text-slate-500">A clear view of your institute's activity and fee performance.</p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Link 
-            to="/admissions" 
-            className="flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-colors duration-150"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Admit Student</span>
-          </Link>
-          <Link 
-            to="/payments" 
-            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors duration-150"
-          >
-            <DollarSign className="w-4 h-4" />
-            <span>Record Payment</span>
-          </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/admissions" className="ui-button-primary"><Plus className="h-4 w-4" /> Add student</Link>
+          <Link to="/payments" className="ui-button-secondary"><CreditCard className="h-4 w-4" /> Record payment</Link>
         </div>
-      </div>
+      </section>
 
-      {/* Metrics Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {/* Metric 1: Total Collections */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</span>
-            <div className="p-2.5 bg-[#F8E9ED] text-[#6B1F38] rounded-xl">
-              <DollarSign className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalRevenue.toLocaleString('en-IN')}</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>{payments.length} payments recorded</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600"></div>
+      <section aria-label="Institute performance">
+        <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold text-slate-800">At a glance</h2><span className="text-xs text-slate-400">Updated from recorded activity</span></div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="ui-card p-4 sm:p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-slate-500">Total collections</p><span className="rounded-lg bg-[#F8E9ED] p-2 text-[#6B1F38]"><DollarSign className="h-4 w-4" /></span></div><p className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">{settings?.currencySymbol || '₹'}{totalRevenue.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">{payments.length} recorded payments</p></article>
+          <article className="ui-card p-4 sm:p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-slate-500">Outstanding balance</p><span className="rounded-lg bg-amber-50 p-2 text-amber-700"><AlertTriangle className="h-4 w-4" /></span></div><p className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">{settings?.currencySymbol || '₹'}{outstandingDues.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">{pendingInstallmentsCount} unpaid installments</p></article>
+          <article className="ui-card p-4 sm:p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-slate-500">Active students</p><span className="rounded-lg bg-slate-100 p-2 text-slate-700"><Users className="h-4 w-4" /></span></div><p className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">{activeStudents.length}</p><p className="mt-1 text-xs text-slate-500">{students.length} students in the directory</p></article>
+          <article className="ui-card p-4 sm:p-5"><div className="flex items-center justify-between"><p className="text-xs font-medium text-slate-500">Fee collection rate</p><span className="rounded-lg bg-emerald-50 p-2 text-emerald-700"><Percent className="h-4 w-4" /></span></div><p className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">{collectionRate}%</p><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-600" style={{ width: `${Math.min(collectionRate, 100)}%` }} /></div><p className="mt-1.5 text-xs text-slate-500">Of expected fees collected</p></article>
         </div>
+      </section>
 
-        {/* Metric 2: Outstanding Dues */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outstanding Dues</span>
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{outstandingDues.toLocaleString('en-IN')}</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full w-max">
-              <span>{pendingInstallmentsCount} installments pending</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-amber-500"></div>
-        </div>
-
-        {/* Metric 3: Today's Due */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Today's Due</span>
-            <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{todaysDue.toLocaleString('en-IN')}</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-rose-600 font-medium bg-rose-50 px-2 py-0.5 rounded-full w-max">
-              <span>{todaysDueCount} due/overdue</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-rose-500"></div>
-        </div>
-
-        {/* Metric 4: Upcoming Due (7 Days) */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Upcoming (7d)</span>
-            <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{settings?.currencySymbol || '₹'}{upcomingDue.toLocaleString('en-IN')}</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-sky-600 font-medium bg-sky-50 px-2 py-0.5 rounded-full w-max">
-              <span>{upcomingDueCount} upcoming</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-sky-500"></div>
-        </div>
-
-        {/* Metric 3: Active Students */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Students</span>
-            <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{activeStudents.length}</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-indigo-600 font-medium bg-indigo-50 px-2 py-0.5 rounded-full w-max">
-              <span>Total strength: {students.length}</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-indigo-600"></div>
-        </div>
-
-        {/* Metric 4: Collection Rate */}
-        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Collection Rate</span>
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-              <Percent className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-slate-800">{collectionRate}%</h3>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full w-max">
-              <span>Collected from active students</span>
-            </div>
-          </div>
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-emerald-600"></div>
-        </div>
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Monthly Revenue Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-base">Collection History ({today.getFullYear()})</h3>
-              <p className="text-xs text-slate-400">Monthly aggregate collection performance.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-              <span className="text-xs font-medium text-slate-500">Collected Amount</span>
-            </div>
-          </div>
-
-          {/* SVG Line/Area Chart */}
-          <div className="relative flex-1 min-h-[240px] flex items-center justify-center bg-slate-50 rounded-xl overflow-hidden px-4">
-            <svg 
-              viewBox={`0 0 ${width} ${height}`} 
-              className="w-full h-full"
-              onMouseLeave={() => setHoveredPoint(null)}
-            >
-              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-                const y = paddingY + ratio * (height - 2 * paddingY);
-                return (
-                  <line 
-                    key={i} 
-                    x1={paddingX} 
-                    y1={y} 
-                    x2={width - paddingX} 
-                    y2={y} 
-                    stroke="#e2e8f0" 
-                    strokeWidth="1" 
-                    strokeDasharray="4 4"
-                  />
-                );
-              })}
-
-              {areaPath && (
-                <path 
-                  d={areaPath} 
-                  fill="url(#area-gradient)" 
-                  opacity="0.3"
-                />
-              )}
-
-              {linePath && (
-                <path 
-                  d={linePath} 
-                  fill="none" 
-                  stroke="#2563eb" 
-                  strokeWidth="3" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              )}
-
-              {points.map((p, index) => (
-                <circle 
-                  key={index} 
-                  cx={p.x} 
-                  cy={p.y} 
-                  r={hoveredPoint?.index === index ? 6 : 4} 
-                  fill={hoveredPoint?.index === index ? '#2563eb' : '#ffffff'} 
-                  stroke="#2563eb" 
-                  strokeWidth="3"
-                  className="cursor-pointer transition-all duration-150"
-                  onMouseEnter={() => {
-                    setHoveredPoint({
-                      index,
-                      x: p.x,
-                      y: p.y,
-                      val: p.val,
-                      label: p.label
-                    });
-                  }}
-                />
-              ))}
-
-              {points.map((p, index) => (
-                <text 
-                  key={index} 
-                  x={p.x} 
-                  y={height - 10} 
-                  textAnchor="middle" 
-                  className="text-[10px] font-semibold fill-slate-400"
-                >
-                  {p.label}
-                </text>
-              ))}
-
-              <defs>
-                <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <article className="ui-card min-w-0 p-4 sm:p-5 xl:col-span-2">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-slate-900">Collection trend</h2><p className="mt-1 text-xs text-slate-500">Month-by-month collections for {today.getFullYear()}.</p></div><span className="inline-flex items-center gap-2 text-xs font-medium text-slate-500"><span className="h-2 w-2 rounded-full bg-[#6B1F38]" /> Collected</span></div>
+          <div className="relative h-[230px] w-full overflow-hidden rounded-lg bg-[#FCFAFB] px-2 py-3 sm:px-4">
+            <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" role="img" aria-label="Monthly fee collection trend">
+              {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => { const y = paddingY + ratio * (height - 2 * paddingY); return <line key={i} x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="#E9E1E4" strokeWidth="1" strokeDasharray="3 5" />; })}
+              {areaPath && <path d={areaPath} fill="url(#area-gradient)" />}
+              {linePath && <path d={linePath} fill="none" stroke="#6B1F38" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+              {points.map((point, index) => <circle key={index} cx={point.x} cy={point.y} r={hoveredPoint?.index === index ? 6 : 3.5} fill="#FFFFFF" stroke="#6B1F38" strokeWidth="2.5" tabIndex={0} role="button" aria-label={`${point.label}: ${settings?.currencySymbol || '₹'}${point.val.toLocaleString('en-IN')}`} onMouseEnter={() => setHoveredPoint({ index, x: point.x, y: point.y, val: point.val, label: point.label })} onFocus={() => setHoveredPoint({ index, x: point.x, y: point.y, val: point.val, label: point.label })} />)}
+              {points.map((point, index) => <text key={index} x={point.x} y={height - 8} textAnchor="middle" fontSize="11" fill="#8B7D83">{point.label}</text>)}
+              <defs><linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#A03B5E" stopOpacity="0.18" /><stop offset="100%" stopColor="#A03B5E" stopOpacity="0.01" /></linearGradient></defs>
             </svg>
-
-            {hoveredPoint && (
-              <div 
-                className="absolute bg-slate-900 text-white rounded-lg px-2.5 py-1.5 text-xs shadow-md border border-slate-800 pointer-events-none transition-all duration-150"
-                style={{
-                  left: `${(hoveredPoint.x / width) * 100}%`,
-                  top: `${(hoveredPoint.y / height) * 100 - 18}%`,
-                  transform: 'translate(-50%, -100%)'
-                }}
-              >
-                <div className="font-semibold text-[10px] text-slate-400">{hoveredPoint.label}</div>
-                <div className="font-bold text-blue-400">{settings?.currencySymbol || '₹'}{hoveredPoint.val.toLocaleString('en-IN')}</div>
-              </div>
-            )}
+            {hoveredPoint && <div className="pointer-events-none absolute right-4 top-3 rounded-lg border border-[#E5DDE0] bg-white px-3 py-2 text-xs shadow-sm"><p className="text-slate-500">{hoveredPoint.label}</p><p className="mt-0.5 font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{hoveredPoint.val.toLocaleString('en-IN')}</p></div>}
           </div>
-        </div>
-
-        {/* Course-wise fee collection distribution */}
-        <div className="bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
-          <div>
-            <h3 className="font-bold text-slate-800 text-base">Course Collections</h3>
-            <p className="text-xs text-slate-400 mb-4">Revenue share by course type.</p>
+        </article>
+        <article className="ui-card p-4 sm:p-5">
+          <div className="mb-5"><h2 className="text-base font-semibold text-slate-900">Fee schedule</h2><p className="mt-1 text-xs text-slate-500">Upcoming collection priorities.</p></div>
+          <div className="divide-y divide-[#EEE7EA]">
+            <div className="flex items-center justify-between gap-3 py-4 first:pt-0"><div><p className="text-sm font-medium text-slate-800">Due today & overdue</p><p className="mt-1 text-xs text-slate-500">{todaysDueCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-rose-700">{settings?.currencySymbol || '₹'}{todaysDue.toLocaleString('en-IN')}</p></div>
+            <div className="flex items-center justify-between gap-3 py-4"><div><p className="text-sm font-medium text-slate-800">Next 7 days</p><p className="mt-1 text-xs text-slate-500">{upcomingDueCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{upcomingDue.toLocaleString('en-IN')}</p></div>
+            <div className="flex items-center justify-between gap-3 py-4 last:pb-0"><div><p className="text-sm font-medium text-slate-800">Total outstanding</p><p className="mt-1 text-xs text-slate-500">Across active students</p></div><p className="whitespace-nowrap text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{outstandingDues.toLocaleString('en-IN')}</p></div>
           </div>
+          <Link to="/reminders" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#E5DDE0] px-3 py-2.5 text-sm font-semibold text-[#6B1F38] transition-colors hover:bg-[#F8E9ED]">Review pending dues <ArrowRight className="h-4 w-4" /></Link>
+        </article>
+      </section>
 
-          <div className="space-y-4 flex-1 overflow-y-auto pr-1">
-            {courseCollection.map((item, index) => {
-              const percentage = maxCourseAmt > 0 ? (item.amount / maxCourseAmt) * 100 : 0;
-              return (
-                <div key={index} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-700 truncate max-w-[150px]" title={item.fullName}>
-                      {item.fullName}
-                    </span>
-                    <span className="text-slate-800 font-bold shrink-0">{settings?.currencySymbol || '₹'}{item.amount.toLocaleString('en-IN')}</span>
-                  </div>
-                  
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <article className="ui-card p-4 sm:p-5">
+          <div className="mb-5 flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-slate-900">Course performance</h2><p className="mt-1 text-xs text-slate-500">Collections and enrolled students by course.</p></div><Link to="/courses" className="text-xs font-semibold text-[#6B1F38] hover:underline">Manage courses</Link></div>
+          {courseCollection.length ? <div className="space-y-5">{courseCollection.slice(0, 5).map((item, index) => { const percentage = maxCourseAmt > 0 ? (item.amount / maxCourseAmt) * 100 : 0; return <div key={index}><div className="mb-2 flex items-center justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-medium text-slate-800">{item.fullName}</p><p className="mt-0.5 text-xs text-slate-500">{item.count} students</p></div><p className="shrink-0 text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{item.amount.toLocaleString('en-IN')}</p></div><div className="h-2 overflow-hidden rounded-full bg-[#F1EAED]"><div className="h-full rounded-full bg-[#6B1F38]" style={{ width: `${percentage}%` }} /></div></div>; })}</div> : <div className="rounded-lg border border-dashed border-[#E5DDE0] px-4 py-8 text-center"><p className="text-sm font-medium text-slate-700">No courses to report yet</p><Link to="/courses" className="mt-2 inline-block text-xs font-semibold text-[#6B1F38]">Set up a course</Link></div>}
+        </article>
+        <article className="ui-card min-w-0 p-4 sm:p-5">
+          <div className="mb-5 flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold text-slate-900">Students needing attention</h2><p className="mt-1 text-xs text-slate-500">Highest outstanding balances.</p></div><Link to="/reminders" className="text-xs font-semibold text-[#6B1F38] hover:underline">View all</Link></div>
+          {highDuesStudents.length ? <div className="divide-y divide-[#EEE7EA]">{highDuesStudents.map(student => <div key={student.id} className="flex flex-col gap-3 py-3 first:pt-0 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F8E9ED] text-xs font-semibold text-[#6B1F38]">{student.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{student.name}</p><p className="mt-0.5 truncate text-xs text-slate-500">{student.parentName} · {student.parentPhone}</p></div></div><div className="flex items-center justify-between gap-3 sm:justify-end"><p className="text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{student.feesDue.toLocaleString('en-IN')}</p><button onClick={() => navigate(`/payments?student=${student.id}`)} className="rounded-lg bg-[#6B1F38] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#57172D]">Collect</button></div></div>)}</div> : <div className="rounded-lg border border-dashed border-[#E5DDE0] px-4 py-8 text-center text-sm text-slate-500">No outstanding balances need attention.</div>}
+        </article>
+      </section>
 
-                  <div className="flex justify-between items-center text-[10px] text-slate-400">
-                    <span>{item.count} students enrolled</span>
-                    <span>{Math.round((item.amount / (totalRevenue || 1)) * 100)}% contribution</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Grid: Pending Dues list & Recent Payments list */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Dues alert list */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-base">Pending Dues Alert</h3>
-              <p className="text-xs text-slate-400">Students with the largest outstanding fees.</p>
-            </div>
-            <Link 
-              to="/reminders" 
-              className="text-xs font-semibold text-[#6B1F38] hover:text-blue-700 flex items-center gap-0.5 hover:underline"
-            >
-              <span>Manage</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="flex-1 space-y-3.5">
-            {highDuesStudents.length > 0 ? (
-              highDuesStudents.map(student => (
-                <div key={student.id} className="p-3.5 rounded-xl border border-[#E5DDE0] bg-slate-50/50 flex flex-col gap-2.5">
-                  <div className="flex items-start justify-between min-w-0">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold text-xs shrink-0">
-                        {student.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-slate-850 truncate">{student.name}</h4>
-                        <div className="text-[10px] text-slate-450 mt-0.5 truncate">Parent: <span className="font-semibold text-slate-700">{student.parentName}</span></div>
-                        <div className="text-[10px] text-slate-400 mt-0.5 truncate">WhatsApp: <span className="font-semibold text-slate-600">{student.parentPhone}</span></div>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase block">Pending</span>
-                      <span className="text-xs font-bold text-amber-600">{settings?.currencySymbol || '₹'}{student.feesDue.toLocaleString('en-IN')}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions buttons */}
-                  <div className="grid grid-cols-2 gap-2 mt-0.5">
-                    <a
-                      href={isDemoMode ? undefined : `https://wa.me/91${student.parentPhone}?text=${encodeURIComponent(buildReminderMessage(student))}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-disabled={isDemoMode}
-                      onClick={event => {
-                        if (isDemoMode) {
-                          event.preventDefault();
-                          showToast('Demo mode: no WhatsApp message was sent.', 'info');
-                          return;
-                        }
-                        void sendReminder(student.id, 'WhatsApp').then(() => {
-                          showToast('WhatsApp reminder marked as manually opened. Delivery is not confirmed.', 'info');
-                        }).catch((error: unknown) => {
-                          showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
-                        });
-                      }}
-                      className="flex items-center justify-center gap-1 border border-emerald-250 bg-emerald-50/20 hover:bg-emerald-50/40 text-emerald-700 font-bold text-[10px] py-1.5 rounded-lg transition-all"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      <span>{isDemoMode ? 'WhatsApp preview' : 'WhatsApp'}</span>
-                    </a>
-                    <button
-                      onClick={() => navigate(`/payments?student=${student.id}`)}
-                      className="flex items-center justify-center gap-1 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold text-[10px] py-1.5 rounded-lg transition-all cursor-pointer"
-                    >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Collect Fee</span>
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 py-6 text-xs">
-                All students up to date!
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Recent payments table */}
-        <div className="lg:col-span-3 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-slate-800 text-base">Recent Collections</h3>
-              <p className="text-xs text-slate-400">Latest recorded fee receipts.</p>
-            </div>
-            <Link 
-              to="/payments" 
-              className="text-xs font-semibold text-[#6B1F38] hover:text-blue-700 flex items-center gap-0.5 hover:underline"
-            >
-              <span>View History</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="pb-2">Receipt</th>
-                  <th className="pb-2">Student</th>
-                  <th className="pb-2">Method</th>
-                  <th className="pb-2 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-xs">
-                {payments.slice(0, 5).map(payment => (
-                  <tr key={payment.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-2.5 font-semibold text-slate-700">
-                      <Link 
-                        to={`/receipts?id=${payment.id}`}
-                        className="text-[#6B1F38] hover:text-blue-700 hover:underline"
-                      >
-                        {payment.receiptNumber}
-                      </Link>
-                    </td>
-                    <td className="py-2.5 text-slate-800 font-medium">
-                      {payment.studentName}
-                    </td>
-                    <td className="py-2.5">
-                      <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold text-[10px]">
-                        {payment.paymentMethod}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-right font-bold text-slate-800">
-                      {settings?.currencySymbol || '₹'}{payment.amount.toLocaleString('en-IN')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <section className="ui-card overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5DDE0] px-4 py-4 sm:px-5"><div><h2 className="text-base font-semibold text-slate-900">Recent transactions</h2><p className="mt-1 text-xs text-slate-500">Latest payments recorded in your institute.</p></div><Link to="/payments" className="inline-flex items-center gap-1 text-xs font-semibold text-[#6B1F38] hover:underline">Payment history <ArrowRight className="h-3.5 w-3.5" /></Link></div>
+        {payments.length ? <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-left"><thead className="bg-[#FCFAFB]"><tr className="text-[11px] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-3">Receipt</th><th className="px-5 py-3">Student</th><th className="px-5 py-3">Payment method</th><th className="px-5 py-3 text-right">Amount</th></tr></thead><tbody className="divide-y divide-[#EEE7EA]">{payments.slice(0, 6).map(payment => <tr key={payment.id} className="transition-colors hover:bg-[#FCFAFB]"><td className="px-5 py-3.5 text-sm font-semibold"><Link to={`/receipts?id=${payment.id}`} className="text-[#6B1F38] hover:underline">{payment.receiptNumber}</Link></td><td className="px-5 py-3.5 text-sm text-slate-800">{payment.studentName}</td><td className="px-5 py-3.5"><span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{payment.paymentMethod}</span></td><td className="px-5 py-3.5 text-right text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payment.amount.toLocaleString('en-IN')}</td></tr>)}</tbody></table></div> : <div className="px-5 py-10 text-center"><p className="text-sm font-medium text-slate-700">No payments recorded yet</p><p className="mt-1 text-xs text-slate-500">New fee collections will appear here.</p><Link to="/payments" className="mt-3 inline-flex text-xs font-semibold text-[#6B1F38]">Record first payment</Link></div>}
+      </section>
     </div>
   );
 };
-
