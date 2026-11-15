@@ -602,7 +602,7 @@ export const Reminders: React.FC = () => {
                           onClick={() => setCurrentPage(idx + 1)}
                           className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                             ${currentPage === idx + 1 
-                              ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
+                              ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
                               : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                           `}
                         >
@@ -640,7 +640,7 @@ export const Reminders: React.FC = () => {
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'WhatsApp' 
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <MessageCircle className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">WhatsApp</span>
@@ -649,8 +649,8 @@ export const Reminders: React.FC = () => {
                     onClick={() => setReminderType('SMS')}
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'SMS' 
-                        ? 'border-blue-500 bg-[#F8E9ED] text-[#6B1F38] font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        ? 'border-[#A03B5E] bg-[#F8E9ED] text-[#6B1F38] font-bold' 
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <MessageSquare className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">SMS Text</span>
@@ -660,7 +660,7 @@ export const Reminders: React.FC = () => {
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'Email' 
                         ? 'border-violet-500 bg-violet-50 text-violet-700 font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <Mail className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Email Inbox</span>
@@ -711,7 +711,7 @@ export const Reminders: React.FC = () => {
                       setInstallmentTemplate(e.target.value);
                     }
                   }}
-                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED]/20 focus:border-blue-600 leading-relaxed font-sans"
+                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED]/20 focus:border-[#6B1F38] leading-relaxed font-sans"
                 />
               </div>
 
@@ -727,14 +727,14 @@ export const Reminders: React.FC = () => {
             </div>
 
             {/* Template Parser Preview panel */}
-            <div className="bg-slate-50 border border-slate-150 rounded-xl p-5 space-y-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-slate-400" />
                 <span>Live Template Preview</span>
               </h4>
               
               <div className="space-y-2">
-                <div className="text-[10px] text-slate-450">
+                <div className="text-[10px] text-slate-500">
                   Showing parsed message for <span className="font-bold text-slate-700">{previewItem.studentName}</span> ({previewItem.isDirect ? 'Direct Fee' : `Installment #${previewItem.installmentNumber || 1}`}):
                 </div>
                 <div className="bg-white border border-[#E5DDE0] rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed shadow-sm font-medium whitespace-pre-wrap">
@@ -755,7 +755,7 @@ export const Reminders: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-xs font-semibold text-slate-505 uppercase tracking-wider">
+                    <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       <th className="px-5 py-3">Recipient Student</th>
                       <th className="px-5 py-3">Recorded</th>
                       <th className="px-5 py-3">Channel</th>
@@ -776,7 +776,7 @@ export const Reminders: React.FC = () => {
                           <td className="px-5 py-3.5">
                             <span className={`px-2 py-0.5 rounded-md font-bold text-[9px] uppercase tracking-wider inline-block
                               ${log.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
-                              ${log.type === 'SMS' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-blue-100' : ''}
+                              ${log.type === 'SMS' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                               ${log.type === 'Email' ? 'bg-violet-50 text-violet-600 border border-violet-100' : ''}
                             `}>
                               {log.type}
@@ -790,7 +790,7 @@ export const Reminders: React.FC = () => {
                               log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
                               log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
                               log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-                              'text-[#6B1F38] bg-[#F8E9ED] border-blue-100'
+                              'text-[#6B1F38] bg-[#F8E9ED] border-[#E5DDE0]'
                             }`}>
                               <CheckCircle2 className="w-3 h-3" />
                               <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
