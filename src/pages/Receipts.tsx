@@ -204,7 +204,7 @@ export const Receipts: React.FC = () => {
             {/* Receipt Header Banner */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-[#E5DDE0] gap-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-[#6B1F38] flex items-center justify-center text-white shadow-md shadow-blue-200 overflow-hidden shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#6B1F38] flex items-center justify-center text-white shadow-md shadow-slate-200 overflow-hidden shrink-0">
                   {settings?.logoUrl ? (
                     <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                   ) : (
@@ -356,7 +356,7 @@ export const Receipts: React.FC = () => {
               
               <button 
                 onClick={handlePrint}
-                className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm shadow-blue-100 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm shadow-slate-200 cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print Receipt</span>
@@ -371,7 +371,7 @@ export const Receipts: React.FC = () => {
               </button>
             </div>
 
-            <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-2 text-xs">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2 text-xs">
               <h5 className="font-bold text-slate-700">Audit Info</h5>
               <div className="text-slate-500 space-y-1.5">
                 <p>Status: <span className="text-emerald-600 font-bold">Cleared</span></p>
@@ -471,7 +471,7 @@ export const Receipts: React.FC = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-505 no-print pt-2">
+                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-500 no-print pt-2">
                   <div>
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedReceipts.length)} of {sortedReceipts.length} receipts
                   </div>
@@ -489,8 +489,8 @@ export const Receipts: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
-                            : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
+                            ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
                         {idx + 1}
