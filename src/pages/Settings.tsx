@@ -189,25 +189,25 @@ export const Settings: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col gap-4 border-b border-[#E5DDE0] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Application Settings</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Workspace administration</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Settings</h1>
           <p className="text-sm text-slate-500 mt-1">Configure institute profile details, receipt prefixes, custom whatsapp notification alerts, and workspace exports.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-6">
         
         {/* Navigation Sidebar */}
-        <div className="space-y-1.5">
+        <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
           <button
             onClick={() => setActiveSection('profile')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all border ${
+            className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg border px-3.5 py-3 text-left text-xs font-semibold transition-colors lg:w-full ${
               activeSection === 'profile'
-                ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                : 'bg-white hover:bg-slate-50 border-slate-100 text-slate-600 hover:text-slate-900'
+                ? 'bg-[#6B1F38] border-[#6B1F38] text-white'
+                : 'bg-white hover:bg-[#FCF6F8] border-[#E5DDE0] text-slate-600 hover:text-[#6B1F38]'
             }`}
           >
             <Building className="w-4 h-4" />
@@ -218,7 +218,7 @@ export const Settings: React.FC = () => {
             onClick={() => setActiveSection('receipt')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all border ${
               activeSection === 'receipt'
-                ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                ? 'bg-[#6B1F38] border-blue-600 text-white shadow-sm'
                 : 'bg-white hover:bg-slate-50 border-slate-100 text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -272,9 +272,9 @@ export const Settings: React.FC = () => {
 
         {/* Content Container */}
         <div className="lg:col-span-3">
-          <form onSubmit={handleSave} className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+          <form onSubmit={handleSave} className="overflow-hidden rounded-xl border border-[#E5DDE0] bg-white shadow-sm">
             
-            <div className="p-6 space-y-6">
+            <div className="space-y-6 p-4 sm:p-6">
 
               {activeSection === 'team' && <TeamSettings />}
               
@@ -283,7 +283,7 @@ export const Settings: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <Building className="w-4 h-4 text-blue-600" />
+                      <Building className="w-4 h-4 text-[#6B1F38]" />
                       <span>Institute Profile Settings</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Define your school branding and default receipt header address metadata.</p>
@@ -297,7 +297,7 @@ export const Settings: React.FC = () => {
                         required
                         value={formData.instituteName}
                         onChange={(e) => setFormData(prev => ({ ...prev, instituteName: e.target.value }))}
-                        className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 focus:outline-none"
+                        className="w-full px-3.5 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] focus:outline-none"
                       />
                     </div>
 
@@ -471,7 +471,7 @@ export const Settings: React.FC = () => {
 
                   <div className="space-y-3 pt-2">
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex gap-2">
-                      <HelpCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                      <HelpCircle className="w-4 h-4 text-[#A03B5E] shrink-0 mt-0.5" />
                       <div className="text-[10px] text-slate-500 space-y-1.5">
                         <span className="font-bold text-slate-700 block">Available Template Variables:</span>
                         <div className="flex flex-wrap gap-1">
@@ -507,7 +507,7 @@ export const Settings: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Installment Preview</label>
-                        <div className="bg-blue-50/20 border border-blue-100/50 rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
+                        <div className="bg-[#FCF6F8] border border-[#E5DDE0] rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
                           {getInstallmentPreview()}
                         </div>
                       </div>
@@ -649,7 +649,7 @@ export const Settings: React.FC = () => {
 
             {/* Actions Footer */}
             {activeSection !== 'backup' && activeSection !== 'team' && (
-              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="flex items-center justify-end gap-3 border-t border-[#E5DDE0] bg-[#FCFAFB] p-4">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...settings })}
@@ -660,7 +660,7 @@ export const Settings: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex items-center gap-1.5 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer shadow-blue-100"
+                  className="flex items-center gap-1.5 px-6 py-2 bg-blue-600 hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer shadow-blue-100"
                 >
                   {isSaving ? (
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
