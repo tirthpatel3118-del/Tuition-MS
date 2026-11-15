@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink 
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
+import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
@@ -60,7 +61,8 @@ function AppContent() {
           </div>
 
           {/* Right header actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <PWAControls />
             {auth.configured && auth.activeMembership && (
               <div className="hidden items-center gap-2 sm:flex">
                 {auth.memberships.length > 1 && (
