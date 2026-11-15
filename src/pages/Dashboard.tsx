@@ -11,11 +11,6 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
-import {
-  renderReminderTemplate,
-  DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
-  DEFAULT_DIRECT_REMINDER_TEMPLATE
-} from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
   const { students, payments, courses, installments, settings } = useData();
