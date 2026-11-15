@@ -211,14 +211,14 @@ export const Dashboard: React.FC = () => {
         <div className="flex items-center gap-2">
           <Link 
             to="/admissions" 
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2.5 rounded-xl shadow-sm transition-all duration-200"
+            className="flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-medium text-sm px-4 py-2.5 rounded-lg shadow-sm transition-colors duration-150"
           >
             <Plus className="w-4 h-4" />
             <span>Admit Student</span>
           </Link>
           <Link 
             to="/payments" 
-            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-xl transition-all duration-200"
+            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-lg transition-colors duration-150"
           >
             <DollarSign className="w-4 h-4" />
             <span>Record Payment</span>
@@ -227,12 +227,12 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Metrics Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Metric 1: Total Collections */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</span>
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+            <div className="p-2.5 bg-[#F8E9ED] text-[#6B1F38] rounded-xl">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -247,7 +247,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Metric 2: Outstanding Dues */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Outstanding Dues</span>
             <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
@@ -264,7 +264,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Metric 3: Today's Due */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Today's Due</span>
             <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
@@ -281,7 +281,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Metric 4: Upcoming Due (7 Days) */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Upcoming (7d)</span>
             <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl">
@@ -298,7 +298,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Metric 3: Active Students */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Students</span>
             <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
@@ -315,7 +315,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Metric 4: Collection Rate */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm relative overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white rounded-xl border border-[#E5DDE0] p-5 shadow-[0_1px_2px_rgba(31,41,55,0.04)] relative overflow-hidden transition-all duration-200 hover:shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Collection Rate</span>
             <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -335,7 +335,7 @@ export const Dashboard: React.FC = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly Revenue Trend Chart */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-slate-800 text-base">Collection History ({today.getFullYear()})</h3>
@@ -448,7 +448,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Course-wise fee collection distribution */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+        <div className="bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
           <div>
             <h3 className="font-bold text-slate-800 text-base">Course Collections</h3>
             <p className="text-xs text-slate-400 mb-4">Revenue share by course type.</p>
@@ -487,7 +487,7 @@ export const Dashboard: React.FC = () => {
       {/* Grid: Pending Dues list & Recent Payments list */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Dues alert list */}
-        <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-slate-800 text-base">Pending Dues Alert</h3>
@@ -495,7 +495,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <Link 
               to="/reminders" 
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 hover:underline"
+              className="text-xs font-semibold text-[#6B1F38] hover:text-blue-700 flex items-center gap-0.5 hover:underline"
             >
               <span>Manage</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -505,7 +505,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1 space-y-3.5">
             {highDuesStudents.length > 0 ? (
               highDuesStudents.map(student => (
-                <div key={student.id} className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 flex flex-col gap-2.5">
+                <div key={student.id} className="p-3.5 rounded-xl border border-[#E5DDE0] bg-slate-50/50 flex flex-col gap-2.5">
                   <div className="flex items-start justify-between min-w-0">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center font-bold text-xs shrink-0">
@@ -549,7 +549,7 @@ export const Dashboard: React.FC = () => {
                     </a>
                     <button
                       onClick={() => navigate(`/payments?student=${student.id}`)}
-                      className="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] py-1.5 rounded-lg transition-all cursor-pointer"
+                      className="flex items-center justify-center gap-1 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold text-[10px] py-1.5 rounded-lg transition-all cursor-pointer"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Collect Fee</span>
@@ -566,7 +566,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Recent payments table */}
-        <div className="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
+        <div className="lg:col-span-3 bg-white p-5 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-slate-800 text-base">Recent Collections</h3>
@@ -574,7 +574,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <Link 
               to="/payments" 
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 hover:underline"
+              className="text-xs font-semibold text-[#6B1F38] hover:text-blue-700 flex items-center gap-0.5 hover:underline"
             >
               <span>View History</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -584,7 +584,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                   <th className="pb-2">Receipt</th>
                   <th className="pb-2">Student</th>
                   <th className="pb-2">Method</th>
@@ -597,7 +597,7 @@ export const Dashboard: React.FC = () => {
                     <td className="py-2.5 font-semibold text-slate-700">
                       <Link 
                         to={`/receipts?id=${payment.id}`}
-                        className="text-blue-600 hover:text-blue-700 hover:underline"
+                        className="text-[#6B1F38] hover:text-blue-700 hover:underline"
                       >
                         {payment.receiptNumber}
                       </Link>
