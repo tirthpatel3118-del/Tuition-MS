@@ -94,52 +94,58 @@ export function TeacherWorkspace() {
 
   if (location.pathname === '/attendance') return <AttendancePage />;
 
+  const activeStudentCount = students.filter(student => student.status === 'Active').length;
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8">
-      <div className="mx-auto max-w-5xl">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-blue-700">Teacher workspace</p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">{activeMembership?.instituteName}</h1>
-            <p className="mt-1 text-sm text-slate-500">Academic roster · {email}</p>
+    <main className="min-h-screen bg-[#FAF7F8] px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
+      <div className="mx-auto max-w-6xl space-y-7">
+        <header className="flex flex-col gap-5 border-b border-[#E5DDE0] pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Teacher workspace</p>
+            <h1 className="mt-2 truncate text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">{activeMembership?.instituteName}</h1>
+            <p className="mt-1 text-sm text-slate-500">Your assigned academic roster · {email}</p>
           </div>
-          <div className="flex items-center gap-2"><Link to="/attendance" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Attendance</Link><button onClick={() => void signOut()} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">Sign out</button></div>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/attendance" className="ui-button-primary"> <span>Open attendance</span> </Link>
+            <button onClick={() => void signOut()} className="ui-button-secondary">Sign out</button>
+          </div>
         </header>
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="font-semibold text-slate-900">Students</h2>
-            <p className="mt-1 text-xs text-slate-500">Only academic roster fields are shown in this workspace.</p>
+
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Teacher overview">
+          <article className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Assigned batches</p><p className="mt-2 text-2xl font-semibold text-slate-900">{assignedBatches.length}</p><p className="mt-1 text-xs text-slate-500">Your teaching groups</p></article>
+          <article className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students in roster</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.length}</p><p className="mt-1 text-xs text-slate-500">Visible academic records</p></article>
+          <article className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active students</p><p className="mt-2 text-2xl font-semibold text-slate-900">{activeStudentCount}</p><p className="mt-1 text-xs text-slate-500">Currently active enrolments</p></article>
+        </section>
+
+        <section className="ui-card overflow-hidden">
+          <div className="border-b border-[#E5DDE0] px-4 py-4 sm:px-5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-base font-semibold text-slate-900">Your assigned batches</h2><p className="mt-1 text-xs text-slate-500">Only batches assigned to your teacher account are listed.</p></div><span className="text-xs font-medium text-slate-500">{assignedBatches.length} assigned</span></div>
           </div>
-          {!loading && !error && <div className="border-b border-slate-100 px-5 py-4">
-            <h3 className="text-sm font-semibold text-slate-800">Assigned batches</h3>
-            {assignedBatches.length === 0
-              ? <p className="mt-1 text-sm text-slate-500">No batches are currently assigned to you.</p>
-              : <ul className="mt-2 flex flex-wrap gap-2">{assignedBatches.map(batch => <li key={batch.id} className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">{batch.courseName} — {batch.name}</li>)}</ul>}
-          </div>}
-          {error && <p role="alert" className="p-5 text-sm text-rose-700">{error}</p>}
-          {loading && <p className="p-5 text-sm text-slate-500">Loading roster…</p>}
-          {!loading && !error && students.length === 0 && <p className="p-5 text-sm text-slate-500">No students are available in this institute.</p>}
-          {!loading && !error && students.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr><th className="px-5 py-3">Roll number</th><th className="px-5 py-3">Student</th><th className="px-5 py-3">Course</th><th className="px-5 py-3">Batch</th><th className="px-5 py-3">Status</th></tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {students.map(student => <tr key={student.id}>
-                    <td className="px-5 py-3 font-medium text-slate-700">{student.roll_number}</td>
-                    <td className="px-5 py-3 text-slate-900">{student.full_name}</td>
-                    <td className="px-5 py-3 text-slate-600">{student.course_id ? (courses[student.course_id] ?? 'Course') : '—'}</td>
-                    <td className="px-5 py-3 text-slate-600">{student.batch_id ? (batches[student.batch_id] ?? 'Batch') : '—'}</td>
-                    <td className="px-5 py-3 text-slate-600">{student.status}</td>
-                  </tr>)}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {!loading && !error && assignedBatches.length === 0
+            ? <div className="px-5 py-8 text-sm text-slate-500">No batches are currently assigned to you. Contact your institute owner if you believe this is incorrect.</div>
+            : <div className="flex flex-wrap gap-2 p-4 sm:p-5">{assignedBatches.map(batch => <span key={batch.id} className="inline-flex items-center rounded-lg border border-[#E5DDE0] bg-[#FCFAFB] px-3 py-2 text-xs font-semibold text-slate-700">{batch.courseName}<span className="mx-2 text-[#A03B5E]">/</span>{batch.name}</span>)}</div>}
+        </section>
+
+        <section className="ui-card overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5DDE0] px-4 py-4 sm:px-5">
+            <div><h2 className="text-base font-semibold text-slate-900">Student roster</h2><p className="mt-1 text-xs text-slate-500">Academic details only. Financial and private owner information is not shown.</p></div>
+            <span className="text-xs font-medium text-slate-500">{students.length} records</span>
+          </div>
+          {error && <p role="alert" className="m-4 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
+          {loading && <p className="px-5 py-12 text-center text-sm text-slate-500">Loading your academic roster…</p>}
+          {!loading && !error && students.length === 0 && <div className="px-5 py-12 text-center"><p className="text-sm font-semibold text-slate-800">No students available</p><p className="mt-1 text-xs text-slate-500">Students assigned to your batches will appear here.</p></div>}
+          {!loading && !error && students.length > 0 && <>
+            <div className="space-y-3 p-3 md:hidden">{students.map(student => <article key={student.id} className="rounded-lg border border-[#EEE7EA] bg-white p-4">
+              <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{student.full_name}</p><p className="mt-1 text-xs text-slate-500">{student.roll_number || 'No roll number'}</p></div><span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold ${student.status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-[#E5DDE0] bg-slate-50 text-slate-600'}`}>{student.status}</span></div>
+              <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[#EEE7EA] pt-3"><div><p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Course</p><p className="mt-1 truncate text-xs font-medium text-slate-700">{student.course_id ? (courses[student.course_id] ?? 'Course') : '—'}</p></div><div><p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Batch</p><p className="mt-1 truncate text-xs font-medium text-slate-700">{student.batch_id ? (batches[student.batch_id] ?? 'Batch') : '—'}</p></div></div>
+            </article>)}</div>
+            <div className="hidden overflow-x-auto md:block"><table className="w-full text-left text-sm">
+              <thead className="bg-[#FCFAFB] text-[11px] uppercase tracking-wide text-slate-500"><tr><th className="px-5 py-3">Roll number</th><th className="px-5 py-3">Student</th><th className="px-5 py-3">Course</th><th className="px-5 py-3">Batch</th><th className="px-5 py-3">Status</th></tr></thead>
+              <tbody className="divide-y divide-[#EEE7EA]">{students.map(student => <tr key={student.id} className="transition-colors hover:bg-[#FCFAFB]"><td className="px-5 py-3 font-medium text-slate-700">{student.roll_number || '—'}</td><td className="px-5 py-3 font-medium text-slate-900">{student.full_name}</td><td className="px-5 py-3 text-slate-600">{student.course_id ? (courses[student.course_id] ?? 'Course') : '—'}</td><td className="px-5 py-3 text-slate-600">{student.batch_id ? (batches[student.batch_id] ?? 'Batch') : '—'}</td><td className="px-5 py-3 text-slate-600">{student.status}</td></tr>)}</tbody>
+            </table></div>
+          </>}
         </section>
       </div>
     </main>
   );
 }
-
