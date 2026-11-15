@@ -599,7 +599,13 @@ export const Admissions: React.FC = () => {
             <TableSkeleton columnCount={6} rowCount={itemsPerPage} />
           ) : (
             <div className="space-y-4">
-              <div className="ui-card overflow-hidden">
+              <div className="space-y-3 md:hidden">
+                {paginatedStudents.length ? paginatedStudents.map(student => <button key={student.id} type="button" onClick={() => { setSelectedStudentId(student.id); setIsEditing(false); }} className="ui-card w-full p-4 text-left transition hover:border-[#A03B5E]">
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{student.name}</p><p className="mt-1 text-xs text-slate-500">{student.rollNumber} · {student.phone}</p></div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${student.status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : student.status === 'Inactive' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38]'}`}>{student.status}</span></div>
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#EEE7EA] pt-3"><div className="min-w-0"><p className="truncate text-xs font-medium text-slate-700">{student.courseName}</p><p className="mt-0.5 truncate text-[11px] text-slate-500">{student.batch}</p></div><div className="text-right"><p className="text-xs font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{student.feesPaid.toLocaleString('en-IN')} <span className="font-normal text-slate-400">/ {settings?.currencySymbol || '₹'}{student.totalFees.toLocaleString('en-IN')}</span></p><p className={`mt-1 text-xs font-semibold ${student.feesDue > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>Due {settings?.currencySymbol || '₹'}{student.feesDue.toLocaleString('en-IN')}</p></div></div>
+                </button>) : <div className="ui-card px-4 py-10 text-center text-sm text-slate-500">No students match these filters.</div>}
+              </div>
+              <div className="hidden overflow-hidden ui-card md:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
