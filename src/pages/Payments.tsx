@@ -490,7 +490,7 @@ export const Payments: React.FC = () => {
                             <td className="px-5 py-3 text-center no-print">
                               <Link 
                                 to={`/receipts?id=${p.id}`}
-                                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2.5 py-1.5 rounded-lg border border-blue-100 transition-colors"
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2.5 py-1.5 rounded-lg border border-[#E5DDE0] transition-colors"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>View</span>
@@ -533,7 +533,7 @@ export const Payments: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
+                            ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
