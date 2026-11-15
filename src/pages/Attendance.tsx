@@ -39,6 +39,8 @@ export function AttendancePage() {
   const [batchFilter, setBatchFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [draftStatuses, setDraftStatuses] = useState<Record<string, AttendanceStatus>>({});
+  const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [reasonForms, setReasonForms] = useState<Record<string, string>>({});
@@ -101,12 +103,52 @@ export function AttendancePage() {
     finally { setBusyId(null); }
   };
   const mark = (student: StudentRow, batchId: string, status: AttendanceStatus) => {
-    if (!instituteId) return;
     const key = `${batchId}:${student.id}`;
-    void runAction(key, async () => {
-      const { error: rpcError } = await supabase.rpc('mark_attendance', { p_institute_id: instituteId, p_student_id: student.id, p_batch_id: batchId, p_attendance_date: date, p_status: status });
+    setDraftStatuses(current => ({ ...current, [key]: status }));
+    setError(null);
+    setNotice(null);
+  };
+
+  const submitPendingMarks = async () => {
+    if (!instituteId || isBulkSubmitting) return;
+    const pending = Object.entries(draftStatuses).filter(([key]) => {
+      const [batchId, studentId] = key.split(':');
+      return visibleBatches.some(batch => batch.id === batchId)
+        && students.some(student => student.id === studentId && student.status === 'Active')
+        && !recordsByStudent.has(key);
+    });
+    if (!pending.length) return;
+    setIsBulkSubmitting(true);
+    setError(null);
+    setNotice(null);
+    const results = await Promise.allSettled(pending.map(async ([key, status]) => {
+      const [batchId, studentId] = key.split(':');
+      const { error: rpcError } = await supabase.rpc('mark_attendance', {
+        p_institute_id: instituteId,
+        p_student_id: studentId,
+        p_batch_id: batchId,
+        p_attendance_date: date,
+        p_status: status,
+      });
       if (rpcError) throw rpcError;
-    }, `${student.full_name}: marked ${status}.`);
+      return key;
+    }));
+    const savedKeys = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
+    if (savedKeys.length) {
+      setDraftStatuses(current => {
+        const next = { ...current };
+        savedKeys.forEach(key => delete next[key]);
+        return next;
+      });
+      await load();
+    }
+    const failedCount = results.length - savedKeys.length;
+    if (failedCount) {
+      setError(`${savedKeys.length} attendance record(s) saved; ${failedCount} could not be saved. Failed selections have been kept so you can retry.`);
+    } else {
+      setNotice(`Attendance submitted successfully for ${savedKeys.length} student(s).`);
+    }
+    setIsBulkSubmitting(false);
   };
   const submitCorrection = (record: AttendanceRow) => {
     const reason = reasonForms[record.id]?.trim() ?? '';
@@ -157,6 +199,13 @@ export function AttendancePage() {
       {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
       {loading ? <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-16 text-sm text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading attendance…</div> : <>
+        <section className="ui-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="text-sm font-semibold text-slate-900">Attendance changes</p><p className="mt-1 text-xs text-slate-500">{Object.keys(draftStatuses).length} unsubmitted selection(s). You can change them before submitting.</p></div>
+          <button type="button" disabled={isBulkSubmitting || Object.keys(draftStatuses).length === 0} onClick={() => void submitPendingMarks()} className={`${buttonClass} bg-[#6B1F38] px-5 py-2.5 text-white hover:bg-[#57172D]`}>
+            {isBulkSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}
+            {isBulkSubmitting ? 'Submitting…' : `Submit attendance (${Object.keys(draftStatuses).length})`}
+          </button>
+        </section>
         <section className="space-y-4">
           {visibleBatches.length === 0 && <div className="rounded-xl border border-slate-200 bg-white p-8 text-center"><ClipboardCheck className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 font-semibold text-slate-800">No assigned batches</p><p className="mt-1 text-sm text-slate-500">Attendance appears here when batches are assigned to your account.</p></div>}
           {visibleBatches.map(batch => {
@@ -172,7 +221,8 @@ export function AttendancePage() {
                     <div className="min-w-0"><p className="truncate font-medium text-slate-900">{student.full_name}</p><p className="mt-0.5 text-xs text-slate-500">{student.roll_number || 'No roll number'} · {student.status}</p></div>
                     <div className="flex flex-wrap items-center gap-2">
                       {record ? <span className={`rounded-full border px-3 py-1.5 text-xs font-bold ${statusStyle[record.status]}`}>{record.status}</span> : <span className="text-xs text-slate-400">Not marked</span>}
-                      {!record && STATUSES.map(status => <button key={status} type="button" disabled={busyId === key} onClick={() => mark(student, batch.id, status)} className={`${buttonClass} border ${statusStyle[status]} hover:brightness-95`}>{busyId === key ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : status}</button>)}
+                      {!record && STATUSES.map(status => <button key={status} type="button" onClick={() => mark(student, batch.id, status)} aria-pressed={draftStatuses[key] === status} className={`${buttonClass} border ${draftStatuses[key] === status ? statusStyle[status] + ' ring-2 ring-offset-1 ring-[#A03B5E]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{status}</button>)}
+                      {!record && draftStatuses[key] && <span className="text-[11px] font-medium text-[#6B1F38]">Ready to submit</span>}
                       {record && isOwner && <button type="button" onClick={() => { setOwnerEdit({ recordId: record.id, status: record.status, reason: '' }); setError(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Edit</button>}
                     {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-[#E5DDE0] bg-[#F8E9ED] text-blue-800 hover:bg-blue-100`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
                       {pending && <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Correction pending</span>}
