@@ -87,6 +87,17 @@ export function AttendancePage() {
   const visibleBatches = useMemo(() => batchFilter === 'all' ? batches : batches.filter(batch => batch.id === batchFilter), [batchFilter, batches]);
   const recordsByStudent = useMemo(() => new Map(records.map(record => [`${record.batch_id}:${record.student_id}`, record])), [records]);
   const pendingByAttendance = useMemo(() => new Map(corrections.filter(item => item.decision === 'Pending').map(item => [item.attendance_id, item])), [corrections]);
+  const attendanceSummary = useMemo(() => {
+    const counts = { Present: 0, Absent: 0, Late: 0, Leave: 0, unmarked: 0 };
+    for (const batch of visibleBatches) {
+      for (const student of studentsByBatch.get(batch.id) ?? []) {
+        const record = recordsByStudent.get(`${batch.id}:${student.id}`);
+        if (record) counts[record.status] += 1;
+        else if (student.status === 'Active') counts.unmarked += 1;
+      }
+    }
+    return counts;
+  }, [visibleBatches, studentsByBatch, recordsByStudent]);
   const studentsByBatch = useMemo(() => {
     const groups = new Map<string, StudentRow[]>();
     for (const student of students) {
@@ -199,6 +210,15 @@ export function AttendancePage() {
 
       {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+      {!loading && <section aria-label="Attendance summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {([
+          ['Present', attendanceSummary.Present, 'bg-emerald-50 text-emerald-800'],
+          ['Absent', attendanceSummary.Absent, 'bg-rose-50 text-rose-800'],
+          ['Late', attendanceSummary.Late, 'bg-amber-50 text-amber-800'],
+          ['Leave', attendanceSummary.Leave, 'bg-violet-50 text-violet-800'],
+          ['Not marked', attendanceSummary.unmarked, 'bg-slate-100 text-slate-700'],
+        ] as const).map(([label, value, tone]) => <article key={label} className="ui-card p-3.5 sm:p-4"><p className="text-xs font-medium text-slate-500">{label}</p><p className={`mt-2 text-2xl font-semibold tracking-tight ${tone.split(' ').at(-1)}`}>{value}</p></article>)}
+      </section>}
       {loading ? <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-16 text-sm text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading attendance…</div> : <>
         <section className="ui-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div><p className="text-sm font-semibold text-slate-900">Attendance changes</p><p className="mt-1 text-xs text-slate-500">{Object.keys(draftStatuses).length} unsubmitted selection(s). You can change them before submitting.</p></div>
@@ -222,8 +242,9 @@ export function AttendancePage() {
                     <div className="min-w-0"><p className="truncate font-medium text-slate-900">{student.full_name}</p><p className="mt-0.5 text-xs text-slate-500">{student.roll_number || 'No roll number'} · {student.status}</p></div>
                     <div className="flex flex-wrap items-center gap-2">
                       {record ? <span className={`rounded-full border px-3 py-1.5 text-xs font-bold ${statusStyle[record.status]}`}>{record.status}</span> : <span className="text-xs text-slate-400">Not marked</span>}
-                      {!record && STATUSES.map(status => <button key={status} type="button" onClick={() => mark(student, batch.id, status)} aria-pressed={draftStatuses[key] === status} className={`${buttonClass} border ${draftStatuses[key] === status ? statusStyle[status] + ' ring-2 ring-offset-1 ring-[#A03B5E]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{status}</button>)}
-                      {!record && draftStatuses[key] && <span className="text-[11px] font-medium text-[#6B1F38]">Ready to submit</span>}
+                      {!record && student.status === 'Active' && <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Attendance status for ${student.full_name}`}>{STATUSES.map(status => <button key={status} type="button" onClick={() => mark(student, batch.id, status)} aria-pressed={draftStatuses[key] === status} className={`${buttonClass} border px-2.5 py-2 ${draftStatuses[key] === status ? statusStyle[status] + ' ring-2 ring-offset-1 ring-[#A03B5E]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{status}</button>)}</div>}
+                      {!record && student.status !== 'Active' && <span className="text-xs text-slate-400">Inactive student</span>}
+                      {!record && draftStatuses[key] && <span className="text-[11px] font-semibold text-[#6B1F38]">Selected: {draftStatuses[key]}</span>}
                       {record && isOwner && <button type="button" onClick={() => { setOwnerEdit({ recordId: record.id, status: record.status, reason: '' }); setError(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Edit</button>}
                     {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-[#E5DDE0] bg-[#F8E9ED] text-blue-800 hover:bg-blue-100`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
                       {pending && <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Correction pending</span>}
