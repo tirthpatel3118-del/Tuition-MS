@@ -690,7 +690,7 @@ export const Admissions: React.FC = () => {
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-block
                                 ${student.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
                                 ${student.status === 'Inactive' ? 'bg-rose-50 text-rose-600 border border-rose-100' : ''}
-                                ${student.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-blue-100' : ''}
+                                ${student.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                               `}>
                                 {student.status}
                               </span>
@@ -714,7 +714,7 @@ export const Admissions: React.FC = () => {
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-505 no-print">
+                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-500 no-print">
                   <div>
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedStudents.length)} of {sortedStudents.length} enrollments
                   </div>
@@ -733,7 +733,7 @@ export const Admissions: React.FC = () => {
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
                             ? 'bg-[#6B1F38] text-white border-blue-600 shadow-sm' 
-                            : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
                         {idx + 1}
@@ -1105,7 +1105,7 @@ export const Admissions: React.FC = () => {
                     <span>Schedule Fully Allocated!</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-[#F8E9ED]/50 border border-blue-100/80 rounded-lg p-2.5 justify-center text-center">
+                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-[#F8E9ED]/50 border border-[#E5DDE0]/80 rounded-lg p-2.5 justify-center text-center">
                     <Info className="w-4 h-4 text-[#6B1F38] shrink-0" />
                     <span>
                       {plannedInstallments.length === 0
@@ -1144,7 +1144,7 @@ export const Admissions: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting || !isAllocationValid}
-                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{isSubmitting ? 'Enrolling...' : 'Enroll Student'}</span>
@@ -1157,7 +1157,7 @@ export const Admissions: React.FC = () => {
       {/* Student detail backdrop and drawer */}
       {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
       {/* Side Details drawer (Slides in from the right when student clicked) */}
-      <div role="dialog" aria-modal="true" aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print
+      <div role="dialog" aria-modal={Boolean(selectedStudentId)} aria-hidden={!selectedStudentId} aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print ${selectedStudentId ? 'pointer-events-auto' : 'pointer-events-none'}
         ${selectedStudentId ? 'translate-x-0' : 'translate-x-full'}
       `}>
         {selectedStudent ? (
@@ -1171,7 +1171,7 @@ export const Admissions: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold
                   ${selectedStudent.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
                   ${selectedStudent.status === 'Inactive' ? 'bg-rose-50 text-rose-600 border border-rose-100' : ''}
-                  ${selectedStudent.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-blue-100' : ''}
+                  ${selectedStudent.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                 `}>
                   {selectedStudent.status}
                 </span>
@@ -1191,7 +1191,7 @@ export const Admissions: React.FC = () => {
                 <div className="space-y-7">
                   {/* Student Title Profile Card */}
                   <div className="flex items-center gap-4 border-b border-[#E5DDE0] pb-5">
-                    <div className="w-14 h-14 rounded-xl bg-[#F8E9ED] text-[#6B1F38] flex items-center justify-center font-bold text-xl border border-blue-100 shadow-inner">
+                    <div className="w-14 h-14 rounded-xl bg-[#F8E9ED] text-[#6B1F38] flex items-center justify-center font-bold text-xl border border-[#E5DDE0] shadow-inner">
                       {selectedStudent.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
@@ -1267,7 +1267,7 @@ export const Admissions: React.FC = () => {
                   {/* NEW Fee Summary Widget Section (Task 3) */}
                   <div className="space-y-3.5">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Fee Summary Details</h4>
-                    <div className="border border-slate-150 rounded-xl p-4 bg-white space-y-2.5 shadow-xs">
+                    <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2.5 shadow-xs">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500 font-medium">Total Course Fee</span>
                         <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{getFeeSummary(selectedStudent).total.toLocaleString('en-IN')}</span>
@@ -1340,7 +1340,7 @@ export const Admissions: React.FC = () => {
                                       ) : (
                                         <Link
                                           to={`/payments?student=${selectedStudent.id}`}
-                                          className="text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2 py-0.5 rounded border border-blue-100"
+                                          className="text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2 py-0.5 rounded border border-[#E5DDE0]"
                                         >
                                           Collect
                                         </Link>
@@ -1711,7 +1711,7 @@ export const Admissions: React.FC = () => {
                             <span>Schedule Fully Allocated!</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 bg-[#F8E9ED]/50 border border-blue-100/80 rounded p-1.5 justify-center text-center">
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 bg-[#F8E9ED]/50 border border-[#E5DDE0]/80 rounded p-1.5 justify-center text-center">
                             <Info className="w-3.5 h-3.5 text-[#6B1F38] shrink-0" />
                             <span>
                               {plannedInstallments.length === 0
@@ -1731,14 +1731,14 @@ export const Admissions: React.FC = () => {
                     <button 
                       type="button" 
                       onClick={() => setIsEditing(false)}
-                      className="px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-655 transition-colors"
+                      className="px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
                     >
                       Cancel
                     </button>
                     <button 
                       type="submit" 
                       disabled={isSubmitting || !isAllocationValid}
-                      className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting && <Loader2 className="w-3 animate-spin" />}
                       <span>{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
