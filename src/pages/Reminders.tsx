@@ -373,19 +373,19 @@ export const Reminders: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Dues & Reminders</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Collections follow-up</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Dues & reminders</h1>
           <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => setActiveTab('dues')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             <BellRing className="w-3.5 h-3.5" />
             <span>Outstanding Dues</span>
@@ -400,12 +400,17 @@ export const Reminders: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Reminder summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Outstanding items</p><p className="mt-2 text-2xl font-semibold text-slate-900">{dueItems.length}</p><p className="mt-1 text-xs text-slate-500">Installments and direct dues</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{new Set(dueItems.map(item => item.studentId)).size}</p><p className="mt-1 text-xs text-slate-500">Require follow-up</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Selected for reminder</p><p className="mt-2 text-2xl font-semibold text-slate-900">{selectedInstallmentIds.length}</p><p className="mt-1 text-xs text-slate-500">Ready for manual review</p></div>
+      </section>
       {activeTab === 'dues' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
           {/* Main Dues Table (Left columns) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white p-4 rounded-xl border border-[#E5DDE0] shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
+            <div className="ui-card p-4 flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input 
@@ -416,7 +421,7 @@ export const Reminders: React.FC = () => {
                     setSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
                 />
               </div>
 
@@ -430,11 +435,11 @@ export const Reminders: React.FC = () => {
               <TableSkeleton columnCount={5} rowCount={itemsPerPage} />
             ) : (
               <div className="space-y-4">
-                <div className="bg-white border border-[#E5DDE0] rounded-xl shadow-sm overflow-hidden">
+                <div className="ui-card overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
+                        <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
                           <th className="px-4 py-3 text-center w-12 no-print">
                             <input 
                               type="checkbox"
