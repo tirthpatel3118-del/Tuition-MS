@@ -48,9 +48,9 @@ export function AttendancePage() {
   const [ownerEdit, setOwnerEdit] = useState<{ recordId: string; status: AttendanceStatus; reason: string } | null>(null);
   const [decisionForms, setDecisionForms] = useState<Record<string, { decision: 'Approved' | 'Rejected'; reason: string }>>({});
 
-  const load = useCallback(async () => {
-    if (!instituteId || (!isOwner && !isTeacher)) { setLoading(false); return; }
-    setLoading(true); setError(null);
+  const load = useCallback(async (showPageLoader = true) => {
+    if (!instituteId || (!isOwner && !isTeacher)) { if (showPageLoader) setLoading(false); return; }
+    if (showPageLoader) setLoading(true); setError(null);
     try {
       const [batchResult, courseResult, rosterResult, recordResult] = await Promise.all([
         supabase.from('batches').select('id,name,course_id').eq('institute_id', instituteId).order('name'),
@@ -77,7 +77,7 @@ export function AttendancePage() {
       } else setAudit([]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not load attendance. Check your institute access and database policies.');
-    } finally { setLoading(false); }
+    } finally { if (showPageLoader) setLoading(false); }
   }, [date, instituteId, isOwner, isTeacher]);
 
   useEffect(() => { void load(); }, [load]);
@@ -99,7 +99,7 @@ export function AttendancePage() {
 
   const runAction = async (key: string, action: () => Promise<unknown>, success: string) => {
     setBusyId(key); setError(null); setNotice(null);
-    try { await action(); setNotice(success); await load(); }
+    try { await action(); setNotice(success); await load(false); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'The attendance change could not be saved.'); }
     finally { setBusyId(null); }
   };
@@ -141,7 +141,7 @@ export function AttendancePage() {
         savedKeys.forEach(key => delete next[key]);
         return next;
       });
-      await load();
+      await load(false);
     }
     const failedCount = results.length - savedKeys.length;
     if (failedCount) {
