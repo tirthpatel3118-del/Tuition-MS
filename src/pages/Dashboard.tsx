@@ -1,4 +1,3 @@
-import { formatDateForDisplay } from '../lib/date';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { 
@@ -9,12 +8,10 @@ import {
   Plus, 
   AlertTriangle,
   ArrowRight,
-  MessageCircle,
   CreditCard,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
-import { isDemoMode } from '../lib/supabase';
 import {
   renderReminderTemplate,
   DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
@@ -22,7 +19,7 @@ import {
 } from '../utils/reminderTemplate';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, installmentPaidTotals, settings, sendReminder, showToast } = useData();
+  const { students, payments, courses, installments, installmentPaidTotals, settings } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -146,54 +143,6 @@ export const Dashboard: React.FC = () => {
     .filter(s => s.feesDue > 0 && s.status === 'Active')
     .sort((a, b) => b.feesDue - a.feesDue)
     .slice(0, 4);
-
-  const buildReminderMessage = (student: typeof highDuesStudents[number]) => {
-    const nextInstallment = installments
-      .filter(item =>
-        item.studentId === student.id &&
-        item.status !== 'Paid' &&
-        Math.max(0, item.amount - (installmentPaidTotals[item.id] ?? 0)) > 0
-      )
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id))[0];
-
-    if (!nextInstallment) {
-      return renderReminderTemplate(
-        settings?.directFeeReminderTemplate || DEFAULT_DIRECT_REMINDER_TEMPLATE,
-        {
-          studentName: student.name,
-          parentName: student.parentName,
-          amount: student.feesDue,
-          remainingFee: student.feesDue,
-          dueDate: '',
-          instituteName: settings?.instituteName,
-          currencySymbol: settings?.currencySymbol,
-          isDirect: true,
-        }
-      );
-    }
-
-    const remainingInstallmentDue = Math.max(
-      0,
-      nextInstallment.amount - (installmentPaidTotals[nextInstallment.id] ?? 0)
-    );
-    const installmentAmount = Math.min(remainingInstallmentDue, student.feesDue);
-
-    return renderReminderTemplate(
-      settings?.whatsappReminderTemplate || DEFAULT_INSTALLMENT_REMINDER_TEMPLATE,
-      {
-        studentName: student.name,
-        parentName: student.parentName,
-        installmentNumber: nextInstallment.installmentNumber,
-        amount: installmentAmount,
-        installmentAmount,
-        dueDate: formatDateForDisplay(nextInstallment.dueDate, settings?.dateFormat) || '',
-        remainingFee: student.feesDue,
-        instituteName: settings?.instituteName,
-        currencySymbol: settings?.currencySymbol,
-        isDirect: false,
-      }
-    );
-  };
 
   if (isLoading) {
     return <PageLoader />;
