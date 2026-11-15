@@ -319,7 +319,7 @@ export const Settings: React.FC = () => {
                           {formData.logoUrl ? (
                             <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                           ) : (
-                            <Sparkles className="w-5 h-5 text-slate-350" />
+                            <Sparkles className="w-5 h-5 text-slate-400" />
                           )}
                         </div>
                         <input 
@@ -389,7 +389,7 @@ export const Settings: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <Receipt className="w-4 h-4 text-blue-600" />
+                      <Receipt className="w-4 h-4 text-[#6B1F38]" />
                       <span>Receipt Configurations</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Customize serial numbering prefixes and legal disclaimer signature stamps.</p>
@@ -463,7 +463,7 @@ export const Settings: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-blue-600" />
+                      <Bell className="w-4 h-4 text-[#6B1F38]" />
                       <span>WhatsApp Notification Reminders</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Customize defaults sent via parent chat links.</p>
@@ -476,7 +476,7 @@ export const Settings: React.FC = () => {
                         <span className="font-bold text-slate-700 block">Available Template Variables:</span>
                         <div className="flex flex-wrap gap-1">
                           {['{StudentName}', '{ParentName}', '{InstallmentNumber}', '{Amount}', '{InstallmentAmount}', '{DueDate}', '{RemainingFee}', '{InstituteName}'].map(v => (
-                            <code key={v} className="bg-white border border-slate-200 px-1 py-0.5 rounded font-mono font-bold text-blue-600">{v}</code>
+                            <code key={v} className="bg-white border border-slate-200 px-1 py-0.5 rounded font-mono font-bold text-[#6B1F38]">{v}</code>
                           ))}
                         </div>
                       </div>
@@ -513,7 +513,7 @@ export const Settings: React.FC = () => {
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-500 uppercase">Direct Fee Preview</label>
-                        <div className="bg-blue-50/20 border border-blue-100/50 rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
+                        <div className="bg-[#FCF6F8]/20 border border-[#E5DDE0]/50 rounded-xl p-3 text-xs text-slate-600 italic leading-relaxed">
                           {getDirectPreview()}
                         </div>
                       </div>
@@ -527,7 +527,7 @@ export const Settings: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-blue-600" />
+                      <Globe className="w-4 h-4 text-[#6B1F38]" />
                       <span>Locale & Regional Configurations</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Configure regional currency formatting settings.</p>
@@ -586,7 +586,7 @@ export const Settings: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <Database className="w-4 h-4 text-blue-600" />
+                      <Database className="w-4 h-4 text-[#6B1F38]" />
                       <span>Database Backup & CSV Operations</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">Export the currently loaded student list or workspace snapshot. These files are not full database backups.</p>
@@ -595,7 +595,7 @@ export const Settings: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
                       <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <Download className="w-4 h-4 text-blue-600" />
+                        <Download className="w-4 h-4 text-[#6B1F38]" />
                         <span>Export Actions</span>
                       </h4>
                       <p className="text-[10px] text-slate-500 leading-normal">Download the data currently loaded in this workspace. The JSON snapshot is not a full database backup and cannot restore the database.</p>
@@ -653,7 +653,7 @@ export const Settings: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...settings })}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-150 transition-colors"
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
                 >
                   Reset
                 </button>
