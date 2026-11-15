@@ -285,7 +285,7 @@ export const Courses: React.FC = () => {
   // Helper to map subject name to a premium icon
   const getSubjectIcon = (subject: string) => {
     const s = subject.toLowerCase();
-    if (s.includes('math')) return <Award className="w-5 h-5 text-blue-600" />;
+    if (s.includes('math')) return <Award className="w-5 h-5 text-[#6B1F38]" />;
     if (s.includes('phys')) return <Flame className="w-5 h-5 text-violet-600" />;
     if (s.includes('chem')) return <BookMarked className="w-5 h-5 text-emerald-600" />;
     if (s.includes('comp') || s.includes('python') || s.includes('code')) {
@@ -337,7 +337,7 @@ export const Courses: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-800">Courses & Batches</h1>
           <p className="text-sm text-slate-500 mt-1">Configure curriculum offerings, manage tuition packages, and audit batch occupancy.</p>
@@ -348,7 +348,7 @@ export const Courses: React.FC = () => {
             setShowAddForm(!showAddForm);
             setFormErrors({});
           }}
-          className="flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+          className="flex items-center justify-center gap-1.5 bg-[#6B1F38] hover:bg-[#57172D] text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>{showAddForm ? 'Hide Form' : 'Create Course'}</span>
@@ -357,9 +357,9 @@ export const Courses: React.FC = () => {
 
       {/* Add Course Form (Expandable) */}
       {showAddForm && (
-        <div className="max-w-xl bg-white border border-slate-150 rounded-2xl shadow-sm p-5 transition-all animate-slide-in">
+        <div className="max-w-xl bg-white border border-slate-150 rounded-xl shadow-sm p-5 transition-all animate-slide-in">
           <h3 className="text-sm font-bold text-slate-800 mb-3.5 flex items-center gap-1.5">
-            <PlusCircle className="w-4 h-4 text-blue-600" />
+            <PlusCircle className="w-4 h-4 text-[#6B1F38]" />
             <span>Add New Course Package</span>
           </h3>
 
@@ -430,7 +430,7 @@ export const Courses: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E5DDE0]">
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)}
@@ -441,7 +441,7 @@ export const Courses: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="w-3 animate-spin shrink-0" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Course'}</span>
@@ -462,11 +462,11 @@ export const Courses: React.FC = () => {
             {courseStats.map(course => (
               <div 
                 key={course.id}
-                className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="bg-white border border-[#E5DDE0] rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                    <div className="p-2.5 bg-slate-50 border border-[#E5DDE0] rounded-xl">
                       {getSubjectIcon(course.subject)}
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -477,7 +477,7 @@ export const Courses: React.FC = () => {
                         type="button"
                         onClick={() => openAddBatchModal(course.id)}
                         title={`Add Batch to ${course.name}`}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                        className="flex items-center gap-1 text-[10px] font-semibold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Add Batch</span>
@@ -500,7 +500,7 @@ export const Courses: React.FC = () => {
                     </div>
 
                     {course.batches.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1">
+                      <div className="mt-2.5 pt-2 border-t border-[#E5DDE0] flex flex-wrap items-center gap-1">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">Batches:</span>
                         {course.batches.map(b => (
                           <span 
@@ -520,7 +520,7 @@ export const Courses: React.FC = () => {
                 <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Course Fee</span>
-                    <span className="text-sm font-bold text-blue-600">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
+                    <span className="text-sm font-bold text-[#6B1F38]">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
                   </div>
                   
                   <div className="text-right">
@@ -539,14 +539,14 @@ export const Courses: React.FC = () => {
             <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch occupancy & management</h3>
             <button
               onClick={() => openAddBatchModal()}
-              className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+              className="flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>Add Batch</span>
             </button>
           </div>
           
-          <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-4">
+          <div className="bg-white border border-[#E5DDE0] rounded-xl p-4 shadow-sm space-y-4">
             {batchesList.length > 0 ? (
               <div className="space-y-4">
                 {batchesList.map((batch, index) => (
@@ -580,7 +580,7 @@ export const Courses: React.FC = () => {
                       
                       <div className="flex flex-col items-end shrink-0 gap-1.5">
                         <div className="text-right">
-                          <span className="text-xs font-bold text-blue-600">{batch.activeCount} Active</span>
+                          <span className="text-xs font-bold text-[#6B1F38]">{batch.activeCount} Active</span>
                           <span className="text-[10px] text-slate-400 block font-medium">/ {batch.count} registered (Cap: {batch.capacity})</span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -588,7 +588,7 @@ export const Courses: React.FC = () => {
                             type="button"
                             onClick={() => openTeacherAssignments(batch as Batch)}
                             title="Assign teachers"
-                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
+                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-[#F8E9ED] px-2 py-1 text-[10px] font-semibold text-[#6B1F38] hover:bg-blue-100"
                           >
                             <Users className="h-3 w-3" />
                             Teachers ({teacherAssignments.filter(assignment => assignment.batch_id === batch.id).length})
@@ -596,7 +596,7 @@ export const Courses: React.FC = () => {
                           <button
                             onClick={() => handleEditBatch(batch as any)}
                             title="Edit Batch"
-                            className="p-1 border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded transition-colors cursor-pointer"
+                            className="p-1 border border-[#E5DDE0] bg-slate-50 hover:bg-slate-100 text-slate-500 rounded transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
                           </button>
@@ -613,7 +613,7 @@ export const Courses: React.FC = () => {
 
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                        className="h-full bg-[#6B1F38] rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(100, (batch.activeCount / batch.capacity) * 100)}%` }}
                       />
                     </div>
@@ -631,7 +631,7 @@ export const Courses: React.FC = () => {
       </div>
 
       {assignmentBatch && isOwner && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="presentation">
-        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 id="batch-teachers-title" className="text-lg font-bold text-slate-900">Assign teachers</h2>
@@ -641,15 +641,15 @@ export const Courses: React.FC = () => {
           </div>
           {assignmentError && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{assignmentError}</p>}
           <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-200">
-            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50">
-              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-[#E5DDE0] px-4 py-3 last:border-0 hover:bg-slate-50">
+              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-[#6B1F38]" />
               <span className="text-sm font-medium text-slate-800">{teacher.email || 'Account email unavailable'}</span>
             </label>)}
           </div>
           <p className="mt-3 text-xs text-slate-500">Teachers will see academic roster details only for students in batches assigned to them.</p>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
-            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
+            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-[#6B1F38] px-4 py-2 text-sm font-semibold text-white hover:bg-[#57172D] disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
           </div>
         </section>
       </div>}
@@ -657,8 +657,8 @@ export const Courses: React.FC = () => {
       {/* Batch Modal */}
       {showBatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in no-print">
-          <div className="bg-white border border-slate-150 rounded-2xl shadow-xl p-6 w-full max-w-md animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div className="bg-white border border-slate-150 rounded-xl shadow-xl p-6 w-full max-w-md animate-scale-up">
+            <div className="flex items-center justify-between border-b border-[#E5DDE0] pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800">
                 {editingBatchId ? 'Edit Batch details' : 'Add New Batch'}
               </h3>
@@ -771,7 +771,7 @@ export const Courses: React.FC = () => {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E5DDE0]">
                 <button 
                   type="button" 
                   onClick={handleCloseBatchModal}
@@ -783,7 +783,7 @@ export const Courses: React.FC = () => {
                 <button 
                   type="submit" 
                   disabled={isBatchSubmitting || courses.length === 0}
-                  className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {isBatchSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
                   <span>{editingBatchId ? 'Save Changes' : 'Create Batch'}</span>
