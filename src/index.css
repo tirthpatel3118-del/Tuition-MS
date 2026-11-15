@@ -188,7 +188,7 @@
   }
 
   .ui-button-primary {
-    @apply ui-button text-white;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50;
     background: #6B1F38;
   }
   .ui-button-primary:hover {
@@ -196,7 +196,7 @@
   }
 
   .ui-button-secondary {
-    @apply ui-button border bg-white text-slate-700;
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50;
     border-color: hsl(var(--border));
   }
   .ui-button-secondary:hover {
