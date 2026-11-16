@@ -480,6 +480,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       showToast(`Cannot delete course "${course.name}": Students are currently enrolled.`, 'error');
       return false;
     }
+    const assignedToBatch = batches.some(batch => (batch.courseIds?.length ? batch.courseIds : [batch.courseId]).includes(id));
+    if (assignedToBatch) {
+      showToast(`Cannot delete course "${course.name}": It is mapped to one or more batches. Remove it from those batches first.`, 'error');
+      return false;
+    }
 
     try {
       await courseService.deleteCourse(id);
