@@ -212,20 +212,22 @@ export const Admissions: React.FC = () => {
 
   // Load course fee when a course is selected
   const batchLabel = (batch: (typeof batches)[number]) => `${batch.name} (${batch.timing})`;
+  const batchIncludesCourse = (batch: (typeof batches)[number], courseId: string) =>
+    (batch.courseIds?.length ? batch.courseIds : [batch.courseId]).includes(courseId);
   const availableBatches = batches.filter(batch =>
-    batch.courseId === formData.courseId &&
-    (batch.status === 'Active' || (isEditing && formData.batch === batchLabel(batch)))
+    batchIncludesCourse(batch, formData.courseId) &&
+    (batch.status === 'Active' || (isEditing && (formData.batch === batchLabel(batch) || formData.batch === batch.id)))
   );
 
   const handleBatchChange = (value: string) => {
     const selectedBatch = batches.find(batch =>
-      batch.courseId === formData.courseId &&
-      (value === batchLabel(batch) || value === batch.name)
+      batchIncludesCourse(batch, formData.courseId) &&
+      (value === batch.id || value === batchLabel(batch) || value === batch.name)
     );
     const course = courses.find(item => item.id === formData.courseId);
     setFormData(prev => ({
       ...prev,
-      batch: value,
+      batch: selectedBatch ? batchLabel(selectedBatch) : value,
       totalFees: selectedBatch?.courseFee ?? course?.fees ?? prev.totalFees
     }));
     if (value.trim()) setFormErrors(prev => ({ ...prev, batch: '' }));
@@ -233,7 +235,7 @@ export const Admissions: React.FC = () => {
 
   const handleCourseChange = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
-    const firstBatch = batches.find(batch => batch.courseId === courseId && batch.status === 'Active');
+    const firstBatch = batches.find(batch => batchIncludesCourse(batch, courseId) && batch.status === 'Active');
     setFormData(prev => ({
       ...prev,
       courseId,
@@ -268,8 +270,8 @@ export const Admissions: React.FC = () => {
       errors.batch = 'Batch timings are required';
     } else {
       const selectedBatch = batches.find(batch =>
-        batch.courseId === formData.courseId &&
-        (formData.batch === batchLabel(batch) || formData.batch === batch.name)
+        batchIncludesCourse(batch, formData.courseId) &&
+        (formData.batch === batch.id || formData.batch === batchLabel(batch) || formData.batch === batch.name)
       );
       if (selectedBatch) {
         const isCurrentBatch = selectedStudentId
