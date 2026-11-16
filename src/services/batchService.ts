@@ -154,6 +154,38 @@ export const batchService = {
     return toUiBatch(data as BatchRow, selectedCourseIds ?? [data.course_id]);
   },
 
+  async removeCourseFromBatch(batchId: string, courseId: string): Promise<Batch> {
+    const batches = await this.getBatches();
+    const batch = batches.find(item => item.id === batchId);
+    if (!batch) throw new Error('Batch not found');
+
+    const currentCourseIds = batch.courseIds?.length ? batch.courseIds : [batch.courseId];
+    if (!currentCourseIds.includes(courseId)) throw new Error('This course is not assigned to the batch');
+    if (currentCourseIds.length <= 1) {
+      throw new Error('A batch must remain assigned to at least one course. Add another course before removing this one.');
+    }
+
+    const nextCourseIds = currentCourseIds.filter(id => id !== courseId);
+    if (!useSupabase) {
+      const updated = { ...batch, courseIds: nextCourseIds, courseId: nextCourseIds[0] };
+      await this.saveAllBatches(batches.map(item => item.id === batchId ? updated : item));
+      return updated;
+    }
+
+    const instituteId = requireActiveInstituteId();
+    const { data, error } = await supabase
+      .from('batch_courses')
+      .delete()
+      .eq('institute_id', instituteId)
+      .eq('batch_id', batchId)
+      .eq('course_id', courseId)
+      .select('course_id');
+    if (error) throw error;
+    if (!data?.length) throw new Error('The course-to-batch assignment was not removed. Refresh and try again.');
+
+    return { ...batch, courseIds: nextCourseIds, courseId: nextCourseIds[0] };
+  },
+
   async deleteBatch(id: string): Promise<void> {
     if (!useSupabase) {
       await this.saveAllBatches((await this.getBatches()).filter(batch => batch.id !== id));
