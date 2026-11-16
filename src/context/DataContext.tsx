@@ -47,6 +47,7 @@ interface DataContextType {
   addBatch: (batchData: Omit<Batch, 'id'>) => Promise<void>;
   updateBatch: (id: string, updates: Partial<Batch>) => Promise<void>;
   deleteBatch: (id: string) => Promise<boolean>;
+  removeCourseFromBatch: (batchId: string, courseId: string) => Promise<boolean>;
   sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email', installmentId?: string) => Promise<void>;
   sendBulkReminders: (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
   
@@ -480,6 +481,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       showToast(`Cannot delete course "${course.name}": Students are currently enrolled.`, 'error');
       return false;
     }
+    const assignedToBatch = batches.some(batch => (batch.courseIds?.length ? batch.courseIds : [batch.courseId]).includes(id));
+    if (assignedToBatch) {
+      showToast(`Cannot delete course "${course.name}": It is mapped to one or more batches. Remove it from those batches first.`, 'error');
+      return false;
+    }
 
     try {
       await courseService.deleteCourse(id);
@@ -515,6 +521,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await refreshDataFromBackend();
     } catch (err: any) {
       showToast(`Error updating batch: ${err.message || err}`, 'error');
+    }
+  };
+
+  const removeCourseFromBatch = async (batchId: string, courseId: string): Promise<boolean> => {
+    try {
+      const updated = await batchService.removeCourseFromBatch(batchId, courseId);
+      setBatches(prev => prev.map(batch => batch.id === batchId ? updated : batch));
+      showToast('Batch removed from this course. The batch and its students remain unchanged.', 'success');
+      await refreshDataFromBackend();
+      return true;
+    } catch (err: any) {
+      showToast(err.message || 'Could not remove this course from the batch.', 'error');
+      return false;
     }
   };
 
@@ -780,6 +799,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addBatch,
       updateBatch,
       deleteBatch,
+      removeCourseFromBatch,
       sendReminder,
       sendBulkReminders,
       toasts,
