@@ -65,6 +65,7 @@ export const Courses: React.FC = () => {
   const [isSavingAssignments, setIsSavingAssignments] = useState(false);
   const [assignmentError, setAssignmentError] = useState('');
   const [batchFormData, setBatchFormData] = useState({
+    courseIds: [] as string[],
     courseId: '',
     name: '',
     timing: '',
@@ -178,6 +179,7 @@ export const Courses: React.FC = () => {
     setEditingBatchId(null);
     const resolvedCourseId = courseId || (courses.length === 1 ? courses[0].id : '');
     setBatchFormData({
+      courseIds: resolvedCourseId ? [resolvedCourseId] : [],
       courseId: resolvedCourseId,
       name: '',
       timing: '',
@@ -192,6 +194,7 @@ export const Courses: React.FC = () => {
     setShowBatchModal(false);
     setEditingBatchId(null);
     setBatchFormData({
+      courseIds: [],
       courseId: '',
       name: '',
       timing: '',
@@ -202,8 +205,8 @@ export const Courses: React.FC = () => {
   };
 
   const validateBatchForm = () => {
-    if (!batchFormData.courseId) {
-      showToast('Mapped course is required', 'error');
+    if (batchFormData.courseIds.length === 0) {
+      showToast('Select at least one standard / course package', 'error');
       return false;
     }
     if (!batchFormData.name.trim()) {
@@ -234,7 +237,8 @@ export const Courses: React.FC = () => {
     if (!validateBatchForm()) return;
 
     const data = {
-      courseId: batchFormData.courseId,
+      courseId: batchFormData.courseIds[0],
+      courseIds: batchFormData.courseIds,
       name: batchFormData.name.trim(),
       timing: batchFormData.timing.trim(),
       capacity: Number(batchFormData.capacity),
@@ -260,6 +264,7 @@ export const Courses: React.FC = () => {
   const handleEditBatch = (batch: Batch) => {
     setEditingBatchId(batch.id);
     setBatchFormData({
+      courseIds: batch.courseIds?.length ? batch.courseIds : [batch.courseId],
       courseId: batch.courseId || '',
       name: batch.name,
       timing: batch.timing,
@@ -298,7 +303,7 @@ export const Courses: React.FC = () => {
   const courseStats = courses.map(course => {
     const enrolledStudents = students.filter(s => s.courseId === course.id);
     const activeCount = enrolledStudents.filter(s => s.status === 'Active').length;
-    const courseBatches = (batches || []).filter(b => b.courseId === course.id);
+    const courseBatches = (batches || []).filter(b => (b.courseIds?.length ? b.courseIds : [b.courseId]).includes(course.id));
 
     return {
       ...course,
@@ -317,14 +322,14 @@ export const Courses: React.FC = () => {
     );
     const activeCount = enrolledStudents.filter(s => s.status === 'Active').length;
     const coursesMapped = Array.from(new Set(enrolledStudents.map(s => s.courseName))).filter(Boolean);
-    const course = courses.find(c => c.id === batch.courseId);
+    const mappedCourses = courses.filter(course => (batch.courseIds?.length ? batch.courseIds : [batch.courseId]).includes(course.id));
 
     return {
       ...batch,
       count: enrolledStudents.length,
       activeCount,
       courses: coursesMapped,
-      courseName: course ? course.name : 'General'
+      courseName: mappedCourses.length ? mappedCourses.map(course => course.name).join(', ') : 'General'
     };
   });
 
@@ -571,7 +576,7 @@ export const Courses: React.FC = () => {
                           <span>{batch.timing}</span>
                         </div>
                         <div className="text-[9px] text-slate-500 mt-0.5 block max-w-[200px] truncate">
-                          Course: {batch.courseName}
+                          Standards: {batch.courseName}
                         </div>
                         {isOwner && teacherAssignments.some(assignment => assignment.batch_id === batch.id) && <div className="mt-1 max-w-[220px] text-[9px] text-slate-500">
                           Teachers: {teacherAssignments.filter(assignment => assignment.batch_id === batch.id)
@@ -679,34 +684,28 @@ export const Courses: React.FC = () => {
             </div>
 
             <form onSubmit={handleBatchSubmit} className="space-y-4">
-              {/* Course Selector */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">
-                  Course Package <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={batchFormData.courseId}
-                  onChange={(e) => setBatchFormData(prev => ({ ...prev, courseId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
-                  required
-                >
-                  <option value="" disabled>Select a course program</option>
+              {/* Multi-standard selector */}
+              <div className="space-y-2">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">
+                    Included standards / course packages <span className="text-rose-500">*</span>
+                  </label>
+                  <p className="mt-1 text-[10px] text-slate-500">Select every standard that attends this shared time slot. Students keep their own standard.</p>
+                </div>
+                <div className="max-h-44 space-y-1 overflow-y-auto rounded-xl border border-slate-200 p-2">
                   {courses.map(course => (
-                    <option key={course.id} value={course.id}>
-                      {course.name} ({course.subject})
-                    </option>
+                    <label key={course.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-xs hover:bg-[#F8E9ED]">
+                      <input type="checkbox" checked={batchFormData.courseIds.includes(course.id)} onChange={event => setBatchFormData(prev => {
+                        const courseIds = event.target.checked ? [...prev.courseIds, course.id] : prev.courseIds.filter(id => id !== course.id);
+                        return { ...prev, courseIds, courseId: courseIds[0] || '' };
+                      })} className="h-4 w-4 rounded border-slate-300 text-[#6B1F38]" />
+                      <span className="font-medium text-slate-800">{course.name}</span>
+                      <span className="ml-auto text-[10px] text-slate-500">{course.subject}</span>
+                    </label>
                   ))}
-                  {editingBatchId && batchFormData.courseId && !courses.some(c => c.id === batchFormData.courseId) && (
-                    <option value={batchFormData.courseId}>
-                      Current Course ({batchFormData.courseId})
-                    </option>
-                  )}
-                </select>
-                {courses.length === 0 && (
-                  <p className="text-[10px] text-amber-600 font-medium">
-                    No active course packages found. Please create a course first.
-                  </p>
-                )}
+                  {courses.length === 0 && <p className="p-2 text-[10px] text-amber-600">Create a course package first.</p>}
+                </div>
+                <p className="text-[10px] font-medium text-[#6B1F38]">{batchFormData.courseIds.length} standard(s) selected</p>
               </div>
 
               {/* Batch Name */}
@@ -756,8 +755,8 @@ export const Courses: React.FC = () => {
                     value={batchFormData.courseFee}
                     onChange={(e) => setBatchFormData(prev => ({ ...prev, courseFee: e.target.value }))}
                     placeholder={
-                      courses.find(c => c.id === batchFormData.courseId)?.fees != null
-                        ? `Default: ${settings?.currencySymbol || '₹'}${courses.find(c => c.id === batchFormData.courseId)?.fees?.toLocaleString('en-IN')}`
+                      courses.find(c => c.id === batchFormData.courseIds[0])?.fees != null
+                        ? `Default: ${settings?.currencySymbol || '₹'}${courses.find(c => c.id === batchFormData.courseIds[0])?.fees?.toLocaleString('en-IN')}`
                         : "Inherit course fee"
                     }
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
@@ -789,7 +788,7 @@ export const Courses: React.FC = () => {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={isBatchSubmitting || courses.length === 0}
+                  disabled={isBatchSubmitting || courses.length === 0 || batchFormData.courseIds.length === 0}
                   className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {isBatchSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
