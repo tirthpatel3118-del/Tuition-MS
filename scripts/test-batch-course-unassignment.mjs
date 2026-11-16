@@ -4,8 +4,10 @@ import { readFileSync } from 'node:fs';
 console.log('Running multi-course batch unassignment regression tests...');
 
 const coursesPage = readFileSync(new URL('../src/pages/Courses.tsx', import.meta.url), 'utf8');
-assert.match(coursesPage, /if \(batchFormData\.courseIds\.length === 0\)/, 'Submitting with zero standards must explain why saving is blocked.');
+const zeroSelectionGuards = coursesPage.match(/if \(batchFormData\.courseIds\.length === 0\)/g) ?? [];
+assert.equal(zeroSelectionGuards.length, 1, 'The editor should have exactly one zero-selection validation guard.');
 assert.match(coursesPage, /batchFormData\.courseIds\.length === 0 && <p role="alert"/, 'The editor must show guidance when no standards are selected.');
+assert.match(coursesPage, /disabled=\{isBatchSubmitting \|\| courses\.length === 0 \|\| batchFormData\.courseIds\.length === 0\}/, 'Save should remain available whenever one or more standards are selected.');
 
 function removeSelectedCourse(courseIds, courseId) {
   return courseIds.filter(id => id !== courseId);
