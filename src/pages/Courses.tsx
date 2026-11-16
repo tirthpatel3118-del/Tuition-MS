@@ -14,6 +14,7 @@ import {
   X,
   Edit3,
   Users,
+  Unlink,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { Batch } from '../types';
@@ -35,7 +36,8 @@ export const Courses: React.FC = () => {
     batches,
     addBatch,
     updateBatch,
-    deleteBatch
+    deleteBatch,
+    removeCourseFromBatch
   } = useData();
 
   // Loading state
@@ -275,6 +277,22 @@ export const Courses: React.FC = () => {
     setShowBatchModal(true);
   };
 
+  const handleRemoveBatchFromCourse = (batch: Batch, courseId: string, courseName: string) => {
+    const assignedCourseIds = batch.courseIds?.length ? batch.courseIds : [batch.courseId];
+    if (assignedCourseIds.length <= 1) {
+      showToast('This is the batch’s last assigned course. Add another course before removing this one.', 'warning');
+      return;
+    }
+
+    confirmAction({
+      title: 'Remove batch from course?',
+      message: `Remove "${batch.name}" from ${courseName}? The batch itself, its students, teacher assignments and attendance will remain unchanged. Existing students stay in this batch.`,
+      confirmText: 'Remove from course',
+      type: 'danger',
+      onConfirm: async () => { await removeCourseFromBatch(batch.id, courseId); }
+    });
+  };
+
   const handleDeleteBatch = (batchId: string, batchName: string) => {
     confirmAction({
       title: 'Delete Batch',
@@ -312,6 +330,14 @@ export const Courses: React.FC = () => {
       batches: courseBatches
     };
   });
+
+  const getCourseBatchLabel = (batch: Batch, courseBatches: Batch[], index: number) => {
+    const sameLabel = (candidate: Batch) => candidate.name === batch.name && candidate.timing === batch.timing;
+    const duplicateCount = courseBatches.filter(sameLabel).length;
+    const duplicateNumber = courseBatches.slice(0, index + 1).filter(sameLabel).length;
+    const baseLabel = `${batch.name} · ${batch.timing}`;
+    return duplicateCount > 1 ? `${baseLabel} (${duplicateNumber})` : baseLabel;
+  };
 
   // Calculate Batch summary metrics
   const batchesList = (batches || []).map(batch => {
@@ -514,14 +540,25 @@ export const Courses: React.FC = () => {
                     {course.batches.length > 0 && (
                       <div className="mt-2.5 pt-2 border-t border-[#E5DDE0] flex flex-wrap items-center gap-1">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">Batches:</span>
-                        {course.batches.map(b => (
-                          <span 
-                            key={b.id} 
+                        {course.batches.map((b, batchIndex) => (
+                          <span
+                            key={b.id}
                             className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200/60"
-                            title={`${b.name} (${b.timing})`}
+                            title={`${b.name} · ${b.timing}`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${b.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                            <span>{b.name}</span>
+                            <span>{getCourseBatchLabel(b, course.batches, batchIndex)}</span>
+                            {isOwner && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveBatchFromCourse(b, course.id, course.name)}
+                                title={`Remove ${b.name} from ${course.name}`}
+                                aria-label={`Remove ${b.name} from ${course.name}`}
+                                className="ml-0.5 rounded p-0.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                              >
+                                <Unlink className="h-3 w-3" />
+                              </button>
+                            )}
                           </span>
                         ))}
                       </div>
