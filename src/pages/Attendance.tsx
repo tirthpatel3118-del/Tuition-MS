@@ -10,7 +10,7 @@ type CorrectionDecision = 'Pending' | 'Approved' | 'Rejected';
 const STATUSES: AttendanceStatus[] = ['Present', 'Absent', 'Late', 'Leave'];
 
 interface BatchRow { id: string; name: string; course_id: string; }
-interface StudentRow { id: string; roll_number: string | null; full_name: string; status: string; batch_id: string | null; }
+interface StudentRow { id: string; roll_number: string | null; full_name: string; status: string; batch_id: string | null; course_id: string; }
 interface AttendanceRow { id: string; student_id: string; batch_id: string; attendance_date: string; status: AttendanceStatus; marked_at: string; }
 interface CorrectionRow { id: string; attendance_id: string; requested_by: string; requested_status: AttendanceStatus; request_reason: string; decision: CorrectionDecision; decision_reason: string | null; created_at: string; }
 interface AuditRow { id: string; attendance_id: string; actor_id: string; action: string; old_status: AttendanceStatus | null; new_status: AttendanceStatus; reason: string; created_at: string; }
@@ -55,7 +55,7 @@ export function AttendancePage() {
       const [batchResult, courseResult, rosterResult, recordResult] = await Promise.all([
         supabase.from('batches').select('id,name,course_id').eq('institute_id', instituteId).order('name'),
         supabase.from('courses').select('id,course_name').eq('institute_id', instituteId),
-        supabase.from('academic_students').select('id,roll_number,full_name,status,batch_id').eq('institute_id', instituteId).order('full_name'),
+        supabase.from('academic_students').select('id,roll_number,full_name,status,batch_id,course_id').eq('institute_id', instituteId).order('full_name'),
         supabase.from('attendance_records').select('id,student_id,batch_id,attendance_date,status,marked_at').eq('institute_id', instituteId).eq('attendance_date', date),
       ]);
       const failure = batchResult.error || courseResult.error || rosterResult.error || recordResult.error;
@@ -232,14 +232,14 @@ export function AttendancePage() {
           {visibleBatches.map(batch => {
             const roster = studentsByBatch.get(batch.id) ?? [];
             return <article key={batch.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex flex-col gap-1 border-b border-[#E5DDE0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold text-slate-900">{batch.name}</h2><p className="text-xs text-slate-500">{courseNames[batch.course_id] ?? 'Course'} · {roster.length} students</p></div><span className="text-xs font-medium text-slate-500">{formatDateForDisplay(date, 'DD-MMM-YYYY')}</span></div>
+              <div className="flex flex-col gap-1 border-b border-[#E5DDE0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold text-slate-900">{batch.name}</h2><p className="text-xs text-slate-500">{Array.from(new Set(roster.map(student => courseNames[student.course_id]).filter(Boolean))).join(', ') || courseNames[batch.course_id] || 'Course'} · {roster.length} students</p></div><span className="text-xs font-medium text-slate-500">{formatDateForDisplay(date, 'DD-MMM-YYYY')}</span></div>
               {roster.length === 0 ? <p className="px-5 py-6 text-sm text-slate-500">No active roster entries are available for this batch.</p> : <div className="divide-y divide-slate-100">
                 {roster.map(student => {
                   const record = recordsByStudent.get(`${batch.id}:${student.id}`);
                   const pending = record ? pendingByAttendance.get(record.id) : undefined;
                   const key = `${batch.id}:${student.id}`;
                   return <div key={student.id} className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0"><p className="truncate font-medium text-slate-900">{student.full_name}</p><p className="mt-0.5 text-xs text-slate-500">{student.roll_number || 'No roll number'} · {student.status}</p></div>
+                    <div className="min-w-0"><p className="truncate font-medium text-slate-900">{student.full_name}</p><p className="mt-0.5 text-xs text-slate-500">{student.roll_number || 'No roll number'} · {courseNames[student.course_id] ?? 'Standard not set'} · {student.status}</p></div>
                     <div className="flex flex-wrap items-center gap-2">
                       {record ? <span className={`rounded-full border px-3 py-1.5 text-xs font-bold ${statusStyle[record.status]}`}>{record.status}</span> : <span className="text-xs text-slate-400">Not marked</span>}
                       {!record && student.status === 'Active' && <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Attendance status for ${student.full_name}`}>{STATUSES.map(status => <button key={status} type="button" onClick={() => mark(student, batch.id, status)} aria-pressed={draftStatuses[key] === status} className={`${buttonClass} border px-2.5 py-2 ${draftStatuses[key] === status ? statusStyle[status] + ' ring-2 ring-offset-1 ring-[#A03B5E]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{status}</button>)}</div>}
