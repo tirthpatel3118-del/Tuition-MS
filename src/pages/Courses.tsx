@@ -207,10 +207,6 @@ export const Courses: React.FC = () => {
   };
 
   const validateBatchForm = () => {
-    if (batchFormData.courseIds.length === 0) {
-      showToast('Select at least one standard / course package', 'error');
-      return false;
-    }
     if (!batchFormData.name.trim()) {
       showToast('Batch name is required', 'error');
       return false;
@@ -220,7 +216,7 @@ export const Courses: React.FC = () => {
       return false;
     }
     if (batchFormData.courseIds.length === 0) {
-      showToast('Select at least one standard. Every batch must stay linked to a standard; mark it Inactive to stop using it without deleting its records.', 'error');
+      showToast('Select at least one standard. To stop using this batch, mark it Inactive instead of removing its final course.', 'error');
       return false;
     }
     const cap = Number(batchFormData.capacity);
