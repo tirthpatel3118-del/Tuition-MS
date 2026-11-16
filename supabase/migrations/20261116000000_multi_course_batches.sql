@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS public.batch_courses (
     REFERENCES public.courses (institute_id, id) ON DELETE RESTRICT
 );
 
+CREATE INDEX IF NOT EXISTS idx_batch_courses_institute_batch
+  ON public.batch_courses (institute_id, batch_id);
+
 CREATE INDEX IF NOT EXISTS idx_batch_courses_institute_course
   ON public.batch_courses (institute_id, course_id);
 
