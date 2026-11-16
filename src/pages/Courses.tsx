@@ -219,6 +219,10 @@ export const Courses: React.FC = () => {
       showToast('Timing is required', 'error');
       return false;
     }
+    if (batchFormData.courseIds.length === 0) {
+      showToast('Select at least one standard. Every batch must stay linked to a standard; mark it Inactive to stop using it without deleting its records.', 'error');
+      return false;
+    }
     const cap = Number(batchFormData.capacity);
     if (!Number.isInteger(cap) || cap <= 0) {
       showToast('Capacity must be a positive whole number', 'error');
@@ -743,6 +747,7 @@ export const Courses: React.FC = () => {
                   {courses.length === 0 && <p className="p-2 text-[10px] text-amber-600">Create a course package first.</p>}
                 </div>
                 <p className="text-[10px] font-medium text-[#6B1F38]">{batchFormData.courseIds.length} standard(s) selected</p>
+                {batchFormData.courseIds.length === 0 && <p role="alert" className="text-[10px] text-amber-700">Select at least one standard to save. This database requires every batch to stay linked to a course. To stop using the batch while keeping its students, teacher assignments and attendance, mark it Inactive.</p>}
               </div>
 
               {/* Batch Name */}
