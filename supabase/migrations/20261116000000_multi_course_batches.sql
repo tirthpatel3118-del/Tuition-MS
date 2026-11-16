@@ -2,10 +2,16 @@
 -- Keep batches.course_id as the legacy primary course for backwards compatibility.
 CREATE TABLE IF NOT EXISTS public.batch_courses (
   institute_id UUID NOT NULL REFERENCES public.institutes(id) ON DELETE RESTRICT,
-  batch_id UUID NOT NULL REFERENCES public.batches(id) ON DELETE CASCADE,
-  course_id UUID NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  batch_id UUID NOT NULL,
+  course_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
-  PRIMARY KEY (batch_id, course_id)
+  PRIMARY KEY (batch_id, course_id),
+  CONSTRAINT batch_courses_batch_tenant_fkey
+    FOREIGN KEY (institute_id, batch_id)
+    REFERENCES public.batches (institute_id, id) ON DELETE CASCADE,
+  CONSTRAINT batch_courses_course_tenant_fkey
+    FOREIGN KEY (institute_id, course_id)
+    REFERENCES public.courses (institute_id, id) ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_batch_courses_institute_course
@@ -21,6 +27,8 @@ ALTER TABLE public.batch_courses ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.batch_courses FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, DELETE ON public.batch_courses TO authenticated;
 
+-- is_member_of has a default role-array argument, so the one-argument call
+-- resolves to the existing (uuid, text[]) function.
 CREATE POLICY batch_courses_member_select
   ON public.batch_courses FOR SELECT TO authenticated
   USING (private.is_member_of(institute_id));
@@ -29,14 +37,6 @@ CREATE POLICY batch_courses_owner_insert
   ON public.batch_courses FOR INSERT TO authenticated
   WITH CHECK (
     private.is_member_of(institute_id, ARRAY['owner'])
-    AND EXISTS (
-      SELECT 1 FROM public.batches b
-      WHERE b.id = batch_id AND b.institute_id = batch_courses.institute_id
-    )
-    AND EXISTS (
-      SELECT 1 FROM public.courses c
-      WHERE c.id = course_id AND c.institute_id = batch_courses.institute_id
-    )
   );
 
 CREATE POLICY batch_courses_owner_delete
