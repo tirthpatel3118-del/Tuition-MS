@@ -85,6 +85,7 @@ export interface AppSettings {
 export interface Batch {
   id: string;
   courseId: string;
+  courseIds?: string[];
   name: string;
   timing: string;
   capacity: number;
