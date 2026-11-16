@@ -216,7 +216,7 @@ export const Admissions: React.FC = () => {
     (batch.courseIds?.length ? batch.courseIds : [batch.courseId]).includes(courseId);
   const availableBatches = batches.filter(batch =>
     batchIncludesCourse(batch, formData.courseId) &&
-    (batch.status === 'Active' || (isEditing && formData.batch === batchLabel(batch)))
+    (batch.status === 'Active' || (isEditing && (formData.batch === batchLabel(batch) || formData.batch === batch.id)))
   );
 
   const handleBatchChange = (value: string) => {
@@ -381,7 +381,7 @@ export const Admissions: React.FC = () => {
       parentName: student.parentName,
       parentPhone: student.parentPhone,
       courseId: student.courseId,
-      batch: student.batchId || student.batch,
+      batch: student.batch,
       totalFees: student.totalFees,
       status: student.status,
       notes: student.notes || '',
