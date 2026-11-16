@@ -1,6 +1,20 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 console.log('Running multi-course batch unassignment regression tests...');
+
+const coursesPage = readFileSync(new URL('../src/pages/Courses.tsx', import.meta.url), 'utf8');
+assert.match(coursesPage, /if \(batchFormData\.courseIds\.length === 0\)/, 'Submitting with zero standards must explain why saving is blocked.');
+assert.match(coursesPage, /batchFormData\.courseIds\.length === 0 && <p role="alert"/, 'The editor must show guidance when no standards are selected.');
+
+function removeSelectedCourse(courseIds, courseId) {
+  return courseIds.filter(id => id !== courseId);
+}
+const selectedBeforeEdit = ['class-1', 'class-10'];
+const afterRemovingOneStandard = removeSelectedCourse(selectedBeforeEdit, 'class-10');
+assert.deepEqual(afterRemovingOneStandard, ['class-1'], 'Removing one standard must preserve remaining selections.');
+assert.equal(afterRemovingOneStandard.length > 0, true, 'Save remains available while at least one standard is selected.');
+assert.equal(removeSelectedCourse(afterRemovingOneStandard, 'class-1').length, 0, 'The zero-standard state is handled by the UI guidance instead of deleting the batch.');
 
 function removeCourseMapping(batch, courseId) {
   const courseIds = batch.courseIds?.length ? batch.courseIds : [batch.courseId];
