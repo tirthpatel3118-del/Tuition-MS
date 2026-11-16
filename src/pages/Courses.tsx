@@ -285,7 +285,7 @@ export const Courses: React.FC = () => {
   // Helper to map subject name to a premium icon
   const getSubjectIcon = (subject: string) => {
     const s = subject.toLowerCase();
-    if (s.includes('math')) return <Award className="w-5 h-5 text-blue-600" />;
+    if (s.includes('math')) return <Award className="w-5 h-5 text-[#6B1F38]" />;
     if (s.includes('phys')) return <Flame className="w-5 h-5 text-violet-600" />;
     if (s.includes('chem')) return <BookMarked className="w-5 h-5 text-emerald-600" />;
     if (s.includes('comp') || s.includes('python') || s.includes('code')) {
@@ -335,11 +335,12 @@ export const Courses: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Courses & Batches</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Academic setup</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Courses & batches</h1>
           <p className="text-sm text-slate-500 mt-1">Configure curriculum offerings, manage tuition packages, and audit batch occupancy.</p>
         </div>
 
@@ -348,18 +349,24 @@ export const Courses: React.FC = () => {
             setShowAddForm(!showAddForm);
             setFormErrors({});
           }}
-          className="flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer"
+          className="ui-button-primary"
         >
           <Plus className="w-4 h-4" />
           <span>{showAddForm ? 'Hide Form' : 'Create Course'}</span>
         </button>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Course and batch summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Course packages</p><p className="mt-2 text-2xl font-semibold text-slate-900">{courseStats.length}</p><p className="mt-1 text-xs text-slate-500">Configured curriculum offerings</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active batches</p><p className="mt-2 text-2xl font-semibold text-slate-900">{batchesList.filter(batch => batch.status === 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Available for student enrollment</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active enrollments</p><p className="mt-2 text-2xl font-semibold text-slate-900">{courseStats.reduce((total, course) => total + course.activeEnrolled, 0)}</p><p className="mt-1 text-xs text-slate-500">Across all course packages</p></div>
+      </section>
+
       {/* Add Course Form (Expandable) */}
       {showAddForm && (
-        <div className="max-w-xl bg-white border border-slate-150 rounded-2xl shadow-sm p-5 transition-all animate-slide-in">
+        <div className="ui-card max-w-2xl p-5 transition-all animate-slide-in">
           <h3 className="text-sm font-bold text-slate-800 mb-3.5 flex items-center gap-1.5">
-            <PlusCircle className="w-4 h-4 text-blue-600" />
+            <PlusCircle className="w-4 h-4 text-[#6B1F38]" />
             <span>Add New Course Package</span>
           </h3>
 
@@ -376,7 +383,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, name: '' }));
                   }}
                   placeholder="e.g. Science Board Prep"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.name ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.name ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.name && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.name}</span>}
               </div>
@@ -392,7 +399,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, subject: '' }));
                   }}
                   placeholder="e.g. Physics, Chemistry, Math"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.subject ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.subject ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.subject && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.subject}</span>}
               </div>
@@ -408,7 +415,7 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, duration: '' }));
                   }}
                   placeholder="e.g. 10 Months, 1 Year"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.duration ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.duration ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.duration && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.duration}</span>}
               </div>
@@ -424,24 +431,24 @@ export const Courses: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, fees: '' }));
                   }}
                   placeholder="Total base fee amount"
-                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.fees ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
+                  className={`w-full px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] ${formErrors.fees ? 'border-rose-300 bg-rose-50/10' : 'border-slate-200'}`}
                 />
                 {formErrors.fees && <span className="text-[9px] text-rose-600 font-bold block">{formErrors.fees}</span>}
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E5DDE0]">
               <button 
                 type="button" 
                 onClick={() => setShowAddForm(false)}
-                className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-655 hover:bg-slate-50 transition-colors"
+                className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="w-3 animate-spin shrink-0" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Course'}</span>
@@ -456,17 +463,17 @@ export const Courses: React.FC = () => {
         
         {/* Courses Listing */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Active Curriculum Packages</h3>
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Course catalogue</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {courseStats.length === 0 ? <div className="ui-card border-dashed p-8 text-center"><BookOpen className="mx-auto h-8 w-8 text-slate-300" /><h4 className="mt-3 text-sm font-semibold text-slate-800">Your course catalogue is empty</h4><p className="mt-1 text-sm text-slate-500">Create your first course package to start organising batches and enrollments.</p><button type="button" onClick={() => setShowAddForm(true)} className="ui-button-primary mt-4"><Plus className="h-4 w-4" /> Create first course</button></div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {courseStats.map(course => (
               <div 
                 key={course.id}
-                className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="ui-card relative flex flex-col justify-between overflow-hidden p-5 transition-shadow hover:shadow-md"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
-                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                    <div className="p-2.5 bg-slate-50 border border-[#E5DDE0] rounded-xl">
                       {getSubjectIcon(course.subject)}
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -477,7 +484,7 @@ export const Courses: React.FC = () => {
                         type="button"
                         onClick={() => openAddBatchModal(course.id)}
                         title={`Add Batch to ${course.name}`}
-                        className="flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                        className="flex items-center gap-1 text-[10px] font-semibold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] hover:bg-[#F8E9ED] px-2 py-1 rounded-lg transition-colors cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Add Batch</span>
@@ -494,18 +501,18 @@ export const Courses: React.FC = () => {
 
                   <div>
                     <h4 className="font-bold text-slate-800 text-sm leading-tight truncate" title={course.name}>{course.name}</h4>
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-405 mt-1.5 font-semibold">
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1.5 font-semibold">
                       <Clock className="w-3.5 h-3.5" />
                       <span>Duration: {course.duration}</span>
                     </div>
 
                     {course.batches.length > 0 && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1">
+                      <div className="mt-2.5 pt-2 border-t border-[#E5DDE0] flex flex-wrap items-center gap-1">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">Batches:</span>
                         {course.batches.map(b => (
                           <span 
                             key={b.id} 
-                            className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-650 px-2 py-0.5 rounded-md border border-slate-200/60"
+                            className="inline-flex items-center gap-1 text-[9px] font-semibold bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200/60"
                             title={`${b.name} (${b.timing})`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${b.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
@@ -520,7 +527,7 @@ export const Courses: React.FC = () => {
                 <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Course Fee</span>
-                    <span className="text-sm font-bold text-blue-600">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
+                    <span className="text-sm font-bold text-[#6B1F38]">{course.fees == null ? 'Fee not configured' : `${settings?.currencySymbol || '₹'}${course.fees.toLocaleString('en-IN')}`}</span>
                   </div>
                   
                   <div className="text-right">
@@ -530,23 +537,23 @@ export const Courses: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* Batches occupancy */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch occupancy & management</h3>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Batch capacity & management</h3>
             <button
               onClick={() => openAddBatchModal()}
-              className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+              className="flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] cursor-pointer"
             >
               <Plus className="w-3 h-3" />
               <span>Add Batch</span>
             </button>
           </div>
           
-          <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-4">
+          <div className="ui-card space-y-4 p-4">
             {batchesList.length > 0 ? (
               <div className="space-y-4">
                 {batchesList.map((batch, index) => (
@@ -554,16 +561,16 @@ export const Courses: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="text-xs font-bold text-slate-850 leading-tight">{batch.name}</h4>
+                          <h4 className="text-xs font-bold text-slate-800 leading-tight">{batch.name}</h4>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${batch.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
                             {batch.status}
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-505 mt-1 font-semibold flex items-center gap-1">
+                        <div className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1">
                           <Clock className="w-3 h-3 text-slate-400" />
                           <span>{batch.timing}</span>
                         </div>
-                        <div className="text-[9px] text-slate-450 mt-0.5 block max-w-[200px] truncate">
+                        <div className="text-[9px] text-slate-500 mt-0.5 block max-w-[200px] truncate">
                           Course: {batch.courseName}
                         </div>
                         {isOwner && teacherAssignments.some(assignment => assignment.batch_id === batch.id) && <div className="mt-1 max-w-[220px] text-[9px] text-slate-500">
@@ -572,7 +579,7 @@ export const Courses: React.FC = () => {
                             .join(', ')}
                         </div>}
                         {batch.courseFee && (
-                          <div className="text-[9px] text-blue-650 font-bold mt-0.5">
+                          <div className="text-[9px] text-[#6B1F38] font-bold mt-0.5">
                             Batch Fee: {settings?.currencySymbol || '₹'}{batch.courseFee.toLocaleString('en-IN')}
                           </div>
                         )}
@@ -580,7 +587,7 @@ export const Courses: React.FC = () => {
                       
                       <div className="flex flex-col items-end shrink-0 gap-1.5">
                         <div className="text-right">
-                          <span className="text-xs font-bold text-blue-600">{batch.activeCount} Active</span>
+                          <span className="text-xs font-bold text-[#6B1F38]">{batch.activeCount} Active</span>
                           <span className="text-[10px] text-slate-400 block font-medium">/ {batch.count} registered (Cap: {batch.capacity})</span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -588,7 +595,7 @@ export const Courses: React.FC = () => {
                             type="button"
                             onClick={() => openTeacherAssignments(batch as Batch)}
                             title="Assign teachers"
-                            className="inline-flex items-center gap-1 rounded border border-blue-100 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100"
+                            className="inline-flex items-center gap-1 rounded border border-[#E5DDE0] bg-[#F8E9ED] px-2 py-1 text-[10px] font-semibold text-[#6B1F38] hover:bg-[#F8E9ED]"
                           >
                             <Users className="h-3 w-3" />
                             Teachers ({teacherAssignments.filter(assignment => assignment.batch_id === batch.id).length})
@@ -596,14 +603,14 @@ export const Courses: React.FC = () => {
                           <button
                             onClick={() => handleEditBatch(batch as any)}
                             title="Edit Batch"
-                            className="p-1 border border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-500 rounded transition-colors cursor-pointer"
+                            className="p-1 border border-[#E5DDE0] bg-slate-50 hover:bg-slate-100 text-slate-500 rounded transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => handleDeleteBatch(batch.id, batch.name)}
                             title="Delete Batch"
-                            className="p-1 border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-650 rounded transition-colors cursor-pointer"
+                            className="p-1 border border-rose-100 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -613,7 +620,7 @@ export const Courses: React.FC = () => {
 
                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                        className="h-full bg-[#6B1F38] rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(100, (batch.activeCount / batch.capacity) * 100)}%` }}
                       />
                     </div>
@@ -631,7 +638,7 @@ export const Courses: React.FC = () => {
       </div>
 
       {assignmentBatch && isOwner && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="presentation">
-        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl">
+        <section role="dialog" aria-modal="true" aria-labelledby="batch-teachers-title" className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 id="batch-teachers-title" className="text-lg font-bold text-slate-900">Assign teachers</h2>
@@ -641,15 +648,15 @@ export const Courses: React.FC = () => {
           </div>
           {assignmentError && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{assignmentError}</p>}
           <div className="mt-4 max-h-72 overflow-y-auto rounded-xl border border-slate-200">
-            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50">
-              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            {!assignmentDataReady ? <p className="p-4 text-sm text-slate-500">Loading the current assignments…</p> : assignmentTeachers.length === 0 ? <p className="p-4 text-sm text-slate-500">No teacher members yet. Invite a teacher in Team access first.</p> : assignmentTeachers.map(teacher => <label key={teacher.userId} className="flex cursor-pointer items-center gap-3 border-b border-[#E5DDE0] px-4 py-3 last:border-0 hover:bg-slate-50">
+              <input type="checkbox" checked={selectedTeacherIds.includes(teacher.userId)} onChange={event => setSelectedTeacherIds(current => event.target.checked ? [...current, teacher.userId] : current.filter(id => id !== teacher.userId))} className="h-4 w-4 rounded border-slate-300 text-[#6B1F38]" />
               <span className="text-sm font-medium text-slate-800">{teacher.email || 'Account email unavailable'}</span>
             </label>)}
           </div>
           <p className="mt-3 text-xs text-slate-500">Teachers will see academic roster details only for students in batches assigned to them.</p>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" onClick={() => setAssignmentBatch(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600">Cancel</button>
-            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
+            <button type="button" disabled={isSavingAssignments || !assignmentDataReady} onClick={() => void handleSaveTeacherAssignments()} className="rounded-lg bg-[#6B1F38] px-4 py-2 text-sm font-semibold text-white hover:bg-[#57172D] disabled:opacity-50">{isSavingAssignments ? 'Saving…' : 'Save assignments'}</button>
           </div>
         </section>
       </div>}
@@ -657,15 +664,15 @@ export const Courses: React.FC = () => {
       {/* Batch Modal */}
       {showBatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in no-print">
-          <div className="bg-white border border-slate-150 rounded-2xl shadow-xl p-6 w-full max-w-md animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xl p-6 w-full max-w-md animate-scale-up">
+            <div className="flex items-center justify-between border-b border-[#E5DDE0] pb-3 mb-4">
               <h3 className="text-sm font-bold text-slate-800">
                 {editingBatchId ? 'Edit Batch details' : 'Add New Batch'}
               </h3>
               <button 
                 type="button"
                 onClick={handleCloseBatchModal}
-                className="text-slate-400 hover:text-slate-650 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -680,7 +687,7 @@ export const Courses: React.FC = () => {
                 <select
                   value={batchFormData.courseId}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, courseId: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 >
                   <option value="" disabled>Select a course program</option>
@@ -710,7 +717,7 @@ export const Courses: React.FC = () => {
                   value={batchFormData.name}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g. Evening Batch A"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 />
               </div>
@@ -723,7 +730,7 @@ export const Courses: React.FC = () => {
                   value={batchFormData.timing}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, timing: e.target.value }))}
                   placeholder="e.g. 04:00 PM - 06:00 PM"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   required
                 />
               </div>
@@ -737,7 +744,7 @@ export const Courses: React.FC = () => {
                     value={batchFormData.capacity}
                     onChange={(e) => setBatchFormData(prev => ({ ...prev, capacity: e.target.value }))}
                     placeholder="e.g. 30"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                     required
                   />
                 </div>
@@ -753,7 +760,7 @@ export const Courses: React.FC = () => {
                         ? `Default: ${settings?.currencySymbol || '₹'}${courses.find(c => c.id === batchFormData.courseId)?.fees?.toLocaleString('en-IN')}`
                         : "Inherit course fee"
                     }
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                   />
                 </div>
               </div>
@@ -764,26 +771,26 @@ export const Courses: React.FC = () => {
                 <select
                   value={batchFormData.status}
                   onChange={(e) => setBatchFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#6B1F38] bg-white"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E5DDE0]">
                 <button 
                   type="button" 
                   onClick={handleCloseBatchModal}
                   disabled={isBatchSubmitting}
-                  className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-655 hover:bg-slate-50 transition-colors"
+                  className="px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={isBatchSubmitting || courses.length === 0}
-                  className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   {isBatchSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
                   <span>{editingBatchId ? 'Save Changes' : 'Create Batch'}</span>

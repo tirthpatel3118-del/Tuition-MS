@@ -505,19 +505,19 @@ export const Admissions: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 relative min-h-[calc(100vh-80px)]">
+    <div className="relative min-h-[calc(100vh-80px)] space-y-7">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Student Admissions</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Student lifecycle</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Admissions & students</h1>
           <p className="text-sm text-slate-500 mt-1">Manage enrollments, view student directory details, and register new candidates.</p>
         </div>
         
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => { setActiveTab('directory'); setIsEditing(false); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'directory' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'directory' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             Student Directory
           </button>
@@ -534,7 +534,7 @@ export const Admissions: React.FC = () => {
               });
               setFormErrors({});
             }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${activeTab === 'add' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${activeTab === 'add' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Admission</span>
@@ -542,10 +542,16 @@ export const Admissions: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Student summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total students</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.length}</p><p className="mt-1 text-xs text-slate-500">All student records</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Active students</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status === 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Currently enrolled</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Inactive / completed</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Active').length}</p><p className="mt-1 text-xs text-slate-500">Not currently active</p></div>
+      </section>
+
       {activeTab === 'directory' ? (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm no-print">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ui-card p-4 no-print">
             {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -554,7 +560,7 @@ export const Admissions: React.FC = () => {
                 placeholder="Search name, roll, phone..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
               />
             </div>
 
@@ -564,7 +570,7 @@ export const Admissions: React.FC = () => {
               <select 
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Courses</option>
                 {courses.map(c => (
@@ -578,7 +584,7 @@ export const Admissions: React.FC = () => {
               <select 
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
@@ -593,11 +599,17 @@ export const Admissions: React.FC = () => {
             <TableSkeleton columnCount={6} rowCount={itemsPerPage} />
           ) : (
             <div className="space-y-4">
-              <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+              <div className="space-y-3 md:hidden">
+                {paginatedStudents.length ? paginatedStudents.map(student => <button key={student.id} type="button" onClick={() => { setSelectedStudentId(student.id); setIsEditing(false); }} className="ui-card w-full p-4 text-left transition hover:border-[#A03B5E]">
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{student.name}</p><p className="mt-1 text-xs text-slate-500">{student.rollNumber} · {student.phone}</p></div><span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${student.status === 'Active' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : student.status === 'Inactive' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38]'}`}>{student.status}</span></div>
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#EEE7EA] pt-3"><div className="min-w-0"><p className="truncate text-xs font-medium text-slate-700">{student.courseName}</p><p className="mt-0.5 truncate text-[11px] text-slate-500">{student.batch}</p></div><div className="text-right"><p className="text-xs font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{student.feesPaid.toLocaleString('en-IN')} <span className="font-normal text-slate-400">/ {settings?.currencySymbol || '₹'}{student.totalFees.toLocaleString('en-IN')}</span></p><p className={`mt-1 text-xs font-semibold ${student.feesDue > 0 ? 'text-amber-700' : 'text-emerald-700'}`}>Due {settings?.currencySymbol || '₹'}{student.feesDue.toLocaleString('en-IN')}</p></div></div>
+                </button>) : <div className="ui-card px-4 py-10 text-center text-sm text-slate-500">No students match these filters.</div>}
+              </div>
+              <div className="hidden overflow-hidden ui-card md:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-semibold text-slate-550 uppercase tracking-wider select-none">
+                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
                         <th 
                           onClick={() => handleSort('roll')} 
                           className="px-5 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
@@ -652,7 +664,7 @@ export const Admissions: React.FC = () => {
                           <tr 
                             key={student.id} 
                             onClick={() => { setSelectedStudentId(student.id); setIsEditing(false); }}
-                            className="hover:bg-blue-50/10 cursor-pointer transition-colors"
+                            className="hover:bg-[#F8E9ED]/10 cursor-pointer transition-colors"
                           >
                             <td className="px-5 py-3.5 font-bold text-slate-700">
                               {student.rollNumber}
@@ -678,7 +690,7 @@ export const Admissions: React.FC = () => {
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold inline-block
                                 ${student.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
                                 ${student.status === 'Inactive' ? 'bg-rose-50 text-rose-600 border border-rose-100' : ''}
-                                ${student.status === 'Completed' ? 'bg-blue-50 text-blue-600 border border-blue-100' : ''}
+                                ${student.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                               `}>
                                 {student.status}
                               </span>
@@ -702,7 +714,7 @@ export const Admissions: React.FC = () => {
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-505 no-print">
+                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-500 no-print">
                   <div>
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedStudents.length)} of {sortedStudents.length} enrollments
                   </div>
@@ -720,8 +732,8 @@ export const Admissions: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                            : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
+                            ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
                         {idx + 1}
@@ -742,14 +754,16 @@ export const Admissions: React.FC = () => {
         </div>
       ) : (
         /* Admissions Registration Form */
-        <div className="max-w-2xl bg-white border border-slate-100 rounded-2xl shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-1.5">
-            <User className="w-5 h-5 text-blue-600" />
+        <div className="ui-card w-full max-w-3xl p-4 sm:p-6">
+          <h3 className="mb-5 flex items-center gap-3 border-b border-[#E5DDE0] pb-4 text-lg font-semibold text-slate-900">
+            <User className="w-5 h-5 text-[#6B1F38]" />
             <span>New Student Enrollment Form</span>
           </h3>
 
-          <form onSubmit={handleAddSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleAddSubmit} className="space-y-6">
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Student & contact information</h4><p className="mt-1 text-xs text-slate-500">Enter the learner's identity and guardian contact details.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Student Name */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Student Name <span className="text-rose-500">*</span></label>
@@ -761,7 +775,7 @@ export const Admissions: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, name: '' }));
                   }}
                   placeholder="e.g. Rahul Sen"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.name ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.name ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.name && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.name}</span>}
               </div>
@@ -774,7 +788,7 @@ export const Admissions: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="e.g. rahul@example.com"
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
                 />
               </div>
 
@@ -790,18 +804,23 @@ export const Admissions: React.FC = () => {
                   }}
                   placeholder="10 digit number"
                   maxLength={10}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.phone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.phone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.phone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.phone}</span>}
               </div>
 
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Academic placement & fees</h4><p className="mt-1 text-xs text-slate-500">Choose the course and batch, then confirm the fee amount.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Course Selection */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Select Course Program <span className="text-rose-500">*</span></label>
                 <select 
                   value={formData.courseId}
                   onChange={(e) => handleCourseChange(e.target.value)}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer ${formErrors.courseId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer ${formErrors.courseId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 >
                   <option value="">-- Choose Course --</option>
                   {courses.map(c => (
@@ -818,7 +837,7 @@ export const Admissions: React.FC = () => {
                   <select
                     value={formData.batch}
                     onChange={e => handleBatchChange(e.target.value)}
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   >
                     <option value="">-- Choose Batch --</option>
                     {availableBatches.map(batch => (
@@ -836,7 +855,7 @@ export const Admissions: React.FC = () => {
                     value={formData.batch}
                     onChange={e => handleBatchChange(e.target.value)}
                     placeholder="Enter batch timing"
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.batch ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                 )}
                 {formErrors.batch && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.batch}</span>}
@@ -849,7 +868,7 @@ export const Admissions: React.FC = () => {
                   type="number" 
                   value={formData.totalFees}
                   onChange={(e) => setFormData(prev => ({ ...prev, totalFees: parseFloat(e.target.value) || 0 }))}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50 font-semibold"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50 font-semibold"
                 />
               </div>
 
@@ -864,7 +883,7 @@ export const Admissions: React.FC = () => {
                     if (e.target.value) setFormErrors(prev => ({ ...prev, parentName: '' }));
                   }}
                   placeholder="e.g. Sunil Sen"
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.parentName ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.parentName ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.parentName && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.parentName}</span>}
               </div>
@@ -881,14 +900,15 @@ export const Admissions: React.FC = () => {
                   }}
                   placeholder="10 digit contact number"
                   maxLength={10}
-                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.parentPhone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                  className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.parentPhone ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                 />
                 {formErrors.parentPhone && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.parentPhone}</span>}
               </div>
-            </div>
+              </div>
+            </section>
 
             {/* Installment Planner (Requirement 4) */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-4">
+            <div className="rounded-xl border border-[#E5DDE0] bg-[#FCFAFB] p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-bold text-slate-800">Installment Schedule Planner</h4>
@@ -897,7 +917,7 @@ export const Admissions: React.FC = () => {
                 <button
                   type="button"
                   onClick={addInstallmentRow}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  className="px-3 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
                 >
                   + Add Installment
                 </button>
@@ -915,7 +935,7 @@ export const Admissions: React.FC = () => {
                         onClick={() => setSelectedInstCount(num)}
                         className={`px-2 py-0.5 text-[10px] font-bold rounded border transition-colors cursor-pointer ${
                           selectedInstCount === num
-                            ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-sm'
+                            ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0] shadow-sm'
                             : 'bg-slate-50 text-slate-600 border-slate-200/60 hover:bg-slate-100'
                         }`}
                       >
@@ -927,7 +947,7 @@ export const Admissions: React.FC = () => {
                       onClick={() => setSelectedInstCount(0)}
                       className={`px-2 py-0.5 text-[10px] font-bold rounded border transition-colors cursor-pointer ${
                         selectedInstCount === 0
-                          ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-sm'
+                          ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0] shadow-sm'
                           : 'bg-slate-50 text-slate-600 border-slate-200/60 hover:bg-slate-100'
                       }`}
                     >
@@ -944,7 +964,7 @@ export const Admissions: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+                <div className="grid grid-cols-2 gap-3 border-t border-[#E5DDE0] pt-3">
                   <div className="space-y-1">
                     <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">First Due Date</label>
                     <input
@@ -994,7 +1014,7 @@ export const Admissions: React.FC = () => {
                               disabled={inst.status === 'Paid'}
                               value={inst.amount || ''}
                               onChange={(e) => updateInstallmentRow(idx, { amount: parseFloat(e.target.value) || 0 })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                             />
                             {formErrors[`inst_amount_${idx}`] && (
                               <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
@@ -1008,7 +1028,7 @@ export const Admissions: React.FC = () => {
                               disabled={inst.status === 'Paid'}
                               value={inst.dueDate}
                               onChange={(e) => updateInstallmentRow(idx, { dueDate: e.target.value })}
-                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                              className={`w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                             />
                             {formErrors[`inst_date_${idx}`] && (
                               <span className="text-[9px] text-rose-600 block mt-0.5 font-bold">
@@ -1023,7 +1043,7 @@ export const Admissions: React.FC = () => {
                               value={inst.remarks || ''}
                               onChange={(e) => updateInstallmentRow(idx, { remarks: e.target.value })}
                               placeholder="Remarks"
-                              className="w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              className="w-full px-2 py-1 border border-slate-200 rounded-lg bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E]"
                             />
                           </td>
                           <td className="py-2.5 pl-2 text-center">
@@ -1064,7 +1084,7 @@ export const Admissions: React.FC = () => {
                     <span className="text-slate-500 font-medium">Total Planned:</span>
                     <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalPlannedInstallments.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between items-center border-t border-slate-100 pt-2">
+                  <div className="flex justify-between items-center border-t border-[#E5DDE0] pt-2">
                     <span className="text-slate-500 font-medium">Remaining Allocation:</span>
                     <span className={`font-bold ${
                       remainingAllocation === 0 ? 'text-emerald-600' : remainingAllocation < 0 ? 'text-rose-600' : 'text-slate-700'
@@ -1085,8 +1105,8 @@ export const Admissions: React.FC = () => {
                     <span>Schedule Fully Allocated!</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-blue-50/50 border border-blue-100/80 rounded-lg p-2.5 justify-center text-center">
-                    <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-[#F8E9ED]/50 border border-[#E5DDE0]/80 rounded-lg p-2.5 justify-center text-center">
+                    <Info className="w-4 h-4 text-[#6B1F38] shrink-0" />
                     <span>
                       {plannedInstallments.length === 0
                         ? "Installment planning is optional. You can plan installments later from the student's fee details."
@@ -1108,12 +1128,12 @@ export const Admissions: React.FC = () => {
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="e.g. Scholar student, paid half, reference from school principal."
-                className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
               />
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E5DDE0]">
               <button 
                 type="button" 
                 onClick={() => setActiveTab('directory')}
@@ -1124,7 +1144,7 @@ export const Admissions: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting || !isAllocationValid}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{isSubmitting ? 'Enrolling...' : 'Enroll Student'}</span>
@@ -1134,14 +1154,16 @@ export const Admissions: React.FC = () => {
         </div>
       )}
 
+      {/* Student detail backdrop and drawer */}
+      {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
       {/* Side Details drawer (Slides in from the right when student clicked) */}
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-slate-100 shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print
+      <div role="dialog" aria-modal={Boolean(selectedStudentId)} aria-hidden={!selectedStudentId} aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print ${selectedStudentId ? 'pointer-events-auto' : 'pointer-events-none'}
         ${selectedStudentId ? 'translate-x-0' : 'translate-x-full'}
       `}>
         {selectedStudent ? (
           <>
             {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="p-5 border-b border-[#E5DDE0] flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-200/70 text-slate-600 uppercase">
                   {selectedStudent.rollNumber}
@@ -1149,7 +1171,7 @@ export const Admissions: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold
                   ${selectedStudent.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
                   ${selectedStudent.status === 'Inactive' ? 'bg-rose-50 text-rose-600 border border-rose-100' : ''}
-                  ${selectedStudent.status === 'Completed' ? 'bg-blue-50 text-blue-600 border border-blue-100' : ''}
+                  ${selectedStudent.status === 'Completed' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                 `}>
                   {selectedStudent.status}
                 </span>
@@ -1166,10 +1188,10 @@ export const Admissions: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
               {!isEditing ? (
                 /* Detail View */
-                <div className="space-y-6">
+                <div className="space-y-7">
                   {/* Student Title Profile Card */}
-                  <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl border border-blue-100 shadow-inner">
+                  <div className="flex items-center gap-4 border-b border-[#E5DDE0] pb-5">
+                    <div className="w-14 h-14 rounded-xl bg-[#F8E9ED] text-[#6B1F38] flex items-center justify-center font-bold text-xl border border-[#E5DDE0] shadow-inner">
                       {selectedStudent.name.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div>
@@ -1182,28 +1204,28 @@ export const Admissions: React.FC = () => {
                   <div className="space-y-3.5">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Contact Details</h4>
                     <div className="grid grid-cols-1 gap-2.5 text-xs text-slate-700">
-                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-[#E5DDE0]">
                         <Phone className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
                           <div className="text-[10px] text-slate-400">Student Phone</div>
                           <div className="font-semibold text-slate-800">{selectedStudent.phone}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-[#E5DDE0]">
                         <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
                           <div className="text-[10px] text-slate-400">Email Address</div>
                           <div className="font-semibold text-slate-800">{selectedStudent.email || 'N/A'}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-[#E5DDE0]">
                         <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
                           <div className="text-[10px] text-slate-400">Enrollment Date</div>
                           <div className="font-semibold text-slate-800">{formatDateForDisplay(selectedStudent.enrollmentDate, settings?.dateFormat)}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2 bg-slate-50/50 p-2.5 rounded-xl border border-[#E5DDE0]">
                         <User className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
                           <div className="text-[10px] text-slate-400">Parent / Guardian</div>
@@ -1216,16 +1238,16 @@ export const Admissions: React.FC = () => {
                   {/* Course Details & Fee Dues summary */}
                   <div className="space-y-3.5">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Course & Fees Ledger</h4>
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-3">
+                    <div className="bg-slate-50 border border-[#E5DDE0] rounded-xl p-4 space-y-3">
                       <div className="flex items-start gap-2.5">
-                        <BookOpen className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                        <BookOpen className="w-4 h-4 text-[#6B1F38] mt-0.5 shrink-0" />
                         <div>
                           <div className="text-xs font-bold text-slate-800">{selectedStudent.courseName}</div>
                           <div className="text-[10px] text-slate-500 mt-0.5">Assigned Batch: {selectedStudent.batch}</div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-center">
+                      <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[#E5DDE0] text-center">
                         <div>
                           <div className="text-[10px] text-slate-400">Total Fees</div>
                           <div className="text-sm font-bold text-slate-800 mt-0.5">{settings?.currencySymbol || '₹'}{selectedStudent.totalFees.toLocaleString('en-IN')}</div>
@@ -1245,7 +1267,7 @@ export const Admissions: React.FC = () => {
                   {/* NEW Fee Summary Widget Section (Task 3) */}
                   <div className="space-y-3.5">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Fee Summary Details</h4>
-                    <div className="border border-slate-150 rounded-xl p-4 bg-white space-y-2.5 shadow-xs">
+                    <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2.5 shadow-xs">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500 font-medium">Total Course Fee</span>
                         <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{getFeeSummary(selectedStudent).total.toLocaleString('en-IN')}</span>
@@ -1254,7 +1276,7 @@ export const Admissions: React.FC = () => {
                         <span className="text-slate-500 font-medium">Amount Paid</span>
                         <span className="font-bold text-emerald-600">{settings?.currencySymbol || '₹'}{getFeeSummary(selectedStudent).paid.toLocaleString('en-IN')}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2.5">
+                      <div className="flex justify-between items-center text-xs border-b border-[#E5DDE0] pb-2.5">
                         <span className="text-slate-500 font-medium">Remaining Fee</span>
                         <span className={`font-bold ${getFeeSummary(selectedStudent).due > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                           {settings?.currencySymbol || '₹'}{getFeeSummary(selectedStudent).due.toLocaleString('en-IN')}
@@ -1266,18 +1288,18 @@ export const Admissions: React.FC = () => {
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-slate-500 font-medium">Next Due Month</span>
-                        <span className="font-semibold text-amber-605 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
+                        <span className="font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md text-[10px]">
                           {getFeeSummary(selectedStudent).nextDueMonth}
                         </span>
                       </div>
                       
                       {/* Installment Schedule Table (Requirement 5) */}
-                      <div className="space-y-3 pt-2 border-t border-slate-100">
+                      <div className="space-y-3 pt-2 border-t border-[#E5DDE0]">
                         <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Installment Schedule</h4>
                         <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
                           <table className="w-full text-left border-collapse text-xs">
                             <thead>
-                              <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold text-[10px] uppercase">
+                              <tr className="bg-slate-50 border-b border-[#E5DDE0] text-slate-400 font-bold text-[10px] uppercase">
                                 <th className="py-2 px-3 w-12">Inst.</th>
                                 <th className="py-2 px-2 w-20">Amount</th>
                                 <th className="py-2 px-2 w-24">Due Date</th>
@@ -1308,7 +1330,7 @@ export const Admissions: React.FC = () => {
                                         inst.paymentId ? (
                                           <Link
                                             to={`/receipts?id=${inst.paymentId}`}
-                                            className="text-[10px] font-bold text-blue-600 hover:text-blue-700 underline"
+                                            className="text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] underline"
                                           >
                                             Receipt
                                           </Link>
@@ -1318,7 +1340,7 @@ export const Admissions: React.FC = () => {
                                       ) : (
                                         <Link
                                           to={`/payments?student=${selectedStudent.id}`}
-                                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
+                                          className="text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2 py-0.5 rounded border border-[#E5DDE0]"
                                         >
                                           Collect
                                         </Link>
@@ -1344,8 +1366,8 @@ export const Admissions: React.FC = () => {
                   {selectedStudent.notes && (
                     <div className="space-y-2">
                       <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Academic / Admin Notes</h4>
-                      <div className="p-3 bg-blue-50/30 border border-blue-50 text-xs text-slate-600 rounded-xl leading-relaxed flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                      <div className="p-3 bg-[#F8E9ED]/30 border border-[#F8E9ED] text-xs text-slate-600 rounded-xl leading-relaxed flex items-start gap-2">
+                        <FileText className="w-4 h-4 text-[#A03B5E] mt-0.5 shrink-0" />
                         <span>{selectedStudent.notes}</span>
                       </div>
                     </div>
@@ -1357,7 +1379,7 @@ export const Admissions: React.FC = () => {
                     <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                       {studentPayments.length > 0 ? (
                         studentPayments.map(p => (
-                          <div key={p.id} className="flex justify-between items-center p-2.5 bg-white border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-colors">
+                          <div key={p.id} className="flex justify-between items-center p-2.5 bg-white border border-[#E5DDE0] rounded-xl hover:bg-slate-50/50 transition-colors">
                             <div className="text-left">
                               <span className="text-[10px] font-bold text-slate-500 block">{p.receiptNumber}</span>
                               <span className="text-[10px] text-slate-400 mt-0.5 block">{formatDateForDisplay(p.paymentDate, settings?.dateFormat)} via {p.paymentMethod}</span>
@@ -1510,13 +1532,13 @@ export const Admissions: React.FC = () => {
                     </div>
 
                     {/* Installment Planner for Edit (Requirement 4) */}
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-3 mt-1">
+                    <div className="bg-slate-50 border border-[#E5DDE0] rounded-xl p-3 space-y-3 mt-1">
                       <div className="flex items-center justify-between">
                         <h5 className="text-[11px] font-bold text-slate-800">Installment Planner</h5>
                         <button
                           type="button"
                           onClick={addInstallmentRow}
-                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
+                          className="px-2 py-1 bg-[#6B1F38] hover:bg-[#57172D] text-white rounded text-[10px] font-bold transition-colors cursor-pointer"
                         >
                           + Add Row
                         </button>
@@ -1534,7 +1556,7 @@ export const Admissions: React.FC = () => {
                                 onClick={() => setSelectedInstCount(num)}
                                 className={`px-1.5 py-0.5 text-[9px] font-bold rounded border transition-colors cursor-pointer ${
                                   selectedInstCount === num
-                                    ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-sm'
+                                    ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0] shadow-sm'
                                     : 'bg-slate-50 text-slate-600 border-slate-200/60 hover:bg-slate-100'
                                 }`}
                               >
@@ -1546,7 +1568,7 @@ export const Admissions: React.FC = () => {
                               onClick={() => setSelectedInstCount(0)}
                               className={`px-1.5 py-0.5 text-[9px] font-bold rounded border transition-colors cursor-pointer ${
                                 selectedInstCount === 0
-                                  ? 'bg-blue-50 text-blue-600 border-blue-200 shadow-sm'
+                                  ? 'bg-[#F8E9ED] text-[#6B1F38] border-[#E5DDE0] shadow-sm'
                                   : 'bg-slate-50 text-slate-600 border-slate-200/60 hover:bg-slate-100'
                               }`}
                             >
@@ -1563,7 +1585,7 @@ export const Admissions: React.FC = () => {
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2.5">
+                        <div className="grid grid-cols-2 gap-2 border-t border-[#E5DDE0] pt-2.5">
                           <div className="space-y-0.5">
                             <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">First Due Date</label>
                             <input
@@ -1611,7 +1633,7 @@ export const Admissions: React.FC = () => {
                                       disabled={inst.status === 'Paid'}
                                       value={inst.amount || ''}
                                       onChange={(e) => updateInstallmentRow(idx, { amount: parseFloat(e.target.value) || 0 })}
-                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 font-semibold focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_amount_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                                     />
                                   </td>
                                   <td className="py-1.5 px-1">
@@ -1620,7 +1642,7 @@ export const Admissions: React.FC = () => {
                                       disabled={inst.status === 'Paid'}
                                       value={inst.dueDate}
                                       onChange={(e) => updateInstallmentRow(idx, { dueDate: e.target.value })}
-                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
+                                      className={`w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E] ${formErrors[`inst_date_${idx}`] ? 'border-rose-300 bg-rose-50/10' : ''}`}
                                     />
                                   </td>
                                   <td className="py-1.5 px-1">
@@ -1630,7 +1652,7 @@ export const Admissions: React.FC = () => {
                                       value={inst.remarks || ''}
                                       onChange={(e) => updateInstallmentRow(idx, { remarks: e.target.value })}
                                       placeholder="Remarks"
-                                      className="w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                      className="w-full px-1.5 py-0.5 border border-slate-200 rounded bg-white disabled:bg-slate-100 disabled:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#A03B5E]"
                                     />
                                   </td>
                                   <td className="py-1.5 pl-1 text-center">
@@ -1668,7 +1690,7 @@ export const Admissions: React.FC = () => {
                             <span className="text-slate-500 font-medium">Total Planned:</span>
                             <span className="font-bold text-slate-800">{settings?.currencySymbol || '₹'}{totalPlannedInstallments.toLocaleString('en-IN')}</span>
                           </div>
-                          <div className="flex justify-between items-center border-t border-slate-100 pt-1.5">
+                          <div className="flex justify-between items-center border-t border-[#E5DDE0] pt-1.5">
                             <span className="text-slate-500 font-medium">Remaining Allocation:</span>
                             <span className={`font-bold ${
                               remainingAllocation === 0 ? 'text-emerald-600' : remainingAllocation < 0 ? 'text-rose-600' : 'text-slate-700'
@@ -1689,8 +1711,8 @@ export const Admissions: React.FC = () => {
                             <span>Schedule Fully Allocated!</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 bg-blue-50/50 border border-blue-100/80 rounded p-1.5 justify-center text-center">
-                            <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-600 bg-[#F8E9ED]/50 border border-[#E5DDE0]/80 rounded p-1.5 justify-center text-center">
+                            <Info className="w-3.5 h-3.5 text-[#6B1F38] shrink-0" />
                             <span>
                               {plannedInstallments.length === 0
                                 ? "You can plan installments later from the student's fee details."
@@ -1705,18 +1727,18 @@ export const Admissions: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-[#E5DDE0]">
                     <button 
                       type="button" 
                       onClick={() => setIsEditing(false)}
-                      className="px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-655 transition-colors"
+                      className="px-3.5 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
                     >
                       Cancel
                     </button>
                     <button 
                       type="submit" 
                       disabled={isSubmitting || !isAllocationValid}
-                      className="px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-1.5 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting && <Loader2 className="w-3 animate-spin" />}
                       <span>{isSubmitting ? 'Saving...' : 'Save Changes'}</span>
@@ -1728,7 +1750,7 @@ export const Admissions: React.FC = () => {
 
             {/* Drawer Footer Actions */}
             {!isEditing && (
-              <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex gap-2">
+              <div className="p-5 border-t border-[#E5DDE0] bg-slate-50/50 flex gap-2">
                 <button 
                   onClick={() => startEdit(selectedStudent)}
                   className="flex-1 flex items-center justify-center gap-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"

@@ -15,7 +15,7 @@ interface AttendanceRow { id: string; student_id: string; batch_id: string; atte
 interface CorrectionRow { id: string; attendance_id: string; requested_by: string; requested_status: AttendanceStatus; request_reason: string; decision: CorrectionDecision; decision_reason: string | null; created_at: string; }
 interface AuditRow { id: string; attendance_id: string; actor_id: string; action: string; old_status: AttendanceStatus | null; new_status: AttendanceStatus; reason: string; created_at: string; }
 
-const inputClass = 'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100';
+const inputClass = 'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#A03B5E] focus:ring-2 focus:ring-[#F8E9ED]';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50';
 const statusStyle: Record<AttendanceStatus, string> = {
   Present: 'border-emerald-200 bg-emerald-50 text-emerald-800',
@@ -39,6 +39,8 @@ export function AttendancePage() {
   const [batchFilter, setBatchFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [draftStatuses, setDraftStatuses] = useState<Record<string, AttendanceStatus>>({});
+  const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [reasonForms, setReasonForms] = useState<Record<string, string>>({});
@@ -46,9 +48,9 @@ export function AttendancePage() {
   const [ownerEdit, setOwnerEdit] = useState<{ recordId: string; status: AttendanceStatus; reason: string } | null>(null);
   const [decisionForms, setDecisionForms] = useState<Record<string, { decision: 'Approved' | 'Rejected'; reason: string }>>({});
 
-  const load = useCallback(async () => {
-    if (!instituteId || (!isOwner && !isTeacher)) { setLoading(false); return; }
-    setLoading(true); setError(null);
+  const load = useCallback(async (showPageLoader = true) => {
+    if (!instituteId || (!isOwner && !isTeacher)) { if (showPageLoader) setLoading(false); return; }
+    if (showPageLoader) setLoading(true); setError(null);
     try {
       const [batchResult, courseResult, rosterResult, recordResult] = await Promise.all([
         supabase.from('batches').select('id,name,course_id').eq('institute_id', instituteId).order('name'),
@@ -75,10 +77,11 @@ export function AttendancePage() {
       } else setAudit([]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not load attendance. Check your institute access and database policies.');
-    } finally { setLoading(false); }
+    } finally { if (showPageLoader) setLoading(false); }
   }, [date, instituteId, isOwner, isTeacher]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setDraftStatuses({}); }, [date]);
 
   const assignedBatchIds = useMemo(() => new Set(batches.map(batch => batch.id)), [batches]);
   const visibleBatches = useMemo(() => batchFilter === 'all' ? batches : batches.filter(batch => batch.id === batchFilter), [batchFilter, batches]);
@@ -93,20 +96,71 @@ export function AttendancePage() {
     }
     return groups;
   }, [assignedBatchIds, students]);
+  const attendanceSummary = useMemo(() => {
+    const counts = { Present: 0, Absent: 0, Late: 0, Leave: 0, unmarked: 0 };
+    for (const batch of visibleBatches) {
+      for (const student of studentsByBatch.get(batch.id) ?? []) {
+        const record = recordsByStudent.get(`${batch.id}:${student.id}`);
+        if (record) counts[record.status] += 1;
+        else if (student.status === 'Active') counts.unmarked += 1;
+      }
+    }
+    return counts;
+  }, [visibleBatches, studentsByBatch, recordsByStudent]);
 
   const runAction = async (key: string, action: () => Promise<unknown>, success: string) => {
     setBusyId(key); setError(null); setNotice(null);
-    try { await action(); setNotice(success); await load(); }
+    try { await action(); setNotice(success); await load(false); }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'The attendance change could not be saved.'); }
     finally { setBusyId(null); }
   };
   const mark = (student: StudentRow, batchId: string, status: AttendanceStatus) => {
-    if (!instituteId) return;
     const key = `${batchId}:${student.id}`;
-    void runAction(key, async () => {
-      const { error: rpcError } = await supabase.rpc('mark_attendance', { p_institute_id: instituteId, p_student_id: student.id, p_batch_id: batchId, p_attendance_date: date, p_status: status });
+    setDraftStatuses(current => ({ ...current, [key]: status }));
+    setError(null);
+    setNotice(null);
+  };
+
+  const submitPendingMarks = async () => {
+    if (!instituteId || isBulkSubmitting) return;
+    const pending = Object.entries(draftStatuses).filter(([key]) => {
+      const [batchId, studentId] = key.split(':');
+      return batches.some(batch => batch.id === batchId)
+        && students.some(student => student.id === studentId && student.status === 'Active')
+        && !recordsByStudent.has(key);
+    });
+    if (!pending.length) return;
+    setIsBulkSubmitting(true);
+    setError(null);
+    setNotice(null);
+    const results = await Promise.allSettled(pending.map(async ([key, status]) => {
+      const [batchId, studentId] = key.split(':');
+      const { error: rpcError } = await supabase.rpc('mark_attendance', {
+        p_institute_id: instituteId,
+        p_student_id: studentId,
+        p_batch_id: batchId,
+        p_attendance_date: date,
+        p_status: status,
+      });
       if (rpcError) throw rpcError;
-    }, `${student.full_name}: marked ${status}.`);
+      return key;
+    }));
+    const savedKeys = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : []);
+    if (savedKeys.length) {
+      setDraftStatuses(current => {
+        const next = { ...current };
+        savedKeys.forEach(key => delete next[key]);
+        return next;
+      });
+      await load(false);
+    }
+    const failedCount = results.length - savedKeys.length;
+    if (failedCount) {
+      setError(`${savedKeys.length} attendance record(s) saved; ${failedCount} could not be saved. Failed selections have been kept so you can retry.`);
+    } else {
+      setNotice(`Attendance submitted successfully for ${savedKeys.length} student(s).`);
+    }
+    setIsBulkSubmitting(false);
   };
   const submitCorrection = (record: AttendanceRow) => {
     const reason = reasonForms[record.id]?.trim() ?? '';
@@ -143,8 +197,8 @@ export function AttendancePage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          {isTeacher && <Link to="/" className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900"><ArrowLeft className="h-3.5 w-3.5" /> Teacher workspace</Link>}
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">EduLedger · Attendance</p>
+          {isTeacher && <Link to="/" className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B1F38] hover:text-[#57172D]"><ArrowLeft className="h-3.5 w-3.5" /> Teacher workspace</Link>}
+          <p className="text-xs font-bold uppercase tracking-wider text-[#6B1F38]">EduLedger · Attendance</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Attendance</h1>
           <p className="mt-1 text-sm text-slate-500">{isOwner ? 'Institute attendance, corrections, and audit history.' : 'Mark attendance for your assigned batches and request corrections.'}</p>
         </div>
@@ -156,13 +210,29 @@ export function AttendancePage() {
 
       {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
       {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
-      {loading ? <div className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-16 text-sm text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading attendance…</div> : <>
+      {!loading && <section aria-label="Attendance summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {([
+          ['Present', attendanceSummary.Present, 'bg-emerald-50 text-emerald-800'],
+          ['Absent', attendanceSummary.Absent, 'bg-rose-50 text-rose-800'],
+          ['Late', attendanceSummary.Late, 'bg-amber-50 text-amber-800'],
+          ['Leave', attendanceSummary.Leave, 'bg-violet-50 text-violet-800'],
+          ['Not marked', attendanceSummary.unmarked, 'bg-slate-100 text-slate-700'],
+        ] as const).map(([label, value, tone]) => <article key={label} className="ui-card p-3.5 sm:p-4"><p className="text-xs font-medium text-slate-500">{label}</p><p className={`mt-2 text-2xl font-semibold tracking-tight ${tone.split(' ').at(-1)}`}>{value}</p></article>)}
+      </section>}
+      {loading ? <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-16 text-sm text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading attendance…</div> : <>
+        <section className="ui-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="text-sm font-semibold text-slate-900">Attendance changes</p><p className="mt-1 text-xs text-slate-500">{Object.keys(draftStatuses).length} unsubmitted selection(s). You can change them before submitting.</p></div>
+          <button type="button" disabled={isBulkSubmitting || Object.keys(draftStatuses).length === 0} onClick={() => void submitPendingMarks()} className={`${buttonClass} bg-[#6B1F38] px-5 py-2.5 text-white hover:bg-[#57172D]`}>
+            {isBulkSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}
+            {isBulkSubmitting ? 'Submitting…' : `Submit attendance (${Object.keys(draftStatuses).length})`}
+          </button>
+        </section>
         <section className="space-y-4">
-          {visibleBatches.length === 0 && <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center"><ClipboardCheck className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 font-semibold text-slate-800">No assigned batches</p><p className="mt-1 text-sm text-slate-500">Attendance appears here when batches are assigned to your account.</p></div>}
+          {visibleBatches.length === 0 && <div className="rounded-xl border border-slate-200 bg-white p-8 text-center"><ClipboardCheck className="mx-auto h-8 w-8 text-slate-300" /><p className="mt-3 font-semibold text-slate-800">No assigned batches</p><p className="mt-1 text-sm text-slate-500">Attendance appears here when batches are assigned to your account.</p></div>}
           {visibleBatches.map(batch => {
             const roster = studentsByBatch.get(batch.id) ?? [];
-            return <article key={batch.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex flex-col gap-1 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold text-slate-900">{batch.name}</h2><p className="text-xs text-slate-500">{courseNames[batch.course_id] ?? 'Course'} · {roster.length} students</p></div><span className="text-xs font-medium text-slate-500">{formatDateForDisplay(date, 'DD-MMM-YYYY')}</span></div>
+            return <article key={batch.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex flex-col gap-1 border-b border-[#E5DDE0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold text-slate-900">{batch.name}</h2><p className="text-xs text-slate-500">{courseNames[batch.course_id] ?? 'Course'} · {roster.length} students</p></div><span className="text-xs font-medium text-slate-500">{formatDateForDisplay(date, 'DD-MMM-YYYY')}</span></div>
               {roster.length === 0 ? <p className="px-5 py-6 text-sm text-slate-500">No active roster entries are available for this batch.</p> : <div className="divide-y divide-slate-100">
                 {roster.map(student => {
                   const record = recordsByStudent.get(`${batch.id}:${student.id}`);
@@ -172,20 +242,22 @@ export function AttendancePage() {
                     <div className="min-w-0"><p className="truncate font-medium text-slate-900">{student.full_name}</p><p className="mt-0.5 text-xs text-slate-500">{student.roll_number || 'No roll number'} · {student.status}</p></div>
                     <div className="flex flex-wrap items-center gap-2">
                       {record ? <span className={`rounded-full border px-3 py-1.5 text-xs font-bold ${statusStyle[record.status]}`}>{record.status}</span> : <span className="text-xs text-slate-400">Not marked</span>}
-                      {!record && STATUSES.map(status => <button key={status} type="button" disabled={busyId === key} onClick={() => mark(student, batch.id, status)} className={`${buttonClass} border ${statusStyle[status]} hover:brightness-95`}>{busyId === key ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : status}</button>)}
+                      {!record && student.status === 'Active' && <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Attendance status for ${student.full_name}`}>{STATUSES.map(status => <button key={status} type="button" onClick={() => mark(student, batch.id, status)} aria-pressed={draftStatuses[key] === status} className={`${buttonClass} border px-2.5 py-2 ${draftStatuses[key] === status ? statusStyle[status] + ' ring-2 ring-offset-1 ring-[#A03B5E]' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{status}</button>)}</div>}
+                      {!record && student.status !== 'Active' && <span className="text-xs text-slate-400">Inactive student</span>}
+                      {!record && draftStatuses[key] && <span className="text-[11px] font-semibold text-[#6B1F38]">Selected: {draftStatuses[key]}</span>}
                       {record && isOwner && <button type="button" onClick={() => { setOwnerEdit({ recordId: record.id, status: record.status, reason: '' }); setError(null); }} className={`${buttonClass} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>Edit</button>}
-                    {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
+                    {record && isTeacher && !pending && <button type="button" onClick={() => { setReasonForms(prev => ({ ...prev, [record.id]: prev[record.id] ?? '' })); setCorrectionStatuses(prev => ({ ...prev, [record.id]: prev[record.id] ?? (record.status === 'Present' ? 'Absent' : 'Present') })); }} className={`${buttonClass} border border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38] hover:bg-[#F8E9ED]`}><RotateCcw className="h-3.5 w-3.5" />Request correction</button>}
                       {pending && <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">Correction pending</span>}
                     </div>
-                    {record && isTeacher && !pending && correctionStatuses[record.id] && <div className="grid w-full gap-2 border-t border-slate-100 pt-3 sm:grid-cols-[minmax(140px,0.7fr)_minmax(200px,1.3fr)_auto] lg:basis-full">
+                    {record && isTeacher && !pending && correctionStatuses[record.id] && <div className="grid w-full gap-2 border-t border-[#E5DDE0] pt-3 sm:grid-cols-[minmax(140px,0.7fr)_minmax(200px,1.3fr)_auto] lg:basis-full">
                       <select value={correctionStatuses[record.id]} onChange={event => setCorrectionStatuses(prev => ({ ...prev, [record.id]: event.target.value as AttendanceStatus }))} aria-label={`Requested status for ${student.full_name}`} className={inputClass}>{STATUSES.filter(status => status !== record.status).map(status => <option key={status}>{status}</option>)}</select>
                       <input value={reasonForms[record.id] ?? ''} onChange={event => setReasonForms(prev => ({ ...prev, [record.id]: event.target.value }))} maxLength={500} aria-label={`Correction reason for ${student.full_name}`} placeholder="Reason (at least 5 characters)" className={inputClass} />
-                      <button type="button" disabled={busyId === record.id} onClick={() => submitCorrection(record)} className={`${buttonClass} bg-blue-600 text-white hover:bg-blue-700`}>Submit request</button>
+                      <button type="button" disabled={busyId === record.id} onClick={() => submitCorrection(record)} className={`${buttonClass} bg-[#6B1F38] text-white hover:bg-[#57172D]`}>Submit request</button>
                     </div>}
-                    {record && isOwner && ownerEdit?.recordId === record.id && <div className="grid w-full gap-2 border-t border-slate-100 pt-3 sm:grid-cols-[150px_minmax(200px,1fr)_auto_auto] lg:basis-full">
+                    {record && isOwner && ownerEdit?.recordId === record.id && <div className="grid w-full gap-2 border-t border-[#E5DDE0] pt-3 sm:grid-cols-[150px_minmax(200px,1fr)_auto_auto] lg:basis-full">
                       <select value={ownerEdit.status} onChange={event => setOwnerEdit({ ...ownerEdit, status: event.target.value as AttendanceStatus })} aria-label={`New status for ${student.full_name}`} className={inputClass}>{STATUSES.map(status => <option key={status}>{status}</option>)}</select>
                       <input value={ownerEdit.reason} onChange={event => setOwnerEdit({ ...ownerEdit, reason: event.target.value })} maxLength={500} aria-label="Mandatory edit reason" placeholder="Required reason (at least 5 characters)" className={inputClass} />
-                      <button type="button" disabled={busyId === record.id} onClick={editAttendance} className={`${buttonClass} bg-blue-600 text-white hover:bg-blue-700`}>Save edit</button><button type="button" onClick={() => setOwnerEdit(null)} className={`${buttonClass} text-slate-600 hover:bg-slate-100`}>Cancel</button>
+                      <button type="button" disabled={busyId === record.id} onClick={editAttendance} className={`${buttonClass} bg-[#6B1F38] text-white hover:bg-[#57172D]`}>Save edit</button><button type="button" onClick={() => setOwnerEdit(null)} className={`${buttonClass} text-slate-600 hover:bg-slate-100`}>Cancel</button>
                     </div>}
                   </div>;
                 })}
@@ -194,8 +266,8 @@ export function AttendancePage() {
           })}
         </section>
 
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4"><h2 className="flex items-center gap-2 font-semibold text-slate-900"><History className="h-4 w-4 text-blue-600" />Correction requests</h2><p className="mt-1 text-xs text-slate-500">{isOwner ? 'Review teacher requests and record a decision reason.' : 'Your requests and their current decisions.'}</p></div>
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-[#E5DDE0] px-5 py-4"><h2 className="flex items-center gap-2 font-semibold text-slate-900"><History className="h-4 w-4 text-[#6B1F38]" />Correction requests</h2><p className="mt-1 text-xs text-slate-500">{isOwner ? 'Review teacher requests and record a decision reason.' : 'Your requests and their current decisions.'}</p></div>
           {groupedCorrections.length === 0 ? <p className="px-5 py-6 text-sm text-slate-500">No correction requests yet.</p> : <div className="divide-y divide-slate-100">{groupedCorrections.map(item => {
             const record = records.find(row => row.id === item.attendance_id);
             const student = record ? students.find(row => row.id === record.student_id) : undefined;
@@ -205,14 +277,14 @@ export function AttendancePage() {
               {isOwner && item.decision === 'Pending' && <div className="grid gap-2 sm:grid-cols-[130px_minmax(200px,1fr)_auto]">
                 <select value={form.decision} aria-label="Correction decision" onChange={event => setDecisionForms(prev => ({ ...prev, [item.id]: { ...form, decision: event.target.value as 'Approved' | 'Rejected' } }))} className={inputClass}><option>Approved</option><option>Rejected</option></select>
                 <input value={form.reason} onChange={event => setDecisionForms(prev => ({ ...prev, [item.id]: { ...form, reason: event.target.value } }))} maxLength={500} aria-label="Decision reason" placeholder="Decision reason (at least 5 characters)" className={inputClass} />
-                <button type="button" disabled={busyId === item.id} onClick={() => decideCorrection(item)} className={`${buttonClass} bg-blue-600 text-white hover:bg-blue-700`}><Check className="h-4 w-4" />Record decision</button>
+                <button type="button" disabled={busyId === item.id} onClick={() => decideCorrection(item)} className={`${buttonClass} bg-[#6B1F38] text-white hover:bg-[#57172D]`}><Check className="h-4 w-4" />Record decision</button>
               </div>}
             </div>;
           })}</div>}
         </section>
 
-        {isOwner && <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold text-slate-900">Audit history for {formatDateForDisplay(date, 'DD-MMM-YYYY')}</h2><p className="mt-1 text-xs text-slate-500">Initial marks, owner edits, and approved corrections.</p></div>
+        {isOwner && <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-[#E5DDE0] px-5 py-4"><h2 className="font-semibold text-slate-900">Audit history for {formatDateForDisplay(date, 'DD-MMM-YYYY')}</h2><p className="mt-1 text-xs text-slate-500">Initial marks, owner edits, and approved corrections.</p></div>
           {audit.length === 0 ? <p className="px-5 py-6 text-sm text-slate-500">No audit events for this date.</p> : <div className="divide-y divide-slate-100">{audit.map(item => <div key={item.id} className="flex flex-col gap-1 px-5 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold text-slate-800">{item.action.replaceAll('_', ' ')} · {item.old_status ? `${item.old_status} → ` : ''}{item.new_status}</p><p className="text-xs text-slate-500">{item.reason}</p></div><time className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString()}</time></div>)}</div>}
         </section>}
       </>}

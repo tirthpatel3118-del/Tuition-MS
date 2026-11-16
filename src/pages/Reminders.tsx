@@ -373,26 +373,26 @@ export const Reminders: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Dues & Reminders</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Collections follow-up</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Dues & reminders</h1>
           <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => setActiveTab('dues')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             <BellRing className="w-3.5 h-3.5" />
             <span>Outstanding Dues</span>
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <History className="w-3.5 h-3.5" />
             <span>Reminder Logs</span>
@@ -400,12 +400,17 @@ export const Reminders: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Reminder summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Outstanding items</p><p className="mt-2 text-2xl font-semibold text-slate-900">{dueItems.length}</p><p className="mt-1 text-xs text-slate-500">Installments and direct dues</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{new Set(dueItems.map(item => item.studentId)).size}</p><p className="mt-1 text-xs text-slate-500">Require follow-up</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Selected for reminder</p><p className="mt-2 text-2xl font-semibold text-slate-900">{selectedInstallmentIds.length}</p><p className="mt-1 text-xs text-slate-500">Ready for manual review</p></div>
+      </section>
       {activeTab === 'dues' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
           {/* Main Dues Table (Left columns) */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
+            <div className="ui-card p-4 flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input 
@@ -416,7 +421,7 @@ export const Reminders: React.FC = () => {
                     setSearch(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
                 />
               </div>
 
@@ -430,17 +435,17 @@ export const Reminders: React.FC = () => {
               <TableSkeleton columnCount={5} rowCount={itemsPerPage} />
             ) : (
               <div className="space-y-4">
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                <div className="ui-card overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-slate-50/70 border-b border-slate-100 text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
+                        <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
                           <th className="px-4 py-3 text-center w-12 no-print">
                             <input 
                               type="checkbox"
                               onChange={handleSelectAll}
                               checked={paginatedInstallments.length > 0 && paginatedInstallments.every(i => selectedInstallmentIds.includes(i.id))}
-                              className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              className="rounded text-[#6B1F38] focus:ring-[#F8E9ED] cursor-pointer"
                             />
                           </th>
                           <th 
@@ -486,7 +491,7 @@ export const Reminders: React.FC = () => {
                                 setSelectedTemplateType(inst.isDirect ? 'direct' : 'installment');
                               }}
                               className={`hover:bg-slate-50/40 cursor-pointer transition-colors
-                                ${focusedInstallmentId === inst.id ? 'bg-blue-50/30' : ''}
+                                ${focusedInstallmentId === inst.id ? 'bg-[#F8E9ED]/30' : ''}
                               `}
                             >
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>
@@ -494,7 +499,7 @@ export const Reminders: React.FC = () => {
                                   type="checkbox"
                                   checked={selectedInstallmentIds.includes(inst.id)}
                                   onChange={(e) => handleSelectOne(inst.id, e.target.checked)}
-                                  className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                  className="rounded text-[#6B1F38] focus:ring-[#F8E9ED] cursor-pointer"
                                 />
                               </td>
                               <td className="px-4 py-3.5">
@@ -547,14 +552,14 @@ export const Reminders: React.FC = () => {
                                       });
                                     }}
                                     title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
-                                    className={`p-1.5 border border-emerald-250 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
+                                    className={`p-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
                                   <button
                                     onClick={() => navigate(`/payments?student=${inst.studentId}`)}
                                     title="Collect Fee Payment"
-                                    className="p-1.5 border border-blue-200 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                                    className="p-1.5 border border-[#E5DDE0] bg-[#F8E9ED] text-[#6B1F38] rounded-lg hover:bg-[#F8E9ED] transition-colors cursor-pointer"
                                   >
                                     <CreditCard className="w-3.5 h-3.5" />
                                   </button>
@@ -597,7 +602,7 @@ export const Reminders: React.FC = () => {
                           onClick={() => setCurrentPage(idx + 1)}
                           className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                             ${currentPage === idx + 1 
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                              ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
                               : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                           `}
                         >
@@ -620,9 +625,9 @@ export const Reminders: React.FC = () => {
 
           {/* Configurations Sidebar (Right Columns) */}
           <div className="space-y-5 no-print">
-            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="bg-white border border-[#E5DDE0] rounded-xl p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                <Send className="w-4 h-4 text-blue-600" />
+                <Send className="w-4 h-4 text-[#6B1F38]" />
                 <span>Send Notifications</span>
               </h3>
 
@@ -635,7 +640,7 @@ export const Reminders: React.FC = () => {
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'WhatsApp' 
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <MessageCircle className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">WhatsApp</span>
@@ -644,8 +649,8 @@ export const Reminders: React.FC = () => {
                     onClick={() => setReminderType('SMS')}
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'SMS' 
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        ? 'border-[#A03B5E] bg-[#F8E9ED] text-[#6B1F38] font-bold' 
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <MessageSquare className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">SMS Text</span>
@@ -655,7 +660,7 @@ export const Reminders: React.FC = () => {
                     className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
                       ${reminderType === 'Email' 
                         ? 'border-violet-500 bg-violet-50 text-violet-700 font-bold' 
-                        : 'border-slate-200 text-slate-655 hover:bg-slate-50'}`}
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                   >
                     <Mail className="w-5 h-5 shrink-0" />
                     <span className="text-[10px]">Email Inbox</span>
@@ -706,7 +711,7 @@ export const Reminders: React.FC = () => {
                       setInstallmentTemplate(e.target.value);
                     }
                   }}
-                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 leading-relaxed font-sans"
+                  className="w-full p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F8E9ED]/20 focus:border-[#6B1F38] leading-relaxed font-sans"
                 />
               </div>
 
@@ -714,7 +719,7 @@ export const Reminders: React.FC = () => {
               <button 
                 onClick={handleSendReminders}
                 disabled={selectedInstallmentIds.length === 0}
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
               >
                 <Users className="w-4 h-4" />
                 <span>Dispatch {selectedInstallmentIds.length} Reminders</span>
@@ -722,17 +727,17 @@ export const Reminders: React.FC = () => {
             </div>
 
             {/* Template Parser Preview panel */}
-            <div className="bg-slate-50 border border-slate-150 rounded-2xl p-5 space-y-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-slate-400" />
                 <span>Live Template Preview</span>
               </h4>
               
               <div className="space-y-2">
-                <div className="text-[10px] text-slate-450">
+                <div className="text-[10px] text-slate-500">
                   Showing parsed message for <span className="font-bold text-slate-700">{previewItem.studentName}</span> ({previewItem.isDirect ? 'Direct Fee' : `Installment #${previewItem.installmentNumber || 1}`}):
                 </div>
-                <div className="bg-white border border-slate-100 rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed shadow-sm font-medium whitespace-pre-wrap">
+                <div className="bg-white border border-[#E5DDE0] rounded-xl p-3.5 text-xs text-slate-600 leading-relaxed shadow-sm font-medium whitespace-pre-wrap">
                   {previewMessage}
                 </div>
               </div>
@@ -746,11 +751,11 @@ export const Reminders: React.FC = () => {
           {isLoading ? (
             <TableSkeleton columnCount={5} rowCount={itemsPerPage} />
           ) : (
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-[#E5DDE0] rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-semibold text-slate-505 uppercase tracking-wider">
+                    <tr className="bg-slate-50/70 border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       <th className="px-5 py-3">Recipient Student</th>
                       <th className="px-5 py-3">Recorded</th>
                       <th className="px-5 py-3">Channel</th>
@@ -771,7 +776,7 @@ export const Reminders: React.FC = () => {
                           <td className="px-5 py-3.5">
                             <span className={`px-2 py-0.5 rounded-md font-bold text-[9px] uppercase tracking-wider inline-block
                               ${log.type === 'WhatsApp' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : ''}
-                              ${log.type === 'SMS' ? 'bg-blue-50 text-blue-600 border border-blue-100' : ''}
+                              ${log.type === 'SMS' ? 'bg-[#F8E9ED] text-[#6B1F38] border border-[#E5DDE0]' : ''}
                               ${log.type === 'Email' ? 'bg-violet-50 text-violet-600 border border-violet-100' : ''}
                             `}>
                               {log.type}
@@ -785,7 +790,7 @@ export const Reminders: React.FC = () => {
                               log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
                               log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
                               log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
-                              'text-blue-700 bg-blue-50 border-blue-100'
+                              'text-[#6B1F38] bg-[#F8E9ED] border-[#E5DDE0]'
                             }`}>
                               <CheckCircle2 className="w-3 h-3" />
                               <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>

@@ -331,25 +331,25 @@ export const Payments: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800">Fee Collection</h1>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Finance operations</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Payments & collections</h1>
           <p className="text-sm text-slate-500 mt-1">Record student tuition payments, manage receipt registers, and audit transaction logs.</p>
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-100 p-1.5 rounded-xl self-start no-print">
+        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => { setActiveTab('ledger'); setSuccessInfo(null); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === 'ledger' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             Collection Ledger
           </button>
           <button 
             onClick={() => { setActiveTab('collect'); setSuccessInfo(null); }}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${activeTab === 'collect' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${activeTab === 'collect' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Record Payment</span>
@@ -357,10 +357,16 @@ export const Payments: React.FC = () => {
         </div>
       </div>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Collection summary">
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total collected</p><p className="mt-2 text-2xl font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Across recorded transactions</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Transactions</p><p className="mt-2 text-2xl font-semibold text-slate-900">{payments.length}</p><p className="mt-1 text-xs text-slate-500">Payments in the ledger</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with pending dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Inactive' && student.feesDue > 0).length}</p><p className="mt-1 text-xs text-slate-500">Require fee follow-up</p></div>
+      </section>
+
       {activeTab === 'ledger' ? (
         <div className="space-y-4">
           {/* Search and Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm no-print">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ui-card p-4 no-print">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input 
@@ -368,7 +374,7 @@ export const Payments: React.FC = () => {
                 placeholder="Search student, receipt, transaction..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50"
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50"
               />
             </div>
 
@@ -377,7 +383,7 @@ export const Payments: React.FC = () => {
               <select 
                 value={methodFilter}
                 onChange={(e) => setMethodFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-slate-50/50 cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50/50 cursor-pointer"
               >
                 <option value="All">All Methods</option>
                 <option value="UPI">UPI</option>
@@ -394,11 +400,17 @@ export const Payments: React.FC = () => {
             <TableSkeleton columnCount={7} rowCount={itemsPerPage} />
           ) : (
             <div className="space-y-4">
-              <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+              <div className="space-y-3 md:hidden">
+                {paginatedPayments.length ? paginatedPayments.map(payment => <article key={payment.id} className="ui-card p-4">
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{payment.studentName}</p><p className="mt-1 text-xs text-slate-500">{payment.receiptNumber} · {formatDateForDisplay(payment.paymentDate, settings?.dateFormat)}</p></div><p className="shrink-0 text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payment.amount.toLocaleString('en-IN')}</p></div>
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#EEE7EA] pt-3"><div className="min-w-0"><p className="truncate text-xs text-slate-600">{payment.courseName}</p><span className="mt-1 inline-flex rounded-md bg-[#F8E9ED] px-2 py-1 text-[10px] font-semibold text-[#6B1F38]">{payment.paymentMethod}</span></div><Link to={`/receipts?id=${payment.id}`} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#E5DDE0] px-3 py-2 text-xs font-semibold text-[#6B1F38]"><Eye className="h-3.5 w-3.5" /> Receipt</Link></div>
+                </article>) : <div className="ui-card px-4 py-10 text-center text-sm text-slate-500">No transactions match these filters.</div>}
+              </div>
+              <div className="hidden overflow-hidden ui-card md:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
+                      <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-xs font-semibold text-slate-500 uppercase tracking-wider select-none">
                         <th 
                           onClick={() => handleSort('receipt')}
                           className="px-5 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
@@ -478,7 +490,7 @@ export const Payments: React.FC = () => {
                             <td className="px-5 py-3 text-center no-print">
                               <Link 
                                 to={`/receipts?id=${p.id}`}
-                                className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition-colors"
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#6B1F38] hover:text-[#6B1F38] bg-[#F8E9ED] px-2.5 py-1.5 rounded-lg border border-[#E5DDE0] transition-colors"
                               >
                                 <Eye className="w-3.5 h-3.5" />
                                 <span>View</span>
@@ -503,7 +515,7 @@ export const Payments: React.FC = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-505 no-print">
+                <div className="flex items-center justify-between px-2 text-xs font-semibold text-slate-500 no-print">
                   <div>
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedPayments.length)} of {sortedPayments.length} entries
                   </div>
@@ -521,8 +533,8 @@ export const Payments: React.FC = () => {
                         onClick={() => setCurrentPage(idx + 1)}
                         className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all cursor-pointer select-none
                           ${currentPage === idx + 1 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                            : 'bg-white text-slate-655 border-slate-200 hover:bg-slate-50'}
+                            ? 'bg-[#6B1F38] text-white border-[#6B1F38] shadow-sm' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}
                         `}
                       >
                         {idx + 1}
@@ -543,14 +555,14 @@ export const Payments: React.FC = () => {
         </div>
       ) : (
         /* Record Payment Form */
-        <div className="max-w-2xl bg-white border border-slate-100 rounded-2xl shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-1.5">
-            <CreditCard className="w-5 h-5 text-blue-600" />
+        <div className="ui-card w-full max-w-3xl p-4 sm:p-6">
+          <h3 className="mb-5 flex items-center gap-3 border-b border-[#E5DDE0] pb-4 text-lg font-semibold text-slate-900">
+            <CreditCard className="w-5 h-5 text-[#6B1F38]" />
             <span>Collect Course Fee Payment</span>
           </h3>
 
           {successInfo && (
-            <div className="mb-5 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-slide-in">
+            <div className="mb-5 p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-slide-in">
               <div className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
@@ -568,11 +580,13 @@ export const Payments: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Student account</h4><p className="mt-1 text-xs text-slate-500">Find the student and review their current fee balance before recording a collection.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Student Dropdown -> Replaced with searchable combobox */}
               <div className="space-y-1 sm:col-span-2">
-                <label className="text-xs font-bold text-slate-655">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
+                <label className="text-xs font-bold text-slate-600">Select Student (Outstanding Balance Due) <span className="text-rose-500">*</span></label>
                 <div className="relative student-combobox-container" ref={comboboxRef}>
                   <div className="relative">
                     <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -586,7 +600,7 @@ export const Payments: React.FC = () => {
                         setIsComboboxOpen(true);
                       }}
                       onKeyDown={handleKeyDown}
-                      className={`w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-text transition-all ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                      className={`w-full pl-10 pr-12 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-text transition-all ${formErrors.studentId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                     />
                     <div className="absolute right-3.5 top-3 flex items-center gap-1.5">
                       {selectedStudent && (
@@ -627,9 +641,9 @@ export const Payments: React.FC = () => {
                             }}
                             className={`px-4 py-3 cursor-pointer transition-colors duration-150 flex flex-col items-start 
                               ${highlightedIndex === index 
-                                ? 'bg-blue-600 text-white font-medium' 
+                                ? 'bg-[#6B1F38] text-white font-medium' 
                                 : selectedStudentId === s.id 
-                                  ? 'bg-blue-50/50 hover:bg-blue-50' 
+                                  ? 'bg-[#F8E9ED]/50 hover:bg-[#F8E9ED]' 
                                   : 'hover:bg-slate-50'
                               }`}
                           >
@@ -637,23 +651,23 @@ export const Payments: React.FC = () => {
                               <span className={`font-semibold text-sm ${highlightedIndex === index ? 'text-white' : 'text-slate-800'}`}>{s.name}</span>
                               <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono 
                                 ${highlightedIndex === index 
-                                  ? 'bg-blue-700/50 text-blue-100' 
-                                  : 'bg-slate-100 text-slate-655'
+                                  ? 'bg-[#57172D] text-[#F8E9ED]' 
+                                  : 'bg-slate-100 text-slate-600'
                                 }`}
                               >
                                 {s.rollNumber}
                               </span>
                             </div>
                             <div className={`text-[11px] mt-1 flex items-center gap-1 
-                              ${highlightedIndex === index ? 'text-blue-100' : 'text-slate-400'}`}
+                              ${highlightedIndex === index ? 'text-[#F8E9ED]' : 'text-slate-400'}`}
                             >
                               <span>{s.courseName}</span>
-                              <span className={highlightedIndex === index ? 'text-blue-300' : 'text-slate-300'}>•</span>
+                              <span className={highlightedIndex === index ? 'text-[#E8C9D4]' : 'text-slate-300'}>•</span>
                               <span>{s.batch}</span>
                             </div>
                             {s.phone && (
                               <div className={`text-[10px] mt-0.5 font-medium 
-                                ${highlightedIndex === index ? 'text-blue-200' : 'text-slate-400'}`}
+                                ${highlightedIndex === index ? 'text-[#F8E9ED]' : 'text-slate-400'}`}
                               >
                                 Phone: {s.phone}
                               </div>
@@ -673,7 +687,7 @@ export const Payments: React.FC = () => {
 
               {/* Student Ledger Quick summary */}
               {selectedStudent && (
-                <div className="sm:col-span-2 bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-2 animate-fade-in">
+                <div className="sm:col-span-2 rounded-xl border border-[#E5DDE0] bg-[#FCFAFB] p-4 space-y-2 animate-fade-in">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-semibold text-slate-500">Selected Course:</span>
                     <span className="font-bold text-slate-800">{selectedStudent.courseName}</span>
@@ -703,14 +717,14 @@ export const Payments: React.FC = () => {
               {selectedStudent && (
                 <div className="space-y-1 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-655">
+                    <label className="text-xs font-bold text-slate-600">
                       Payment Allocation <span className="text-slate-400 font-normal">(Optional)</span>
                     </label>
                     {selectedInstallmentId && (
                       <button
                         type="button"
                         onClick={() => handleInstallmentChange('')}
-                        className="text-[10px] text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+                        className="text-[10px] text-[#6B1F38] hover:text-[#6B1F38] font-semibold cursor-pointer"
                       >
                         Clear installment (Direct Payment)
                       </button>
@@ -719,7 +733,7 @@ export const Payments: React.FC = () => {
                   <select
                     value={selectedInstallmentId}
                     onChange={(e) => handleInstallmentChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer"
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer"
                   >
                     <option value="">
                       {selectedStudentInstallments.length > 0
@@ -745,6 +759,11 @@ export const Payments: React.FC = () => {
                 </div>
               )}
 
+              </div>
+            </section>
+            <section className="space-y-3">
+              <div><h4 className="text-sm font-semibold text-slate-900">Payment details</h4><p className="mt-1 text-xs text-slate-500">Choose the allocation, amount and payment method.</p></div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Payment Amount */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">Payment Amount ({settings?.currencySymbol || '₹'}) <span className="text-rose-500">*</span></label>
@@ -758,7 +777,7 @@ export const Payments: React.FC = () => {
                       if (e.target.value) setFormErrors(prev => ({ ...prev, amount: '' }));
                     }}
                     placeholder="Enter amount"
-                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 font-semibold text-slate-850 ${formErrors.amount ? 'border-rose-305 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full pl-8 pr-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] font-semibold text-slate-800 ${formErrors.amount ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                 </div>
                 {formErrors.amount && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.amount}</span>}
@@ -770,7 +789,7 @@ export const Payments: React.FC = () => {
                 <select 
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value as Payment['paymentMethod'])}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 bg-white cursor-pointer"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-white cursor-pointer"
                 >
                   <option value="UPI">UPI</option>
                   <option value="Cash">Cash</option>
@@ -798,7 +817,7 @@ export const Payments: React.FC = () => {
                       paymentMethod === 'Cheque' ? 'Cheque Number (e.g. CHQ-554433)' :
                       'Reference Transaction ID number'
                     }
-                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 ${formErrors.transactionId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
+                    className={`w-full px-3.5 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] ${formErrors.transactionId ? 'border-rose-300 bg-rose-50/20' : 'border-slate-200'}`}
                   />
                   {formErrors.transactionId && <span className="text-[10px] text-rose-600 font-bold block">{formErrors.transactionId}</span>}
                 </div>
@@ -812,13 +831,14 @@ export const Payments: React.FC = () => {
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="e.g. Second installment paid, partial payment."
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
                 />
               </div>
-            </div>
+              </div>
+            </section>
 
             {/* Form actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E5DDE0]">
               <button 
                 type="button" 
                 onClick={() => { setActiveTab('ledger'); setSuccessInfo(null); }}
@@ -829,7 +849,7 @@ export const Payments: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-6 py-2 bg-[#6B1F38] hover:bg-[#57172D] disabled:bg-[#A03B5E] text-white rounded-xl text-sm font-semibold shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>{isSubmitting ? 'Recording...' : 'Record Payment'}</span>
