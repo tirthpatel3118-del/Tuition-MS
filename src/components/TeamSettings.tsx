@@ -52,7 +52,7 @@ export function TeamSettings() {
     setBusy(true); setError(''); setNotice(''); setInviteUrl('');
     try {
       const invitation = await inviteInstituteMember(email, role);
-      setInviteUrl(`${window.location.origin}/accept-invitation?token=${encodeURIComponent(invitation.raw_token)}`);
+      setInviteUrl(`${window.location.origin}/accept-invitation#token=${encodeURIComponent(invitation.raw_token)}`);
       setEmail('');
       await refresh();
       setNotice('Invitation created. Share the one-time link with the invited person.');
