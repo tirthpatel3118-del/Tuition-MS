@@ -537,7 +537,7 @@ export const Reminders: React.FC = () => {
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
-                                  ${inst.status === 'Overdue' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}
+                                  ${inst.daysLate > 0 ? 'bg-rose-50 text-rose-600 border-rose-100' : inst.dueLabel === 'Due today' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-slate-50 text-slate-600 border-slate-200'}
                                 `}>
                                   {inst.dueLabel}
                                 </span>
