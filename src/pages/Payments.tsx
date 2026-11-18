@@ -771,7 +771,7 @@ export const Payments: React.FC = () => {
                     </option>
                     {selectedStudentInstallments.map(inst => (
                       <option key={inst.id} value={inst.id}>
-                        Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                        Installment #{inst.installmentNumber} — {getFeeDueStatus(inst.dueDate).label} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
                       </option>
                     ))}
                   </select>
