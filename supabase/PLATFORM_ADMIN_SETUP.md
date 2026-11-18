@@ -23,11 +23,11 @@ The dashboard shows:
 - Subscription plan/status, expiry, access status and optional plan limits.
 - Whole-project PostgreSQL database size and whole-project Storage object size/count.
 
-The dashboard does not expose student names, guardian details, student contact details, individual staff email addresses, fee/payment/receipt records, attendance content, or uploaded file contents.
+The dashboard does not expose student names, guardian details, student contact details, individual staff email addresses, student fee/payment/receipt records, attendance content, or uploaded file contents. A separate platform subscription ledger is visible only to the designated platform administrator.
 
 Supabase database and Storage usage are shared at project level. The dashboard does not claim exact per-institute storage or bandwidth attribution. Student sign-in counts are not available because students do not currently have login accounts. Member activity is tracked when a signed-in owner, teacher or accountant loads the app.
 
-## Development deployment steps
+## Platform subscription billing\n\n- Subscription invoices are recorded in private platform billing tables, separate from institute student-fee ledgers.\n- Monthly and yearly billing periods are supported; the administrator manually enters the amount and due date for each institute.\n- UPI and bank transfers require a transaction reference; cash and other methods can be recorded manually. The platform administrator is responsible for verifying that funds have actually arrived.\n- One full payment per invoice is supported in this initial release. A verified payment creates a sequential receipt number.\n- Invoices can be voided only before payment, with a reason captured in the platform audit log. Paid records are immutable through the app.\n- Receipts can be printed or saved as PDF from the browser. They are payment acknowledgements, not GST tax invoices. GST invoicing, partial payments, refunds/reversals, automatic reminders and payment gateway reconciliation are not included.\n- Billing tables are private-schema tables with RLS enabled and no direct client grants. All access is through platform-admin guarded RPCs.\n\n## Development deployment steps
 
 1. Use a dedicated development Supabase project or Supabase development branch. Do not apply this migration to the production project during development.
 2. Apply migrations in sequence, including 20261118170000_platform_admin_and_invite_only_onboarding.sql.
