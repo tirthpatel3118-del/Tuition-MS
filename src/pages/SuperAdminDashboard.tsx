@@ -41,15 +41,15 @@ function MetricCard({ label, value, note, icon: Icon, tone }: {
     amber: "bg-amber-50 text-amber-700 ring-amber-100",
     slate: "bg-slate-100 text-slate-700 ring-slate-200",
   };
-  return <article className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,0.035)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5">
+  return <article className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_2px_8px_rgba(15,23,42,0.035)] transition duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5">
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-        <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-slate-950">{value}</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.09em] text-slate-500 sm:text-[11px] sm:tracking-[0.12em]">{label}</p>
+        <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-slate-950 sm:mt-3 sm:text-3xl">{value}</p>
       </div>
-      <span className={`rounded-2xl p-3 ring-1 ${tones[tone]}`}><Icon className="h-5 w-5" /></span>
+      <span className={`rounded-xl p-2 ring-1 sm:rounded-2xl sm:p-3 ${tones[tone]}`}><Icon className="h-5 w-5" /></span>
     </div>
-    <p className="mt-2 text-xs leading-5 text-slate-500">{note}</p>
+    <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">{note}</p>
     <div className="absolute -bottom-7 -right-5 h-20 w-20 rounded-full bg-slate-50/80 transition group-hover:scale-125" />
   </article>;
 }
@@ -209,8 +209,8 @@ export function SuperAdminDashboard() {
 
   const pendingInvitations = invitations.filter(item => item.status === "Pending").length;
 
-  return <main className="mx-auto max-w-[1480px] space-y-6 pb-8">
-    <header className="relative isolate overflow-hidden rounded-[26px] bg-gradient-to-br from-[#32101F] via-[#57172D] to-[#7B2947] px-5 py-6 text-white shadow-[0_16px_40px_rgba(77,20,43,0.18)] sm:px-7 sm:py-7">
+  return <main className="mx-auto max-w-[1480px] space-y-4 pb-6 sm:space-y-6 sm:pb-8">
+    <header className="relative isolate overflow-hidden rounded-[22px] bg-gradient-to-br from-[#32101F] via-[#57172D] to-[#7B2947] px-4 py-5 text-white sm:rounded-[26px] sm:px-7 sm:py-7 shadow-[0_16px_40px_rgba(77,20,43,0.18)] sm:px-7 sm:py-7">
       <div className="pointer-events-none absolute -right-12 -top-24 -z-10 h-72 w-72 rounded-full border-[34px] border-white/[0.06]" />
       <div className="pointer-events-none absolute bottom-[-90px] right-[22%] -z-10 h-56 w-56 rounded-full bg-white/[0.04] blur-2xl" />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -218,8 +218,8 @@ export function SuperAdminDashboard() {
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-rose-100">
             <Sparkles className="h-3.5 w-3.5" /> EduLedger control center
           </div>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Good to see you.</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-rose-100/80">Your platform at a glance. Monitor institute growth, service usage and access from one place.</p>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight sm:mt-4 sm:text-4xl">Good to see you.</h1>
+          <p className="mt-2 max-w-xl text-sm leading-5 text-rose-100/80 sm:leading-6">Your platform at a glance. Monitor institute growth, service usage and access from one place.</p>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-rose-100/80">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Super Admin</span>
             <span className="max-w-full truncate rounded-full bg-white/10 px-3 py-1.5">{email ?? "Designated administrator"}</span>
@@ -234,7 +234,7 @@ export function SuperAdminDashboard() {
           </button>
         </div>
       </div>
-      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 pt-4 text-xs text-rose-100/75">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/15 pt-4 text-xs text-rose-100/75">
         <span className="inline-flex items-center gap-1.5"><Activity className="h-3.5 w-3.5" /> Live platform overview</span>
         <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" /> Team activity · last 30 days</span>
         <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Privacy-first metrics</span>
@@ -249,7 +249,7 @@ export function SuperAdminDashboard() {
         <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A03B5E]">Platform snapshot</p><h2 className="text-lg font-bold text-slate-900">Key numbers</h2></div>
         <span className="text-[11px] text-slate-400">{loading ? "Updating…" : "Latest available data"}</span>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-3">
         <MetricCard label="Institutions" value={overview.institute_count} note="Registered workspaces" icon={Building2} tone="rose" />
         <MetricCard label="Students" value={overview.student_count} note="Aggregate count only" icon={GraduationCap} tone="blue" />
         <MetricCard label="Team members" value={overview.team_member_count} note={overview.owner_count + " owners · " + overview.teacher_count + " teachers · " + overview.accountant_count + " accountants"} icon={Users} tone="violet" />
@@ -259,13 +259,13 @@ export function SuperAdminDashboard() {
       </div>
     </section>
 
-    <section className="grid gap-3 lg:grid-cols-2">
-      <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+    <section className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+      <article className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2.5"><span className="rounded-xl bg-sky-50 p-2.5 text-sky-700"><Database className="h-5 w-5" /></span><div><h3 className="font-bold text-slate-900">Database usage</h3><p className="text-xs text-slate-500">Whole Supabase project</p></div></div><span className="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold text-sky-700">PROJECT-WIDE</span></div>
         <p className="mt-4 text-3xl font-bold tracking-tight tabular-nums text-slate-950">{formatBytes(overview.database_bytes)}</p>
         <p className="mt-2 text-xs leading-5 text-slate-500">The database is shared across institutes, so this is not a per-institute allocation.</p>
       </article>
-      <article className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+      <article className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2.5"><span className="rounded-xl bg-violet-50 p-2.5 text-violet-700"><HardDrive className="h-5 w-5" /></span><div><h3 className="font-bold text-slate-900">File storage usage</h3><p className="text-xs text-slate-500">Whole Supabase project</p></div></div><span className="rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-bold text-violet-700">PROJECT-WIDE</span></div>
         <p className="mt-4 text-3xl font-bold tracking-tight tabular-nums text-slate-950">{formatBytes(overview.storage_bytes_project_wide)}</p>
         <p className="mt-2 text-xs leading-5 text-slate-500">{overview.storage_objects_project_wide.toLocaleString()} files across the project. Institute-level attribution is not available yet.</p>
