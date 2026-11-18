@@ -97,3 +97,9 @@ export const voidPlatformBillingInvoice = (invoiceId: string, reason: string) =>
     p_invoice_id: invoiceId,
     p_reason: reason,
   });
+
+export const updatePlatformBillingContact = (invoiceId: string, phone: string) =>
+  billingRpc<void>("platform_admin_update_billing_contact", {
+    p_invoice_id: invoiceId,
+    p_phone: phone,
+  });
