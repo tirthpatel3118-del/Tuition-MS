@@ -244,7 +244,7 @@ export function SuperAdminDashboard() {
                 <div><p className="text-xs text-slate-500">Students</p><p className="font-bold text-slate-900">{item.student_count}</p></div>
                 <div><p className="text-xs text-slate-500">Team</p><p className="font-bold text-slate-900">{item.team_member_count}</p><p className="text-[11px] text-slate-500">{item.owner_count} O · {item.teacher_count} T · {item.accountant_count} A</p></div>
                 <div><p className="text-xs text-slate-500">Active · 30d</p><p className="font-bold text-slate-900">{item.active_members_30d}</p><p className="text-[11px] text-slate-500">{item.active_owners_30d} O · {item.active_teachers_30d} T · {item.active_accountants_30d} A</p></div>
-                <div><p className="text-xs text-slate-500">Last team activity</p><p className="font-bold text-slate-900">{item.last_active_date ? new Date(item.last_active_date).toLocaleDateString() : "Not tracked yet"}</p></div>
+                <div><p className="text-xs text-slate-500">Database estimate</p><p className="font-bold text-slate-900">{formatBytes(item.estimated_database_row_bytes)}</p><p className="text-[11px] text-slate-500">Row payload only</p></div>
               </div>
             </div>
 
@@ -324,7 +324,8 @@ export function SuperAdminDashboard() {
     <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
       <h2 className="text-sm font-bold text-amber-950">Usage and privacy notes</h2>
       <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-amber-900">
-        <li>Database and file-storage totals are whole-project Supabase metrics, not precise per-institute billing amounts.</li>
+        <li>Each institute's database estimate is the sum of row payload sizes for its tagged records. It excludes indexes, TOAST and shared overhead; use the project-wide database total for actual Supabase usage.</li>
+        <li>File-storage totals are whole-project Supabase metrics; per-institute file attribution is not available until institute-specific storage paths are introduced and audited.</li>
         <li>Institute rows show student and team counts only. Member login activity is counted per unique team account per day over the last 30 days.</li>
         <li>Student login tracking is unavailable because students do not currently have EduLedger login accounts.</li>
         <li>Per-institute file attribution is unavailable until institute-specific storage paths are introduced and audited.</li>
