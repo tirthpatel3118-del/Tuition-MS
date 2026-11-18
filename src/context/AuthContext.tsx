@@ -40,7 +40,7 @@ interface AuthContextValue {
   activeMembership: InstituteMembership | null;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<boolean>;
+  signUp: (email: string, password: string, fullName: string, invitationToken?: string) => Promise<boolean>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -479,14 +479,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (signInError) throw signInError;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken?: string) => {
     setError(null);
+    if (!invitationToken) throw new Error('A valid invitation is required to create an EduLedger account.');
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: { full_name: fullName.trim() },
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: window.location.origin + '/accept-invitation#token=' + encodeURIComponent(invitationToken),
       },
     });
     if (signUpError) throw signUpError;
