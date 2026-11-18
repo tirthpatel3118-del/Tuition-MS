@@ -7,11 +7,13 @@ const js = ts.transpile(source, { module: ts.ModuleKind.ES2022, target: ts.Scrip
 const helpers = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 
 const monthly = helpers.calculateSubscriptionDates("2026-11-18", "monthly");
-assert.deepEqual(monthly, { periodStart: "2026-11-18", periodEnd: "2026-12-17", dueAt: "2026-11-18" });
+assert.deepEqual(monthly, { periodStart: "2026-11-18", periodEnd: "2026-12-17", dueAt: "2026-12-17" });
 const yearly = helpers.calculateSubscriptionDates("2026-11-18", "yearly");
-assert.deepEqual(yearly, { periodStart: "2026-11-18", periodEnd: "2027-11-17", dueAt: "2026-11-18" });
+assert.deepEqual(yearly, { periodStart: "2026-11-18", periodEnd: "2027-11-17", dueAt: "2027-11-17" });
 assert.equal(helpers.calculateSubscriptionDates("2026-01-31", "monthly").periodEnd, "2026-02-27");
+assert.equal(helpers.calculateSubscriptionDates("2026-01-31", "monthly").dueAt, "2026-02-27");
 assert.equal(helpers.calculateSubscriptionDates("2024-02-29", "yearly").periodEnd, "2025-02-27");
+assert.equal(helpers.calculateSubscriptionDates("2024-02-29", "yearly").dueAt, "2025-02-27");
 assert.equal(helpers.classifyBillingDueDate("2026-11-18", "2026-11-18"), "due_today");
 assert.equal(helpers.classifyBillingDueDate("2026-11-19", "2026-11-18"), "upcoming");
 assert.equal(helpers.classifyBillingDueDate("2026-11-17", "2026-11-18"), "overdue");
@@ -36,6 +38,7 @@ const migration = readFileSync(new URL("../supabase/migrations/20261118192000_pl
 assert.ok(dashboard.includes("Due today") && dashboard.includes("Upcoming") && dashboard.includes("Overdue"));
 assert.ok(dashboard.includes("window.open(\"https://wa.me/\""), "WhatsApp must open as a user-initiated manual action");
 assert.ok(dashboard.includes("updateBillingStart") && dashboard.includes("updateBillingCycle"));
+assert.ok(dashboard.includes("invoiceDue"), "invoice due date remains editable after automatic defaulting");
 assert.ok(dashboard.includes("billingContactPhone"));
 assert.ok(service.includes("p_billing_contact_phone"));
 assert.ok(service.includes("platform_admin_update_billing_contact"));
