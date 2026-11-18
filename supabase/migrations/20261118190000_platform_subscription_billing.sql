@@ -21,8 +21,7 @@ CREATE TABLE IF NOT EXISTS private.platform_billing_invoices (
   status text NOT NULL DEFAULT 'issued' CHECK (status IN ('issued','paid','void')),
   created_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT platform_billing_invoice_period_check CHECK (period_end >= period_start),
-  CONSTRAINT platform_billing_invoice_unique_period UNIQUE (institute_id, period_start, period_end)
+  CONSTRAINT platform_billing_invoice_period_check CHECK (period_end >= period_start)
 );
 CREATE INDEX IF NOT EXISTS idx_platform_billing_invoices_due ON private.platform_billing_invoices (due_at, institute_id) WHERE status = 'issued';
 CREATE INDEX IF NOT EXISTS idx_platform_billing_invoices_institute_period ON private.platform_billing_invoices (institute_id, period_start DESC);
@@ -40,6 +39,10 @@ CREATE TABLE IF NOT EXISTS private.platform_billing_payments (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_platform_billing_payments_paid_at ON private.platform_billing_payments (paid_at DESC);
+CREATE INDEX IF NOT EXISTS idx_platform_billing_invoices_created_by ON private.platform_billing_invoices(created_by);
+CREATE INDEX IF NOT EXISTS idx_platform_billing_payments_recorded_by ON private.platform_billing_payments(recorded_by);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_platform_billing_active_period ON private.platform_billing_invoices(institute_id,period_start,period_end) WHERE status IN ('issued','paid');
+CREATE UNIQUE INDEX IF NOT EXISTS uq_platform_billing_transaction_reference ON private.platform_billing_payments(lower(transaction_reference)) WHERE transaction_reference IS NOT NULL AND length(trim(transaction_reference))>0;
 
 ALTER TABLE private.platform_billing_invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private.platform_billing_payments ENABLE ROW LEVEL SECURITY;
@@ -96,7 +99,7 @@ BEGIN
   IF NOT EXISTS(SELECT 1 FROM public.institutes WHERE id=p_institute_id) THEN RAISE EXCEPTION 'Institute not found.'; END IF;
   IF p_billing_cycle NOT IN ('monthly','yearly') THEN RAISE EXCEPTION 'Choose monthly or yearly billing.'; END IF;
   IF p_period_start IS NULL OR p_period_end IS NULL OR p_period_end < p_period_start THEN RAISE EXCEPTION 'Billing period dates are invalid.'; END IF;
-  IF p_due_at IS NULL OR p_due_at < current_date THEN RAISE EXCEPTION 'Due date cannot be in the past.'; END IF;
+  IF p_due_at IS NULL THEN RAISE EXCEPTION 'A due date is required.'; END IF;
   IF p_amount_inr IS NULL OR p_amount_inr <= 0 OR p_amount_inr <> round(p_amount_inr,2) THEN RAISE EXCEPTION 'Enter a valid subscription amount in INR.'; END IF;
   IF length(trim(COALESCE(p_description,'')))=0 THEN RAISE EXCEPTION 'Invoice description is required.'; END IF;
   v_invoice_number := 'EDU-INV-'||v_year||'-'||lpad(nextval('private.platform_invoice_number_seq')::text,6,'0');
