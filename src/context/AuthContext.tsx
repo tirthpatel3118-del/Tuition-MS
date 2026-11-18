@@ -18,6 +18,7 @@ export interface InstituteMembership {
   instituteId: string;
   instituteName: string;
   role: InstituteRole;
+  accessStatus: 'active' | 'suspended' | 'expired';
 }
 
 type AuthStatus =
@@ -34,6 +35,7 @@ interface AuthContextValue {
   status: AuthStatus;
   session: Session | null;
   email: string | null;
+  platformAdmin: boolean;
   memberships: InstituteMembership[];
   activeMembership: InstituteMembership | null;
   error: string | null;
@@ -46,6 +48,7 @@ interface AuthContextValue {
   createInstitute: (name: string, slug: string) => Promise<void>;
   refreshMemberships: () => Promise<void>;
   acceptInvitation: (token: string) => Promise<void>;
+  acceptPlatformInvitation: (token: string) => Promise<void>;
 }
 
 const ACTIVE_INSTITUTE_KEY = 'eduledger.activeInstituteId';
@@ -113,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatusState] = useState<AuthStatus>(configured ? 'loading' : 'demo');
   const [session, setSessionState] = useState<Session | null>(null);
   const [verifiedUserId, setVerifiedUserIdState] = useState<string | null>(null);
+  const [platformAdmin, setPlatformAdmin] = useState(false);
   const [memberships, setMemberships] = useState<InstituteMembership[]>([]);
   const [activeInstituteId, setActiveInstituteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -197,27 +201,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setVerifiedUserId(userId);
       setStatus('loading-memberships');
 
-      const { data: memberRows, error: membershipError } = await withTimeout(
-        supabase
-          .from('institute_members')
-          .select('institute_id, role, institutes!inner(id, name)')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: true }),
+      const { data: adminFlag } = await supabase.rpc('is_platform_admin');
+      setPlatformAdmin(adminFlag === true);
+
+      const { data: accessRows, error: accessError } = await withTimeout(
+        supabase.rpc('get_my_institute_access'),
         'Loading your institute memberships timed out. Please try again.',
       );
 
       if (seq !== bootstrapSeqRef.current) return;
 
-      if (membershipError) throw membershipError;
-
-      const nextMemberships: InstituteMembership[] = (memberRows ?? []).map((row: any) => {
-        const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
-        return {
-          instituteId: row.institute_id,
-          instituteName: institute?.name ?? 'Institute',
+      let nextMemberships: InstituteMembership[];
+      if (!accessError && Array.isArray(accessRows)) {
+        nextMemberships = accessRows.map((row: any) => ({
+          instituteId: String(row.institute_id),
+          instituteName: String(row.institute_name ?? 'Institute'),
           role: row.role as InstituteRole,
-        };
-      });
+          accessStatus: row.access_status === 'suspended' || row.access_status === 'expired' ? row.access_status : 'active',
+        }));
+      } else {
+        const { data: memberRows, error: membershipError } = await withTimeout(
+          supabase
+            .from('institute_members')
+            .select('institute_id, role, institutes!inner(id, name)')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true }),
+          'Loading your institute memberships timed out. Please try again.',
+        );
+        if (membershipError) throw membershipError;
+        nextMemberships = (memberRows ?? []).map((row: any) => {
+          const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
+          return {
+            instituteId: row.institute_id,
+            instituteName: institute?.name ?? 'Institute',
+            role: row.role as InstituteRole,
+            accessStatus: 'active' as const,
+          };
+        });
+      }
+
+      for (const membership of nextMemberships) {
+        void supabase.rpc('record_member_login_activity', { p_institute_id: membership.instituteId });
+      }
 
       applyMemberships(nextMemberships);
       setStatus('ready');
@@ -260,26 +285,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const request = (async () => {
       try {
-        const { data, error: membershipError } = await withTimeout(
-          supabase
-            .from('institute_members')
-            .select('institute_id, role, institutes!inner(id, name)')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: true }),
+        const { data: accessRows, error: accessError } = await withTimeout(
+          supabase.rpc('get_my_institute_access'),
           'Loading your institute memberships timed out. Please try again.',
         );
 
         if (requestId !== membershipRequestId.current) return;
-        if (membershipError) throw membershipError;
 
-        const nextMemberships: InstituteMembership[] = (data ?? []).map((row: any) => {
-          const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
-          return {
-            instituteId: row.institute_id,
-            instituteName: institute?.name ?? 'Institute',
+        let nextMemberships: InstituteMembership[];
+        if (!accessError && Array.isArray(accessRows)) {
+          nextMemberships = accessRows.map((row: any) => ({
+            instituteId: String(row.institute_id),
+            instituteName: String(row.institute_name ?? 'Institute'),
             role: row.role as InstituteRole,
-          };
-        });
+            accessStatus: row.access_status === 'suspended' || row.access_status === 'expired' ? row.access_status : 'active',
+          }));
+        } else {
+          const { data, error: membershipError } = await withTimeout(
+            supabase
+              .from('institute_members')
+              .select('institute_id, role, institutes!inner(id, name)')
+              .eq('user_id', userId)
+              .order('created_at', { ascending: true }),
+            'Loading your institute memberships timed out. Please try again.',
+          );
+          if (membershipError) throw membershipError;
+          nextMemberships = (data ?? []).map((row: any) => {
+            const institute = Array.isArray(row.institutes) ? row.institutes[0] : row.institutes;
+            return {
+              instituteId: row.institute_id,
+              instituteName: institute?.name ?? 'Institute',
+              role: row.role as InstituteRole,
+              accessStatus: 'active' as const,
+            };
+          });
+        }
+
+        for (const membership of nextMemberships) {
+          void supabase.rpc('record_member_login_activity', { p_institute_id: membership.instituteId });
+        }
 
         applyMemberships(nextMemberships);
         setStatus('ready');
@@ -316,6 +360,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAppData();
         setSession(null);
         setVerifiedUserId(null);
+        setPlatformAdmin(false);
         setMemberships([]);
         setActiveInstituteId(null);
         setRequestInstituteId(null);
@@ -471,6 +516,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRequestInstituteId(instituteId);
   }, [refreshMemberships]);
 
+  const acceptPlatformInvitation = useCallback(async (token: string) => {
+    const { error: acceptError } = await supabase.rpc('accept_platform_invitation', { p_raw_token: token });
+    if (acceptError) throw acceptError;
+    await refreshMemberships();
+  }, [refreshMemberships]);
+
   const signOut = useCallback(async () => {
     bootstrapSeqRef.current += 1;
     membershipRequestId.current += 1;
@@ -483,6 +534,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAppData();
     setSession(null);
     setVerifiedUserId(null);
+    setPlatformAdmin(false);
     setMemberships([]);
     setActiveInstituteId(null);
     setRequestInstituteId(null);
@@ -522,6 +574,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status,
     session,
     email: session?.user.email ?? null,
+    platformAdmin,
     memberships,
     activeMembership,
     error,
@@ -534,7 +587,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     createInstitute,
     refreshMemberships,
     acceptInvitation,
-  }), [configured, status, session, memberships, activeMembership, error, signIn, signUp, requestPasswordReset, updatePassword, signOut, selectInstitute, createInstitute, refreshMemberships, acceptInvitation]);
+    acceptPlatformInvitation,
+  }), [configured, status, session, platformAdmin, memberships, activeMembership, error, signIn, signUp, requestPasswordReset, updatePassword, signOut, selectInstitute, createInstitute, refreshMemberships, acceptInvitation, acceptPlatformInvitation]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
