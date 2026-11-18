@@ -570,12 +570,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const paymentDate = formatLocalDateInput();
     const localReceiptNumber = `REC-${new Date().getFullYear()}-${String(data.payments.length + 1).padStart(4, '0')}`;
-    const requestKey = [getActiveInstituteId() ?? 'demo', paymentData.studentId, installmentId ?? 'none', paymentData.amount].join(':');
+    const paymentRemarks = [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | ');
+    // Reuse an idempotency key only for the exact same payment intent. Persist
+    // pending keys across tab/browser restarts so an uncertain network result
+    // can be retried without creating a second ledger entry.
+    const requestKey = JSON.stringify([
+      getActiveInstituteId() ?? 'demo',
+      paymentData.studentId,
+      installmentId ?? null,
+      Number(paymentData.amount.toFixed(2)),
+      paymentData.paymentMethod,
+      paymentDate,
+      paymentRemarks,
+    ]);
     const storageKey = `eduledger.pendingPayment:${requestKey}`;
     let idempotencyKey: string | null = pendingPaymentIdempotencyKeys.get(storageKey) ?? null;
     if (!idempotencyKey) {
       try {
-        idempotencyKey = sessionStorage.getItem(storageKey);
+        idempotencyKey = localStorage.getItem(storageKey);
       } catch {
         // The in-memory map still supports retries in this tab.
       }
@@ -584,7 +596,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       idempotencyKey = globalThis.crypto?.randomUUID?.() ?? `payment-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       pendingPaymentIdempotencyKeys.set(storageKey, idempotencyKey);
       try {
-        sessionStorage.setItem(storageKey, idempotencyKey);
+        localStorage.setItem(storageKey, idempotencyKey);
       } catch {
         // The in-memory map keeps this key available for same-tab retries.
       }
@@ -596,11 +608,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       paymentMode: paymentData.paymentMethod,
       paymentDate,
       installmentId,
-      remarks: [paymentData.remarks, paymentData.transactionId ? `Reference: ${paymentData.transactionId}` : ''].filter(Boolean).join(' | '),
+      remarks: paymentRemarks,
       idempotencyKey,
     });
     pendingPaymentIdempotencyKeys.delete(storageKey);
-    try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional after the request completes. */ }
+    try { localStorage.removeItem(storageKey); } catch { /* Storage is optional after the request completes. */ }
 
     const newPayment: Payment = {
       ...paymentData,
