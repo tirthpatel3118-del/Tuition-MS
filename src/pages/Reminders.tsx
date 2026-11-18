@@ -318,6 +318,8 @@ export const Reminders: React.FC = () => {
         displayDueDate: '—',
         status: 'Pending' as const,
         remainingFee: 12000,
+        dueLabel: 'No due date',
+        daysLate: 0,
       };
     } else {
       if (focusedItem && !focusedItem.isDirect) return focusedItem;
@@ -339,6 +341,8 @@ export const Reminders: React.FC = () => {
         displayDueDate: '2026-08-15',
         status: 'Pending' as const,
         remainingFee: 10000,
+        dueLabel: '2 days late',
+        daysLate: 2,
       };
     }
   };
