@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '../lib/date';
+import { getFeeDueStatus, isActionableFeeDue } from '../utils/feeDueStatus';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -97,6 +98,8 @@ export const Reminders: React.FC = () => {
       status: 'Pending' | 'Overdue';
       remarks?: string;
       remainingFee: number;
+      dueLabel: string;
+      daysLate: number;
     }> = [];
 
     // Filter active students with positive feesDue
@@ -152,6 +155,8 @@ export const Reminders: React.FC = () => {
           status: isOverdue ? 'Overdue' : 'Pending',
           remarks: inst.remarks,
           remainingFee: student.feesDue,
+          dueLabel: getFeeDueStatus(inst.dueDate).label,
+          daysLate: getFeeDueStatus(inst.dueDate).daysLate,
         });
       }
 
@@ -175,11 +180,15 @@ export const Reminders: React.FC = () => {
           status: 'Pending',
           remarks: 'Direct fee balance',
           remainingFee: student.feesDue,
+          dueLabel: 'No due date',
+          daysLate: 0,
         });
       }
     }
 
-    return items;
+    // Hide future scheduled installments from the default follow-up list.
+    // Keep unscheduled direct balances visible so outstanding fees are not missed.
+    return items.filter(item => isActionableFeeDue(item.dueDate));
   }, [students, installments, installmentPaidTotals, settings?.dateFormat]);
 
   // Load focused student from dashboard query parameters
@@ -523,13 +532,14 @@ export const Reminders: React.FC = () => {
                                 {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}
                               </td>
                               <td className="px-4 py-3.5 text-center font-medium text-slate-600">
-                                {inst.displayDueDate}
+                                <div>{inst.displayDueDate}</div>
+                                <div className={`mt-1 text-[10px] font-semibold ${inst.daysLate > 0 ? 'text-rose-600' : inst.dueLabel === 'Due today' ? 'text-amber-700' : 'text-slate-400'}`}>{inst.dueLabel}</div>
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
                                   ${inst.status === 'Overdue' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}
                                 `}>
-                                  {inst.status}
+                                  {inst.dueLabel}
                                 </span>
                               </td>
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>
