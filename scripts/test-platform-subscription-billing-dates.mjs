@@ -43,6 +43,7 @@ assert.ok(dashboard.includes("position: fixed !important") && dashboard.includes
 assert.ok(dashboard.includes("window.open(\"https://wa.me/\""), "WhatsApp must open as a user-initiated manual action");
 assert.ok(dashboard.includes("updateBillingStart") && dashboard.includes("updateBillingCycle"));
 assert.ok(dashboard.includes("invoiceDue"), "invoice due date remains editable after automatic defaulting");
+assert.ok(dashboard.includes("setInvoiceDue(e.target.value)"), "Changing period end should update the default due date");
 assert.ok(dashboard.includes("billingContactPhone"));
 assert.ok(service.includes("p_billing_contact_phone"));
 assert.ok(service.includes("platform_admin_update_billing_contact"));
