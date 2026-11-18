@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  Activity, ArrowDownRight, Building2, Check, ChevronDown, Clock3, Copy, Database,
+  Activity, ArrowDownRight, Building2, Check, ChevronDown, Clock3, Copy, Database, CircleDollarSign, ReceiptText, CreditCard, AlertCircle,
   GraduationCap, HardDrive, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles,
   UserPlus, Users, X,
 } from "lucide-react";
@@ -10,6 +10,7 @@ import {
   listPlatformInvitations, revokePlatformInvitation, savePlatformInstituteControls,
   type PlatformInstitute, type PlatformInvitation, type PlatformOverview,
 } from "../services/platformAdminService";
+import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformBilling, recordPlatformBillingPayment, voidPlatformBillingInvoice, type BillingOverview, type PlatformBillingInvoice } from "../services/platformBillingService";
 
 type InstituteDraft = {
   accessStatus: "active" | "suspended";
@@ -19,6 +20,8 @@ type InstituteDraft = {
   studentLimit: string;
   teamLimit: string;
 };
+
+const emptyBillingOverview: BillingOverview = { paid_this_month: 0, pending_amount: 0, overdue_amount: 0, paid_institutes_this_month: 0, pending_invoices: 0, overdue_invoices: 0 };
 
 const emptyOverview: PlatformOverview = {
   institute_count: 0, student_count: 0, team_member_count: 0, owner_count: 0, teacher_count: 0,
@@ -76,6 +79,21 @@ export function SuperAdminDashboard() {
   const [overview, setOverview] = useState<PlatformOverview>(emptyOverview);
   const [institutes, setInstitutes] = useState<PlatformInstitute[]>([]);
   const [invitations, setInvitations] = useState<PlatformInvitation[]>([]);
+  const [billingOverview, setBillingOverview] = useState<BillingOverview>(emptyBillingOverview);
+  const [billingInvoices, setBillingInvoices] = useState<PlatformBillingInvoice[]>([]);
+  const [invoiceInstitute, setInvoiceInstitute] = useState("");
+  const [invoiceCycle, setInvoiceCycle] = useState<"monthly" | "yearly">("monthly");
+  const [invoiceStart, setInvoiceStart] = useState("");
+  const [invoiceEnd, setInvoiceEnd] = useState("");
+  const [invoiceDue, setInvoiceDue] = useState("");
+  const [invoiceAmount, setInvoiceAmount] = useState("");
+  const [invoiceDescription, setInvoiceDescription] = useState("EduLedger platform subscription");
+  const [paymentInvoice, setPaymentInvoice] = useState<PlatformBillingInvoice | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank_transfer" | "cash" | "other">("upi");
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0,10));
+  const [paymentNotes, setPaymentNotes] = useState("");
+  const [receipt, setReceipt] = useState<PlatformBillingInvoice | null>(null);
   const [drafts, setDrafts] = useState<Record<string, InstituteDraft>>({});
   const [search, setSearch] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
@@ -98,6 +116,8 @@ export function SuperAdminDashboard() {
       setOverview(nextOverview);
       setInstitutes(nextInstitutes);
       setInvitations(nextInvitations);
+      setBillingOverview(nextBillingOverview);
+      setBillingInvoices(nextBilling);
       setDrafts(Object.fromEntries(nextInstitutes.map(item => [item.institute_id, {
         accessStatus: item.access_status,
         planCode: item.plan_code || "trial",
@@ -149,6 +169,55 @@ export function SuperAdminDashboard() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const createInvoice = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); setBusy(true); setError(""); setNotice("");
+    try {
+      const result = await createPlatformBillingInvoice({
+        instituteId: invoiceInstitute, billingCycle: invoiceCycle, periodStart: invoiceStart,
+        periodEnd: invoiceEnd, dueAt: invoiceDue, amountInr: Number(invoiceAmount),
+        description: invoiceDescription,
+      });
+      setNotice("Invoice " + result.invoice_number + " created.");
+      setInvoiceAmount(""); setInvoiceStart(""); setInvoiceEnd(""); setInvoiceDue("");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not create subscription invoice.");
+    } finally { setBusy(false); }
+  };
+
+  const submitPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); if (!paymentInvoice) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await recordPlatformBillingPayment({
+        invoiceId: paymentInvoice.invoice_id, paymentMethod, transactionReference: paymentReference,
+        paidAt: paymentDate, notes: paymentNotes,
+      });
+      setNotice("Payment verified and receipt generated.");
+      setPaymentInvoice(null); setPaymentReference(""); setPaymentNotes("");
+      await refresh();
+      const updated = await listPlatformBilling();
+      const paidInvoice = updated.find(item => item.invoice_id === paymentInvoice.invoice_id);
+      setBillingInvoices(updated);
+      if (paidInvoice) setReceipt(paidInvoice);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not record subscription payment.");
+    } finally { setBusy(false); }
+  };
+
+  const voidInvoice = async (item: PlatformBillingInvoice) => {
+    const reason = window.prompt("Reason for voiding invoice " + item.invoice_number + " (minimum 5 characters):");
+    if (!reason) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await voidPlatformBillingInvoice(item.invoice_id, reason);
+      setNotice("Invoice voided with an audit record.");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not void invoice.");
+    } finally { setBusy(false); }
   };
 
   const createInvite = async (event: FormEvent<HTMLFormElement>) => {
