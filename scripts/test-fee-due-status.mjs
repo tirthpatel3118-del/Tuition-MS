@@ -50,7 +50,16 @@ assert.equal(partial[0].label,'1 day late');
 assert.deepEqual(paid.map(x=>x.id),['direct-student']);
 assert.equal(direct[0].amount,7000);
 assert.equal(direct[0].label,'No due date');
-for (const rows of [overdue,todayDue,future,partial,paid,direct]) {
-  assert.ok(rows.reduce((sum,row)=>sum+row.amount,0) <= scenarios.find(s=>allocateDues(s.due,s.installments,s.paid)===rows)?.due ?? Infinity);
-}
+assert.equal(overdue.reduce((sum,row)=>sum+row.amount,0),6000);
+assert.equal(todayDue.reduce((sum,row)=>sum+row.amount,0),5000);
+assert.equal(future.reduce((sum,row)=>sum+row.amount,0),4000);
+assert.equal(partial.reduce((sum,row)=>sum+row.amount,0),3000);
+assert.equal(paid.reduce((sum,row)=>sum+row.amount,0),2000);
+assert.equal(direct.reduce((sum,row)=>sum+row.amount,0),7000);
+const defaultFollowUp = [...overdue, ...todayDue, ...future, ...direct]
+  .filter(row => row.status !== 'upcoming');
+assert.ok(defaultFollowUp.some(row => row.label === 'Due today'));
+assert.ok(defaultFollowUp.some(row => row.label === '2 days late'));
+assert.ok(defaultFollowUp.some(row => row.label === 'No due date'));
+assert.ok(!defaultFollowUp.some(row => row.status === 'upcoming'));
 console.log('Fee due workflow tests passed: overdue, due today, future, partial payment, fully paid allocation, and unscheduled direct balances.');
