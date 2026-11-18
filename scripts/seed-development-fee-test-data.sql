@@ -26,8 +26,8 @@ on conflict (id) do update set due_date=excluded.due_date,amount=excluded.amount
 
 insert into public.payments (id,institute_id,student_id,amount,payment_mode,payment_date,remarks,payment_type,idempotency_key)
 values
-('a6100000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','a4100000-0000-4000-8000-000000000005',2000,'Cash',current_date,'SYNTHETIC QA PARTIAL PAYMENT','PAYMENT','qa-fee-partial-20261119'),
-('a6100000-0000-4000-8000-000000000002','a1000000-0000-4000-8000-000000000001','a4100000-0000-4000-8000-000000000006',10000,'Cash',current_date,'SYNTHETIC QA FULL PAYMENT','PAYMENT','qa-fee-paid-20261119')
+('a6100000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','a4100000-0000-4000-8000-000000000005',2000,'Cash',(now() at time zone 'Asia/Kolkata')::date,'SYNTHETIC QA PARTIAL PAYMENT','PAYMENT','qa-fee-partial-20261119'),
+('a6100000-0000-4000-8000-000000000002','a1000000-0000-4000-8000-000000000001','a4100000-0000-4000-8000-000000000006',10000,'Cash',(now() at time zone 'Asia/Kolkata')::date,'SYNTHETIC QA FULL PAYMENT','PAYMENT','qa-fee-paid-20261119')
 on conflict (id) do update set amount=excluded.amount,remarks=excluded.remarks;
 
 insert into public.payment_allocations (institute_id,payment_id,installment_id,allocated_amount,allocation_type)
