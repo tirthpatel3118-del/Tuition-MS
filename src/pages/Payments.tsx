@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '../lib/date';
+import { getFeeDueStatus } from '../utils/feeDueStatus';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { Installment, Payment } from '../data/mockData';
@@ -66,6 +67,28 @@ export const Payments: React.FC = () => {
       && installment.status !== 'Paid'
       && outstandingInstallmentAmount(installment) > 0)
     .sort((a, b) => a.installmentNumber - b.installmentNumber);
+
+  // Allocate each student's outstanding balance across scheduled installments
+  // once, so partial payments and direct balances are never double-counted.
+  const feeDueSummary = students.reduce((summary, student) => {
+    if (student.status === 'Inactive' || student.feesDue <= 0) return summary;
+    let remaining = student.feesDue;
+    const studentInstallments = installments
+      .filter(item => item.studentId === student.id && item.status !== 'Paid')
+      .sort((a, b) => a.installmentNumber - b.installmentNumber || a.dueDate.localeCompare(b.dueDate));
+    for (const installment of studentInstallments) {
+      if (remaining <= 0) break;
+      const balance = Math.min(outstandingInstallmentAmount(installment), remaining);
+      if (balance <= 0) continue;
+      remaining -= balance;
+      const dueStatus = getFeeDueStatus(installment.dueDate);
+      if (dueStatus.status === 'due_today') summary.dueToday += balance;
+      else if (dueStatus.status === 'overdue') summary.overdue += balance;
+      else if (dueStatus.status === 'upcoming') summary.upcoming += balance;
+    }
+    summary.unscheduled += remaining;
+    return summary;
+  }, { dueToday: 0, overdue: 0, upcoming: 0, unscheduled: 0 });
 
   // Trigger simulated loader when filter/tab changes
   useEffect(() => {
@@ -357,10 +380,16 @@ export const Payments: React.FC = () => {
         </div>
       </div>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Collection summary">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label="Collection summary">
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total collected</p><p className="mt-2 text-2xl font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Across recorded transactions</p></div>
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Transactions</p><p className="mt-2 text-2xl font-semibold text-slate-900">{payments.length}</p><p className="mt-1 text-xs text-slate-500">Payments in the ledger</p></div>
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with pending dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Inactive' && student.feesDue > 0).length}</p><p className="mt-1 text-xs text-slate-500">Require fee follow-up</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Due today</p><p className="mt-2 text-2xl font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{feeDueSummary.dueToday.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Scheduled for today</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Overdue</p><p className="mt-2 text-2xl font-semibold text-rose-700">{settings?.currencySymbol || '₹'}{feeDueSummary.overdue.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Past the due date</p></div>
+      </section>
+      <section className="ui-card flex flex-wrap items-center justify-between gap-3 px-4 py-3" aria-label="Other fee balances">
+        <div><p className="text-xs font-semibold text-slate-700">Other outstanding balances</p><p className="mt-1 text-[11px] text-slate-500">Upcoming scheduled fees and direct balances without a due date</p></div>
+        <div className="flex flex-wrap gap-4 text-xs"><span className="text-slate-600">Upcoming: <strong>{settings?.currencySymbol || '₹'}{feeDueSummary.upcoming.toLocaleString('en-IN')}</strong></span><span className="text-slate-600">No schedule: <strong>{settings?.currencySymbol || '₹'}{feeDueSummary.unscheduled.toLocaleString('en-IN')}</strong></span></div>
       </section>
 
       {activeTab === 'ledger' ? (
