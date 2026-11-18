@@ -475,6 +475,7 @@ $function$
 
 
 ALTER FUNCTION public.void_payment_atomic(UUID, UUID, TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION public.void_payment_atomic(UUID, UUID, NUMERIC, TEXT, DATE, JSONB, TEXT, TEXT) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.void_payment_atomic(UUID, UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.void_payment_atomic(UUID, UUID, TEXT) TO authenticated;
 
 COMMIT;
