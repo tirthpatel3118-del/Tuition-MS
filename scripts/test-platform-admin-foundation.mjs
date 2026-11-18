@@ -61,6 +61,6 @@ assert.ok(dashboard.includes("student_count"));
 assert.ok(dashboard.includes("active_accountants_30d"));
 assert.ok(dashboard.includes("storage_bytes_project_wide"));
 assert.ok(dashboard.includes("No institute — owner creates one"));
-assert.ok(dashboard.includes("student and guardian details, member email addresses, fees, payments, receipts and attendance content are not exposed"));
+assert.ok(dashboard.includes("Student and guardian details, member email addresses, fees, payments, receipts and attendance content are not exposed"));
 
 console.log("Platform Admin foundation source checks passed.");
