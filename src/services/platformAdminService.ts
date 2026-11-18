@@ -32,6 +32,7 @@ export interface PlatformInstitute {
   active_teachers_30d: number;
   active_accountants_30d: number;
   last_active_date: string | null;
+  estimated_database_row_bytes: number;
   access_status: "active" | "suspended";
   plan_code: string;
   subscription_status: "trial" | "active" | "past_due" | "expired" | "cancelled";
