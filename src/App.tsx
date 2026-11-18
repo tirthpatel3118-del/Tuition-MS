@@ -196,6 +196,7 @@ function AppEntry() {
 
   if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
   if (location.pathname === '/reset-password') return <PasswordResetPage />;
+  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
 
   if (auth.status === 'signed-out') return <AuthPage />;
 
@@ -212,7 +213,6 @@ function AppEntry() {
     );
   }
 
-  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
   if (isInvitationRoute) return <InvitationAcceptancePage />;
   if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
   if (location.pathname === '/super-admin') return <SuperAdminDashboard />;
