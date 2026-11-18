@@ -84,16 +84,23 @@ export function SuperAdminDashboard() {
   const [billingInvoices, setBillingInvoices] = useState<PlatformBillingInvoice[]>([]);
   const [invoiceInstitute, setInvoiceInstitute] = useState("");
   const [invoiceCycle, setInvoiceCycle] = useState<"monthly" | "yearly">("monthly");
-  const [invoiceStart, setInvoiceStart] = useState("");
-  const [invoiceEnd, setInvoiceEnd] = useState("");
-  const [invoiceDue, setInvoiceDue] = useState("");
+  const [invoiceStart, setInvoiceStart] = useState(() => formatLocalDate(new Date()));
+  const [invoiceEnd, setInvoiceEnd] = useState(() => calculateSubscriptionDates(formatLocalDate(new Date()), "monthly").periodEnd);
+  const [invoiceDue, setInvoiceDue] = useState(() => formatLocalDate(new Date()));
+  const [billingContactPhone, setBillingContactPhone] = useState("");
   const [invoiceAmount, setInvoiceAmount] = useState("");
   const [invoiceDescription, setInvoiceDescription] = useState("EduLedger platform subscription");
   const [paymentInvoice, setPaymentInvoice] = useState<PlatformBillingInvoice | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank_transfer" | "cash" | "other">("upi");
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0,10));
-  const [paymentNotes, setPaymentNotes] = useState("");\n  const today = formatLocalDate(new Date());\n  const pendingBillingInvoices = billingInvoices.filter(item => item.status === "issued" || item.status === "overdue");\n  const dueTodayInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "due_today");\n  const upcomingInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "upcoming");\n  const overdueInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "overdue");\n  const paidInvoices = billingInvoices.filter(item => item.status === "paid");
+  const [paymentNotes, setPaymentNotes] = useState("");
+  const today = formatLocalDate(new Date());
+  const pendingBillingInvoices = billingInvoices.filter(item => item.status === "issued" || item.status === "overdue");
+  const dueTodayInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "due_today");
+  const upcomingInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "upcoming");
+  const overdueInvoices = pendingBillingInvoices.filter(item => classifyBillingDueDate(item.due_at, today) === "overdue");
+  const paidInvoices = billingInvoices.filter(item => item.status === "paid");
   const [receipt, setReceipt] = useState<PlatformBillingInvoice | null>(null);
   const [drafts, setDrafts] = useState<Record<string, InstituteDraft>>({});
   const [search, setSearch] = useState("");
@@ -182,7 +189,10 @@ export function SuperAdminDashboard() {
         description: invoiceDescription,
       });
       setNotice("Invoice " + result.invoice_number + " created.");
-      setInvoiceAmount(""); setBillingContactPhone("");\n      const nextStart = formatLocalDate(new Date());\n      const nextDates = calculateSubscriptionDates(nextStart, invoiceCycle);\n      setInvoiceStart(nextDates.periodStart); setInvoiceEnd(nextDates.periodEnd); setInvoiceDue(nextDates.dueAt);
+      setInvoiceAmount(""); setBillingContactPhone("");
+      const nextStart = formatLocalDate(new Date());
+      const nextDates = calculateSubscriptionDates(nextStart, invoiceCycle);
+      setInvoiceStart(nextDates.periodStart); setInvoiceEnd(nextDates.periodEnd); setInvoiceDue(nextDates.dueAt);
       await refresh();
     } catch (value) {
       setError(value instanceof Error ? value.message : "Could not create subscription invoice.");
@@ -387,7 +397,8 @@ export function SuperAdminDashboard() {
               <label className={labelClass}>Due date<input required type="date" value={invoiceDue} onChange={e=>setInvoiceDue(e.target.value)} className={fieldClass}/></label>
               <label className={labelClass}>Amount (₹)<input required type="number" min="0.01" step="0.01" value={invoiceAmount} onChange={e=>setInvoiceAmount(e.target.value)} placeholder="999" className={fieldClass}/></label>
             </div>
-            <label className={labelClass}>WhatsApp contact number (optional)<input type="tel" inputMode="tel" value={billingContactPhone} onChange={e=>setBillingContactPhone(e.target.value)} placeholder="10-digit mobile number" className={fieldClass}/></label><p className="text-[11px] leading-5 text-slate-500">Used only to prepare a manual WhatsApp reminder. Include country code for numbers outside India.</p>\n            <label className={labelClass}>Description<input required value={invoiceDescription} onChange={e=>setInvoiceDescription(e.target.value)} className={fieldClass}/></label>
+            <label className={labelClass}>WhatsApp contact number (optional)<input type="tel" inputMode="tel" value={billingContactPhone} onChange={e=>setBillingContactPhone(e.target.value)} placeholder="10-digit mobile number" className={fieldClass}/></label><p className="text-[11px] leading-5 text-slate-500">Used only to prepare a manual WhatsApp reminder. Include country code for numbers outside India.</p>
+            <label className={labelClass}>Description<input required value={invoiceDescription} onChange={e=>setInvoiceDescription(e.target.value)} className={fieldClass}/></label>
             <button type="submit" disabled={busy||!institutes.length} className="min-h-11 w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{busy?"Saving…":"Create subscription invoice"}</button>
             <p className="text-[11px] leading-5 text-slate-500">Monthly/yearly dates auto-fill from the start date. Due date defaults to the start date (same renewal day each cycle) and remains editable.</p>
           </form>
