@@ -38,6 +38,8 @@ assert.ok(dashboard.includes("window.open(\"https://wa.me/\""), "WhatsApp must o
 assert.ok(dashboard.includes("updateBillingStart") && dashboard.includes("updateBillingCycle"));
 assert.ok(dashboard.includes("billingContactPhone"));
 assert.ok(service.includes("p_billing_contact_phone"));
+assert.ok(service.includes("platform_admin_update_billing_contact"));
+assert.ok(dashboard.includes("Add WhatsApp number"));
 assert.ok(migration.includes("billing_contact_phone text"));
 assert.ok(migration.includes("private.require_platform_admin()"));
 console.log("Platform subscription billing date and WhatsApp reminder tests passed.");
