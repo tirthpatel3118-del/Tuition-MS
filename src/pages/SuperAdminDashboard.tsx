@@ -404,7 +404,7 @@ export function SuperAdminDashboard() {
             <label className={labelClass}>Billing cycle<select value={invoiceCycle} onChange={e=>updateBillingCycle(e.target.value as "monthly"|"yearly")} className={fieldClass}><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label>
             <div className="grid grid-cols-2 gap-3">
               <label className={labelClass}>Period start<input required type="date" value={invoiceStart} onChange={e=>updateBillingStart(e.target.value)} className={fieldClass}/></label>
-              <label className={labelClass}>Period end<input required type="date" min={invoiceStart||undefined} value={invoiceEnd} onChange={e=>setInvoiceEnd(e.target.value)} className={fieldClass}/></label>
+              <label className={labelClass}>Period end<input required type="date" min={invoiceStart||undefined} value={invoiceEnd} onChange={e=>{setInvoiceEnd(e.target.value);setInvoiceDue(e.target.value);}} className={fieldClass}/></label>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className={labelClass}>Due date<input required type="date" value={invoiceDue} onChange={e=>setInvoiceDue(e.target.value)} className={fieldClass}/></label>
