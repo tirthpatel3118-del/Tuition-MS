@@ -1,13 +1,25 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthFrame } from './AuthPages';
 
 export function InvitationAcceptancePage() {
   const { acceptInvitation, email, signOut } = useAuth();
-  const [params] = useSearchParams();
   const navigate = useNavigate();
-  const token = params.get('token') ?? '';
+  // Prefer the URL fragment so the one-time token is not sent in HTTP requests
+  // or referrer headers. Accept legacy query links once, then scrub either form
+  // from the address bar and browser history before rendering the page.
+  const [token] = useState(() => {
+    const url = new URL(window.location.href);
+    const fragmentParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const value = fragmentParams.get('token') ?? url.searchParams.get('token') ?? '';
+    if (value) {
+      url.searchParams.delete('token');
+      url.hash = '';
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}`);
+    }
+    return value;
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
