@@ -32,7 +32,7 @@ assert.ok(dashboard.includes("Subscription billing"));
 assert.ok(dashboard.includes("Create invoice"));
 assert.ok(dashboard.includes("Record payment"));
 assert.ok(dashboard.includes("Print / Save PDF"));
-assert.ok(dashboard.includes("payment is received"));
+assert.ok(dashboard.includes("has been received"));
 assert.ok(dashboard.includes("billingOverview.overdue_amount"));
 assert.ok(setup.includes("Platform subscription billing"));
 assert.ok(setup.includes("not GST tax invoices"));
