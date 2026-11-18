@@ -28,7 +28,7 @@ export function calculateSubscriptionDates(startDate: string, cycle: Subscriptio
   return {
     periodStart: startDate,
     periodEnd: formatLocalDate(endExclusive),
-    dueAt: startDate,
+    dueAt: formatLocalDate(endExclusive),
   };
 }
 
