@@ -225,6 +225,41 @@ $function$;
 REVOKE ALL ON FUNCTION public.get_my_institute_access() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_my_institute_access() TO authenticated;
 
+-- Estimate database row payload bytes per institute. This is an aggregate-only estimate:
+-- it excludes index, TOAST and shared database overhead and does not expose any row values.
+CREATE OR REPLACE FUNCTION private.platform_institute_estimated_bytes(p_institute_id uuid)
+RETURNS bigint
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_table record;
+  v_total bigint := 0;
+  v_part bigint := 0;
+BEGIN
+  FOR v_table IN
+    SELECT DISTINCT c.relname
+    FROM pg_catalog.pg_class c
+    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+    JOIN pg_catalog.pg_attribute a ON a.attrelid=c.oid
+    WHERE n.nspname='public'
+      AND c.relkind IN ('r','p')
+      AND a.attname='institute_id'
+      AND a.attnum>0
+      AND NOT a.attisdropped
+  LOOP
+    EXECUTE format(
+      'SELECT COALESCE(sum(pg_column_size(t)),0)::bigint FROM public.%I t WHERE institute_id=$1',
+      v_table.relname
+    ) INTO v_part USING p_institute_id;
+    v_total:=v_total+COALESCE(v_part,0);
+  END LOOP;
+  RETURN v_total;
+END;
+$function$;
+
 CREATE OR REPLACE FUNCTION public.platform_admin_overview()
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -257,8 +292,21 @@ BEGIN
     'teacher_count',(SELECT count(*) FROM public.institute_members WHERE role='teacher'),
     'accountant_count',(SELECT count(*) FROM public.institute_members WHERE role='accountant'),
     'active_members_30d',(SELECT count(DISTINCT user_id) FROM private.platform_member_login_daily WHERE activity_date >= current_date - 29),
-    'active_subscriptions',(SELECT count(*) FROM private.platform_institute_controls WHERE access_status='active' AND subscription_status IN ('trial','active','past_due')),
-    'suspended_institutes',(SELECT count(*) FROM private.platform_institute_controls WHERE access_status='suspended'),
+    'active_subscriptions',(
+      SELECT count(*)
+      FROM public.institutes i
+      LEFT JOIN private.platform_institute_controls c ON c.institute_id=i.id
+      WHERE COALESCE(c.access_status,'active')='active'
+        AND COALESCE(c.subscription_status,'trial') IN ('trial','active','past_due')
+        AND COALESCE(c.starts_at,'-infinity'::timestamptz)<=now()
+        AND COALESCE(c.expires_at,'infinity'::timestamptz)>now()
+    ),
+    'suspended_institutes',(
+      SELECT count(*)
+      FROM public.institutes i
+      LEFT JOIN private.platform_institute_controls c ON c.institute_id=i.id
+      WHERE COALESCE(c.access_status,'active')='suspended'
+    ),
     'database_bytes',pg_database_size(current_database()),
     'storage_bytes_project_wide',v_storage_bytes,
     'storage_objects_project_wide',v_storage_objects,
@@ -293,6 +341,7 @@ BEGIN
       'active_teachers_30d',(SELECT count(DISTINCT a.user_id) FROM private.platform_member_login_daily a WHERE a.institute_id=i.id AND a.role='teacher' AND a.activity_date >= current_date - 29),
       'active_accountants_30d',(SELECT count(DISTINCT a.user_id) FROM private.platform_member_login_daily a WHERE a.institute_id=i.id AND a.role='accountant' AND a.activity_date >= current_date - 29),
       'last_active_date',(SELECT max(a.activity_date) FROM private.platform_member_login_daily a WHERE a.institute_id=i.id),
+      'estimated_database_row_bytes',private.platform_institute_estimated_bytes(i.id),
       'access_status',COALESCE(c.access_status,'active'),
       'plan_code',COALESCE(c.plan_code,'trial'),
       'subscription_status',COALESCE(c.subscription_status,'trial'),
@@ -487,8 +536,7 @@ BEGIN
 END;
 $function$;
 
--- Only a user holding a valid platform-issued owner grant can create their first institute.
--- Existing institute owners preserve their ability to add another institute.
+-- Every new institute must be backed by an unconsumed platform-issued owner grant.
 CREATE OR REPLACE FUNCTION public.create_institute_atomic(
   p_name text,p_slug text,p_currency_symbol text DEFAULT '₹'::text,p_receipt_prefix text DEFAULT 'REC'::text
 )
