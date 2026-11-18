@@ -11,10 +11,10 @@ const authPages = read("../src/pages/AuthPages.tsx");
 const invitationPage = read("../src/pages/PlatformInvitationAcceptancePage.tsx");
 const app = read("../src/App.tsx");
 
-assert.match(migration, /^BEGIN;/);
+assert.match(migration, /(?:^|\\n)BEGIN;\\s/);
 assert.match(migration, /COMMIT;\s*$/);
 assert.match(migration, /CREATE TABLE IF NOT EXISTS private\.platform_admins/);
-assert.match(migration, /platform_admins_user_id_unique/);
+assert.match(migration, /user_id uuid NOT NULL UNIQUE REFERENCES auth\\.users/);
 assert.match(migration, /CREATE TRIGGER eduledger_invitation_only_auth_signup/);
 assert.match(migration, /EduLedger accounts require a valid invitation/);
 assert.match(migration, /CREATE OR REPLACE FUNCTION public\.accept_platform_invitation/);
