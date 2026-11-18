@@ -187,6 +187,7 @@ export function SuperAdminDashboard() {
         instituteId: invoiceInstitute, billingCycle: invoiceCycle, periodStart: invoiceStart,
         periodEnd: invoiceEnd, dueAt: invoiceDue, amountInr: Number(invoiceAmount),
         description: invoiceDescription,
+        billingContactPhone,
       });
       setNotice("Invoice " + result.invoice_number + " created.");
       setInvoiceAmount(""); setBillingContactPhone("");
