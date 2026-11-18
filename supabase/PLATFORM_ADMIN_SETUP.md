@@ -41,15 +41,28 @@ Supabase database and Storage usage are shared at project level. The dashboard d
 
 ## Provisioning the one platform administrator
 
-Run this only in the intended DEVELOPMENT database after the administrator's account has been created in that same Supabase Auth project. Replace the placeholder with the exact email address belonging to the designated admin account. This statement cannot create a user and inserts zero rows if the email is not found.
+Run this only in the intended DEVELOPMENT database. The first-user guard requires a short-lived bootstrap allowlist row before Supabase Auth can invite the first administrator. Use the exact intended email, then remove the bootstrap row immediately after provisioning.
 
 ```sql
+-- Step 1: enable a one-time, 30-minute bootstrap for the exact email.
+INSERT INTO private.platform_admin_bootstrap(singleton, email, expires_at)
+VALUES (true, lower('REPLACE_WITH_EXACT_ADMIN_EMAIL'), now() + interval '30 minutes')
+ON CONFLICT (singleton) DO UPDATE
+SET email = EXCLUDED.email, expires_at = EXCLUDED.expires_at;
+```
+
+Then, in Supabase Dashboard → Authentication → Users, send an invite to that exact email. The recipient completes the email verification/password setup. Once the user appears in `auth.users`, run:
+
+```sql
+-- Step 2: grant the singleton platform-admin identity.
 INSERT INTO private.platform_admins (singleton, user_id)
 SELECT true, u.id
 FROM auth.users AS u
 WHERE lower(u.email) = lower('REPLACE_WITH_EXACT_ADMIN_EMAIL')
 ON CONFLICT (singleton) DO NOTHING;
 
+-- Step 3: close the bootstrap path immediately and verify.
+DELETE FROM private.platform_admin_bootstrap;
 SELECT a.singleton, a.user_id, u.email, a.created_at
 FROM private.platform_admins AS a
 JOIN auth.users AS u ON u.id = a.user_id;
@@ -59,6 +72,6 @@ The verification query must return exactly one row for the designated account. I
 
 ## Current development limitations
 
-There is no separate Supabase development database connected in the current environment. The production project is not a safe test target for this migration. Consequently, repository CI and source-level security tests can be run now, but database/Edge Function end-to-end tests must wait until a development Supabase environment is connected and the single development admin is provisioned.
+A dedicated development Supabase project is connected. Do not use production for this feature's testing. Database migrations are applied in development; database/Edge Function end-to-end tests remain pending until the one development administrator is provisioned and the development frontend is pointed at the development Supabase project.
 
 The migration intentionally does not create test institutes, users, students, fees, payments or attendance records.
