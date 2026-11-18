@@ -13,7 +13,7 @@ export interface PlatformBillingInvoice {
   invoice_id: string;
   invoice_number: string;
   institute_id: string;
-  institute_name: string;
+  institute_name: string;\n  billing_contact_phone: string | null;
   billing_cycle: "monthly" | "yearly";
   period_start: string;
   period_end: string;
@@ -62,7 +62,7 @@ export async function createPlatformBillingInvoice(input: {
       p_period_end: input.periodEnd,
       p_due_at: input.dueAt,
       p_amount_inr: input.amountInr,
-      p_description: input.description,
+      p_description: input.description,\n      p_billing_contact_phone: input.billingContactPhone || null,
     },
   );
 }
