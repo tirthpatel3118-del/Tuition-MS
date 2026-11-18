@@ -1,0 +1,115 @@
+import { createClient } from "npm:@supabase/supabase-js@2.110.0";
+
+const responseHeaders = {
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+};
+
+function jsonResponse(body: Record<string, unknown>, status: number, origin: string) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...responseHeaders, "Access-Control-Allow-Origin": origin, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (request) => {
+  const appUrl = Deno.env.get("EDULEDGER_APP_URL");
+  if (!appUrl) return jsonResponse({ error: "EDULEDGER_APP_URL is not configured." }, 500, "null");
+
+  let allowedOrigin: string;
+  try {
+    allowedOrigin = new URL(appUrl).origin;
+  } catch {
+    return jsonResponse({ error: "EDULEDGER_APP_URL must be a valid URL." }, 500, "null");
+  }
+
+  const requestOrigin = request.headers.get("origin") ?? "";
+  if (request.method === "OPTIONS") {
+    return new Response("ok", { headers: { ...responseHeaders, "Access-Control-Allow-Origin": allowedOrigin } });
+  }
+  if (request.method !== "POST") return jsonResponse({ error: "Method not allowed." }, 405, allowedOrigin);
+  if (requestOrigin && requestOrigin !== allowedOrigin) return jsonResponse({ error: "Origin not allowed." }, 403, allowedOrigin);
+
+  const authorization = request.headers.get("Authorization");
+  if (!authorization?.startsWith("Bearer ")) return jsonResponse({ error: "Authentication required." }, 401, allowedOrigin);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !publishableKey || !serviceRoleKey) {
+    return jsonResponse({ error: "The Supabase function environment is incomplete." }, 500, allowedOrigin);
+  }
+
+  const userClient = createClient(supabaseUrl, publishableKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: authorization } },
+  });
+  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const { data: userResult, error: userError } = await userClient.auth.getUser();
+  if (userError || !userResult.user) return jsonResponse({ error: "Sign-in session could not be verified." }, 401, allowedOrigin);
+
+  const { data: isAdmin, error: adminError } = await userClient.rpc("is_platform_admin");
+  if (adminError || isAdmin !== true) return jsonResponse({ error: "Platform administrator access is required." }, 403, allowedOrigin);
+
+  let body: { email?: unknown; role?: unknown; institute_id?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: "Request body must be valid JSON." }, 400, allowedOrigin);
+  }
+
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const role = typeof body.role === "string" ? body.role : "";
+  const instituteId = typeof body.institute_id === "string" && body.institute_id.trim() ? body.institute_id.trim() : null;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonResponse({ error: "Enter a valid email address." }, 400, allowedOrigin);
+  if (!["owner", "teacher", "accountant"].includes(role)) return jsonResponse({ error: "Select a valid role." }, 400, allowedOrigin);
+  if (role !== "owner" && !instituteId) return jsonResponse({ error: "Teacher and accountant invitations require an institute." }, 400, allowedOrigin);
+
+  const { data: invitation, error: invitationError } = await userClient.rpc("platform_admin_create_invitation", {
+    p_email: email,
+    p_role: role,
+    p_institute_id: instituteId,
+  });
+  if (invitationError || !invitation?.raw_token || !invitation?.invitation_id) {
+    return jsonResponse({ error: invitationError?.message ?? "Invitation could not be created." }, 400, allowedOrigin);
+  }
+
+  const redirectUrl = new URL("/accept-platform-invitation", appUrl);
+  redirectUrl.searchParams.set("token", invitation.raw_token);
+
+  let inviteKind: "invite" | "magiclink" = "invite";
+  redirectUrl.searchParams.set("setup", "1");
+  let generated = await adminClient.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: { redirectTo: redirectUrl.toString() },
+  });
+
+  if (generated.error && /already registered|already been registered|user already exists/i.test(generated.error.message)) {
+    inviteKind = "magiclink";
+    redirectUrl.searchParams.set("setup", "0");
+    generated = await adminClient.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo: redirectUrl.toString() },
+    });
+  }
+
+  const actionLink = generated.data?.properties?.action_link;
+  if (generated.error || !actionLink) {
+    await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    return jsonResponse({ error: generated.error?.message ?? "Supabase did not return an action link." }, 502, allowedOrigin);
+  }
+
+  return jsonResponse({
+    invitation_id: invitation.invitation_id,
+    action_link: actionLink,
+    expires_at: invitation.expires_at,
+    requires_password_setup: inviteKind === "invite",
+  }, 200, allowedOrigin);
+});
