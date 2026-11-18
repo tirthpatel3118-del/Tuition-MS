@@ -10,7 +10,7 @@ import {
   listPlatformInvitations, revokePlatformInvitation, savePlatformInstituteControls,
   type PlatformInstitute, type PlatformInvitation, type PlatformOverview,
 } from "../services/platformAdminService";
-import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformBilling, recordPlatformBillingPayment, voidPlatformBillingInvoice, type BillingOverview, type PlatformBillingInvoice } from "../services/platformBillingService";
+import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformBilling, recordPlatformBillingPayment, updatePlatformBillingContact, voidPlatformBillingInvoice, type BillingOverview, type PlatformBillingInvoice } from "../services/platformBillingService";
 import { buildSubscriptionReminderMessage, calculateSubscriptionDates, classifyBillingDueDate, daysOverdue, formatLocalDate, toWhatsAppPhone } from "../utils/platformBillingDates";
 
 type InstituteDraft = {
@@ -211,6 +211,19 @@ export function SuperAdminDashboard() {
     const dates = calculateSubscriptionDates(start, invoiceCycle);
     setInvoiceEnd(dates.periodEnd); setInvoiceDue(dates.dueAt);
   };
+  const updateInvoiceContact = async (item: PlatformBillingInvoice) => {
+    const phone = window.prompt("WhatsApp number for " + item.institute_name + " (10-digit Indian mobile or international number):", item.billing_contact_phone || "");
+    if (phone === null) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await updatePlatformBillingContact(item.invoice_id, phone);
+      setNotice("WhatsApp reminder contact saved.");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not update reminder contact.");
+    } finally { setBusy(false); }
+  };
+
   const openWhatsAppReminder = (item: PlatformBillingInvoice) => {
     const phone = item.billing_contact_phone ? toWhatsAppPhone(item.billing_contact_phone) : null;
     if (!phone) { setError("No valid WhatsApp number is saved on this invoice. Add a contact number when creating the invoice."); return; }
@@ -420,7 +433,7 @@ export function SuperAdminDashboard() {
               <div className="sticky top-[78px] z-[5] flex items-center gap-2 border-y border-slate-100 bg-slate-50 px-4 py-2.5"><span className={"h-2 w-2 rounded-full "+group.marker}/><h3 className={"text-xs font-bold "+group.tone}>{group.title}</h3><span className="ml-auto text-[10px] text-slate-500">{group.items.length} invoice(s)</span></div>
               {group.items.length===0?<p className="px-4 py-4 text-xs text-slate-400">Nothing in this section.</p>:group.items.map(i=><div key={i.invoice_id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><p className="font-bold text-slate-900">{i.institute_name}</p><p className="mt-0.5 text-[11px] text-slate-500">{i.invoice_number} · {i.billing_cycle} · {i.period_start} – {i.period_end}</p></div><span className={"rounded-full px-2.5 py-1 text-[10px] font-bold "+(group.title==="Overdue"?"bg-red-100 text-red-800":group.title==="Due today"?"bg-rose-50 text-rose-700":"bg-amber-50 text-amber-800")}>{group.title==="Overdue"?daysOverdue(i.due_at,today)+" days overdue":group.title}</span></div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xl font-bold tabular-nums text-slate-950">₹{Number(i.amount_inr).toLocaleString("en-IN",{minimumFractionDigits:2})}</p><p className="text-[11px] text-slate-500">Due {new Date(i.due_at+"T00:00:00").toLocaleDateString("en-IN")}</p></div><div className="flex flex-wrap gap-2"><button type="button" disabled={busy||!i.billing_contact_phone} title={i.billing_contact_phone?"Open prefilled WhatsApp reminder":"No WhatsApp number saved"} onClick={()=>openWhatsAppReminder(i)} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 disabled:opacity-40"><MessageCircle className="h-3.5 w-3.5"/>WhatsApp reminder</button><button type="button" disabled={busy} onClick={()=>setPaymentInvoice(i)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white">Record payment</button><button type="button" disabled={busy} onClick={()=>voidInvoice(i)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Void</button></div></div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xl font-bold tabular-nums text-slate-950">₹{Number(i.amount_inr).toLocaleString("en-IN",{minimumFractionDigits:2})}</p><p className="text-[11px] text-slate-500">Due {new Date(i.due_at+"T00:00:00").toLocaleDateString("en-IN")}</p></div><div className="flex flex-wrap gap-2">{i.billing_contact_phone?<button type="button" disabled={busy} onClick={()=>openWhatsAppReminder(i)} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800"><MessageCircle className="h-3.5 w-3.5"/>WhatsApp reminder</button>:<button type="button" disabled={busy} onClick={()=>void updateInvoiceContact(i)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"><MessageCircle className="h-3.5 w-3.5"/>Add WhatsApp number</button>}<button type="button" disabled={busy} onClick={()=>setPaymentInvoice(i)} className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white">Record payment</button><button type="button" disabled={busy} onClick={()=>voidInvoice(i)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Void</button></div></div>
               </div>)}
             </section>)}
             <section><div className="border-y border-slate-100 bg-slate-50 px-4 py-2.5"><h3 className="text-xs font-bold text-emerald-800">Paid invoices</h3></div>
