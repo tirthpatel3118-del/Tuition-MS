@@ -296,8 +296,7 @@ BEGIN
         'receipt_number', v_receipt_number
     );
 END;
-$function$
-
+$function$;
 
 ALTER FUNCTION public.record_payment_atomic(UUID, UUID, NUMERIC, TEXT, DATE, JSONB, TEXT, TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.record_payment_atomic(UUID, UUID, NUMERIC, TEXT, DATE, JSONB, TEXT, TEXT) FROM PUBLIC, anon;
@@ -471,8 +470,7 @@ BEGIN
         'credit_note_number', v_credit_note_num
     );
 END;
-$function$
-
+$function$;
 
 ALTER FUNCTION public.void_payment_atomic(UUID, UUID, TEXT) OWNER TO postgres;
 REVOKE ALL ON FUNCTION public.void_payment_atomic(UUID, UUID, TEXT) FROM PUBLIC, anon;
