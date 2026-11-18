@@ -27,6 +27,9 @@ jobs:
       - name: Lint
         run: npm run lint -- --format=unix
 
+      - name: Run regression tests
+        run: npm test
+
       - name: Build production app
         if: always()
         run: npm run build
