@@ -66,7 +66,7 @@ export const Payments: React.FC = () => {
     .filter(installment => installment.studentId === studentId
       && installment.status !== 'Paid'
       && outstandingInstallmentAmount(installment) > 0)
-    .sort((a, b) => a.installmentNumber - b.installmentNumber);
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id));
 
   // Show the active due only: the first unpaid installment. Once it is
   // fully paid, the next installment naturally becomes the active due date.
