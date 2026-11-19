@@ -70,7 +70,7 @@ function generateDueItems({ students, installments, installmentPaidTotals = {}, 
     const studentInsts = installmentsByStudent.get(student.id) || [];
     const unpaidInsts = studentInsts
       .filter(inst => inst.status !== 'Paid')
-      .sort((a, b) => (a.installmentNumber - b.installmentNumber) || a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id));
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id));
 
     let remainingAllowance = student.feesDue;
 
@@ -143,8 +143,8 @@ function getStudentDueItemAmounts(student, installments, installmentPaidTotals =
   const unpaidInsts = installments
     .filter(inst => inst.studentId === student.id && inst.status !== 'Paid')
     .sort((a, b) =>
-      (a.installmentNumber - b.installmentNumber) ||
       a.dueDate.localeCompare(b.dueDate) ||
+      a.installmentNumber - b.installmentNumber ||
       a.id.localeCompare(b.id)
     );
 
