@@ -168,7 +168,7 @@ class MockPaymentEngine {
         totalAllocated += alloc.amount;
       }
 
-      if (totalAllocated !== amount) {
+      if (allocations && allocations.length > 0 && totalAllocated !== amount) {
         throw new Error(`Validation Failed: Sum of allocations (${totalAllocated}) does not match payment amount (${amount}).`);
       }
     }
