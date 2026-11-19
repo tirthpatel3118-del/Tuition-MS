@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { addMonthsToDateInput, formatDateForDisplay, formatLocalDateInput } from '../lib/date';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { Student, Installment } from '../data/mockData';
 import { 
   Search, 
@@ -20,11 +21,13 @@ import {
   ArrowUpDown,
   CheckCircle2,
   Info,
-  Loader2
+  Loader2,
+  ClipboardCheck
 } from 'lucide-react';
 import { TableSkeleton } from '../components/TableSkeleton';
 
 export const Admissions: React.FC = () => {
+  const { activeMembership } = useAuth();
   const { 
     students, 
     courses, 
@@ -1771,7 +1774,13 @@ export const Admissions: React.FC = () => {
 
             {/* Drawer Footer Actions */}
             {!isEditing && (
-              <div className="p-5 border-t border-[#E5DDE0] bg-slate-50/50 flex gap-2">
+              <div className="p-5 border-t border-[#E5DDE0] bg-slate-50/50 flex flex-wrap gap-2">
+                {activeMembership?.role === 'owner' && (
+                  <Link to={`/attendance?studentId=${encodeURIComponent(selectedStudent.id)}`} onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="flex basis-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#57172D]">
+                    <ClipboardCheck className="h-4 w-4" />
+                    <span>View Attendance Report</span>
+                  </Link>
+                )}
                 <button 
                   onClick={() => startEdit(selectedStudent)}
                   className="flex-1 flex items-center justify-center gap-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition-colors cursor-pointer"
