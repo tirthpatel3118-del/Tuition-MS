@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Sparkles,
   Settings,
   LogOut,
 } from 'lucide-react';
