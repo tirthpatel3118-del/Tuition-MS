@@ -71,11 +71,11 @@ body {
   .border-blue-500 { border-color: #8A3555; }
   .border-blue-600 { border-color: #681D3B; }
   .ring-blue-100 { --tw-ring-color: #F4DDE5; }
-  .focus\\:border-blue-500:focus { border-color: #8A3555; }
-  .focus\\:ring-blue-100:focus { --tw-ring-color: #F4DDE5; }
-  .hover\\:bg-blue-700:hover { background-color: #50152E; }
-  .hover\\:text-blue-700:hover { color: #50152E; }
-  .hover\\:border-blue-300:hover { border-color: #D9A8BA; }
+  [class~="focus:border-blue-500"]:focus { border-color: #8A3555; }
+  [class~="focus:ring-blue-100"]:focus { --tw-ring-color: #F4DDE5; }
+  [class~="hover:bg-blue-700"]:hover { background-color: #50152E; }
+  [class~="hover:text-blue-700"]:hover { color: #50152E; }
+  [class~="hover:border-blue-300"]:hover { border-color: #D9A8BA; }
   .bg-rose-50 { background-color: #F9EDF1; }
   .text-rose-700 { color: #681D3B; }
 }
