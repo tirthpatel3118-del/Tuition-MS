@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint src",
-    "test": "node scripts/test-fee-due-status.mjs && node scripts/test-phase1-regressions.mjs && node scripts/test-direct-payment.mjs && node scripts/test-reminder-dues.mjs && node scripts/test-auth-lifecycle.mjs && node scripts/test-batch-workflow.mjs && node scripts/test-enrollment-flexibility.mjs && node scripts/test-attendance-migration.mjs && node scripts/test-batch-course-unassignment.mjs && node scripts/test-payment-attendance-invitation-hardening.mjs && node scripts/test-free-plan-performance-hardening.mjs && node scripts/test-platform-admin-foundation.mjs && node scripts/test-platform-subscription-billing.mjs && node scripts/test-platform-subscription-billing-dates.mjs",
+    "test": "node scripts/test-expected-fee-due-date.mjs && node scripts/test-fee-due-status.mjs && node scripts/test-phase1-regressions.mjs && node scripts/test-direct-payment.mjs && node scripts/test-reminder-dues.mjs && node scripts/test-auth-lifecycle.mjs && node scripts/test-batch-workflow.mjs && node scripts/test-enrollment-flexibility.mjs && node scripts/test-attendance-migration.mjs && node scripts/test-batch-course-unassignment.mjs && node scripts/test-payment-attendance-invitation-hardening.mjs && node scripts/test-free-plan-performance-hardening.mjs && node scripts/test-platform-admin-foundation.mjs && node scripts/test-platform-subscription-billing.mjs && node scripts/test-platform-subscription-billing-dates.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
