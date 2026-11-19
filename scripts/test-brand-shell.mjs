@@ -26,7 +26,7 @@ assert.match(app, /v1\.0\.1/);
 assert.doesNotMatch(app, /settings\.logoUrl/);
 
 // Institute identity remains in the sidebar header, not the product footer.
-assert.match(sidebar, /settings\.logoUrl/);
+assert.match(sidebar, /EduLedgerMark className=/);
 assert.match(sidebar, /settings\.instituteName/);
 assert.match(sidebar, /Institute workspace/);
 assert.match(auth, /<BrandLoading message=\{message\} \/>/);
