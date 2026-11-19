@@ -10,6 +10,8 @@ const auth = read('../src/pages/AuthPages.tsx');
 const loader = read('../src/components/PageLoader.tsx');
 const mark = read('../src/components/EduLedgerMark.tsx');
 const brandLoader = read('../src/components/BrandLoading.tsx');
+const appVersion = read('../src/lib/appVersion.ts');
+const packageJson = JSON.parse(read('../package.json'));
 const favicon = read('../public/favicon.svg');
 const pwaIcon = read('../public/pwa-icon.svg');
 const pwaMaskable = read('../public/pwa-maskable.svg');
@@ -28,7 +30,12 @@ assert.ok(app.includes('https://wa.me/918160733101'));
 assert.ok(app.includes('Empowering Education. Together.'));
 assert.ok(app.includes('Developed by Tirth Patel'));
 assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
-assert.ok(app.includes('v1.0.0'));
+assert.ok(app.includes('v{APP_VERSION}'));
+assert.ok(brandLoader.includes('v{APP_VERSION}'));
+assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
+assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
+assert.ok(appVersion.includes(`'${packageJson.version}'`));
+assert.equal(packageJson.version, '1.0.1');
 
 // Phone and tablet layouts use the drawer and bottom navigation until large desktop.
 assert.ok(app.includes('xl:hidden'));
