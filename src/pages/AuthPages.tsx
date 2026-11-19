@@ -5,8 +5,8 @@ import { BrandLogo } from '../components/BrandLogo';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-12 flex items-center justify-center">
-      <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <main className="min-h-screen bg-[#faf8f9] px-4 py-12 flex items-center justify-center">
+      <section className="w-full max-w-md rounded-3xl border border-[#eadfe4] bg-white p-8 shadow-sm">
         <div className="mb-8">
           <BrandLogo className="mb-6" />
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
@@ -14,8 +14,8 @@ export function AuthFrame({ title, description, children }: { title: string; des
         </div>
         {children}
         <nav aria-label="Legal" className="mt-8 flex justify-center gap-4 border-t border-slate-100 pt-5 text-xs text-slate-500">
-          <Link to="/privacy" className="hover:text-blue-700">Privacy policy</Link>
-          <Link to="/terms" className="hover:text-blue-700">Terms of use</Link>
+          <Link to="/privacy" className="hover:text-[#50152E]">Privacy policy</Link>
+          <Link to="/terms" className="hover:text-[#50152E]">Terms of use</Link>
         </nav>
       </section>
     </main>
@@ -24,9 +24,9 @@ export function AuthFrame({ title, description, children }: { title: string; des
 
 export function AuthLoading({ message = 'Checking your secure workspace…' }: { message?: string }) {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 flex items-center justify-center">
+    <main className="min-h-screen bg-[#faf8f9] px-4 flex items-center justify-center">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+        <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-[#eadfe4] border-t-blue-600" />
         <p className="text-sm font-medium text-slate-600">{message}</p>
       </div>
     </main>
@@ -73,30 +73,30 @@ export function AuthPage() {
         {mode === 'sign-up' && (
           <label className="block text-sm font-semibold text-slate-700">
             Full name
-            <input required autoComplete="name" value={fullName} onChange={event => setFullName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+            <input required autoComplete="name" value={fullName} onChange={event => setFullName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" />
           </label>
         )}
         <label className="block text-sm font-semibold text-slate-700">
           Email address
-          <input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+          <input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" />
         </label>
         <label className="block text-sm font-semibold text-slate-700">
           Password
-          <input required minLength={8} type="password" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+          <input required minLength={8} type="password" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" />
         </label>
         {(formError || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{formError || authError}</p>}
         {message && <p role="status" className="rounded-xl bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800">{message}</p>}
-        <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">
+        <button disabled={busy} className="w-full rounded-xl bg-[#681D3B] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#50152E] disabled:cursor-wait disabled:opacity-60">
           {busy ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         {mode === 'sign-in' ? 'New to Saturn ERP?' : 'Already have an account?'}{' '}
-        <Link to={mode === 'sign-in' ? '/sign-up' : '/sign-in'} className="font-semibold text-blue-600 hover:text-blue-700">
+        <Link to={mode === 'sign-in' ? '/sign-up' : '/sign-in'} className="font-semibold text-[#7A2949] hover:text-[#50152E]">
           {mode === 'sign-in' ? 'Create an account' : 'Sign in'}
         </Link>
       </p>
-      {mode === 'sign-in' && !invitationFlow && <p className="mt-3 text-center"><Link to="/forgot-password" className="text-sm font-semibold text-blue-600 hover:text-blue-700">Forgot your password?</Link></p>}
+      {mode === 'sign-in' && !invitationFlow && <p className="mt-3 text-center"><Link to="/forgot-password" className="text-sm font-semibold text-[#7A2949] hover:text-[#50152E]">Forgot your password?</Link></p>}
     </AuthFrame>
   );
 }
@@ -115,11 +115,11 @@ export function ForgotPasswordPage() {
   };
   return <AuthFrame title="Reset your password" description="Enter your account email and we’ll send a secure password reset link.">
     {sent ? <div role="status" className="rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">If an account matches that email, a recovery link is on its way. Check your inbox and spam folder.</div> : <form onSubmit={submit} className="space-y-4">
-      <label className="block text-sm font-semibold text-slate-700">Email address<input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
+      <label className="block text-sm font-semibold text-slate-700">Email address<input required type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" /></label>
       {error && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error}</p>}
-      <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">{busy ? 'Sending…' : 'Send reset link'}</button>
+      <button disabled={busy} className="w-full rounded-xl bg-[#681D3B] px-4 py-3 text-sm font-bold text-white hover:bg-[#50152E] disabled:opacity-60">{busy ? 'Sending…' : 'Send reset link'}</button>
     </form>}
-    <p className="mt-5 text-center text-sm"><Link to="/sign-in" className="font-semibold text-blue-600 hover:text-blue-700">Back to sign in</Link></p>
+    <p className="mt-5 text-center text-sm"><Link to="/sign-in" className="font-semibold text-[#7A2949] hover:text-[#50152E]">Back to sign in</Link></p>
   </AuthFrame>;
 }
 
@@ -136,13 +136,13 @@ export function PasswordResetPage() {
     catch (value) { setError(value instanceof Error ? value.message : 'Could not update the password. Request a new reset link and try again.'); }
     finally { setBusy(false); }
   };
-  if (!session) return <AuthFrame title="Reset link unavailable" description="This link may have expired or already been used. Request a new password reset link to continue."><Link to="/forgot-password" className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-bold text-white">Request a new link</Link></AuthFrame>;
-  if (done) return <AuthFrame title="Password updated" description="Your password has been changed. Sign in with your new password to continue."><button onClick={async () => { await signOut(); navigate('/sign-in', { replace: true }); }} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Continue to sign in</button></AuthFrame>;
+  if (!session) return <AuthFrame title="Reset link unavailable" description="This link may have expired or already been used. Request a new password reset link to continue."><Link to="/forgot-password" className="block w-full rounded-xl bg-[#681D3B] px-4 py-3 text-center text-sm font-bold text-white">Request a new link</Link></AuthFrame>;
+  if (done) return <AuthFrame title="Password updated" description="Your password has been changed. Sign in with your new password to continue."><button onClick={async () => { await signOut(); navigate('/sign-in', { replace: true }); }} className="w-full rounded-xl bg-[#681D3B] px-4 py-3 text-sm font-bold text-white">Continue to sign in</button></AuthFrame>;
   return <AuthFrame title="Choose a new password" description="Use at least 8 characters for your new password."><form onSubmit={submit} className="space-y-4">
-    <label className="block text-sm font-semibold text-slate-700">New password<input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
-    <label className="block text-sm font-semibold text-slate-700">Confirm new password<input required minLength={8} type="password" autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" /></label>
+    <label className="block text-sm font-semibold text-slate-700">New password<input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" /></label>
+    <label className="block text-sm font-semibold text-slate-700">Confirm new password<input required minLength={8} type="password" autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" /></label>
     {error && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error}</p>}
-    <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy ? 'Updating…' : 'Update password'}</button>
+    <button disabled={busy} className="w-full rounded-xl bg-[#681D3B] px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy ? 'Updating…' : 'Update password'}</button>
   </form></AuthFrame>;
 }
 
@@ -204,18 +204,18 @@ export function CreateInstitutePage() {
       <form className="space-y-4" onSubmit={submit}>
         <label className="block text-sm font-semibold text-slate-700">
           Institute name
-          <input required minLength={2} value={name} onChange={event => updateName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+          <input required minLength={2} value={name} onChange={event => updateName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-[#eadfe4] px-3.5 py-3 font-normal outline-none focus:border-[#8A3555] focus:ring-4 focus:ring-[#F4DDE5]" />
         </label>
         <label className="block text-sm font-semibold text-slate-700">
           Workspace address
-          <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
+          <div className="mt-1.5 flex items-center rounded-xl border border-[#eadfe4] focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-100">
             <span className="pl-3.5 text-sm text-slate-400">saturnerp/</span>
             <input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} onChange={event => { setSlugEdited(true); setSlug(event.target.value.toLowerCase()); }} className="min-w-0 flex-1 rounded-r-xl px-2 py-3 font-normal outline-none" />
           </div>
           <span className="mt-1 block text-xs font-normal text-slate-400">Lowercase letters, numbers, and hyphens.</span>
         </label>
         {(error || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error || authError}</p>}
-        <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">
+        <button disabled={busy} className="w-full rounded-xl bg-[#681D3B] px-4 py-3 text-sm font-bold text-white hover:bg-[#50152E] disabled:opacity-60">
           {busy ? 'Creating workspace…' : 'Create institute'}
         </button>
       </form>
@@ -230,12 +230,12 @@ export function SelectInstitutePage() {
     <AuthFrame title="Choose an institute" description={`Select the workspace you want to open${email ? `, ${email}` : ''}.`}>
       <div className="space-y-3">
         {memberships.map(membership => (
-          <button key={membership.instituteId} onClick={() => selectInstitute(membership.instituteId)} className="flex w-full items-center justify-between rounded-2xl border border-slate-200 px-4 py-4 text-left hover:border-blue-300 hover:bg-blue-50/40">
+          <button key={membership.instituteId} onClick={() => selectInstitute(membership.instituteId)} className="flex w-full items-center justify-between rounded-2xl border border-[#eadfe4] px-4 py-4 text-left hover:border-[#D9A8BA] hover:bg-[#F9EDF1]">
             <span>
               <span className="block font-semibold text-slate-800">{membership.instituteName}</span>
               <span className="mt-1 block text-xs capitalize text-slate-500">{membership.role}</span>
             </span>
-            <span className="text-blue-600">Open →</span>
+            <span className="text-[#7A2949]">Open →</span>
           </button>
         ))}
       </div>
