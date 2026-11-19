@@ -155,9 +155,9 @@ function AppContent() {
         {/* Global Layout Footer */}
         <footer className="mt-auto hidden w-full border-t border-[#E5DDE0] bg-white py-5 text-center text-xs text-slate-400 no-print select-none md:block">
           <div className="max-w-7xl mx-auto px-6 space-y-1">
-            <div className="text-slate-500 font-semibold">Saturn ERP ERP v1.0.0</div>
+            <div className="text-slate-500 font-semibold">Saturn ERP v1.0.0</div>
             <div className="text-slate-400">
-              © 2026 Saturn ERP ERP
+              © 2026 Saturn ERP
             </div>
           </div>
         </footer>
