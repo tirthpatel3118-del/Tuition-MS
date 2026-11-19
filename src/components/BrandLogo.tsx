@@ -7,22 +7,32 @@ type BrandLogoProps = {
 };
 
 export function BrandLogo({ compact = false, light = false, className = '' }: BrandLogoProps) {
-  const titleColor = light ? '#FFFFFF' : '#321020';
-  const accentColor = light ? '#FFFFFF' : '#8B1E45';
+  const ink = light ? '#FFFFFF' : '#6B1F38';
+  const planetTop = light ? '#FFFFFF' : '#F5DCE5';
+  const planetBottom = light ? '#F3DCE5' : '#A32652';
+  const page = light ? '#FFFFFF' : '#6B1F38';
+
   return (
     <div className={`inline-flex min-w-0 items-center gap-3 ${className}`} aria-label="Saturn ERP">
-      <svg viewBox="0 0 100 88" role="img" aria-hidden="true" className={compact ? 'h-10 w-11 shrink-0' : 'h-[4.5rem] w-[5.1rem] shrink-0'}>
-        <path d="M12 52C28 31 63 18 88 25C71 30 40 44 15 61" fill="none" stroke={accentColor} strokeWidth="5.5" strokeLinecap="round"/>
-        <path d="M16 55C36 43 64 30 87 26" fill="none" stroke={light ? '#FFFFFF' : '#5B1833'} strokeWidth="2" strokeLinecap="round"/>
-        <path d="M19 35C25 18 41 10 55 12C70 14 78 26 76 39C64 43 39 47 23 43Z" fill={light ? '#FFFFFF' : '#8B1E45'}/>
-        <path d="M13 65Q32 55 50 69Q68 55 87 65L84 77Q66 68 50 83Q33 68 16 77Z" fill="none" stroke={accentColor} strokeWidth="4" strokeLinejoin="round"/>
-        <path d="M50 69V82" stroke={light ? '#FFFFFF' : '#B66A87'} strokeWidth="2.5" strokeLinecap="round"/>
-        <path d="M78 5L81 12L88 15L81 18L78 25L75 18L68 15L75 12Z" fill={light ? '#D8B4FE' : '#8B5CF6'}/>
+      <svg viewBox="0 0 100 100" role="img" aria-hidden="true" className={compact ? 'h-10 w-10 shrink-0' : 'h-16 w-16 shrink-0'}>
+        <defs>
+          <linearGradient id="saturn-planet" x1="25%" y1="5%" x2="78%" y2="100%">
+            <stop offset="0" stopColor={planetTop}/>
+            <stop offset=".52" stopColor={light ? '#F6E8ED' : '#D98AA5'}/>
+            <stop offset="1" stopColor={planetBottom}/>
+          </linearGradient>
+        </defs>
+        <path d="M17 65C22 34 40 17 58 19C75 21 85 37 82 55C79 72 65 82 48 81C32 80 20 74 17 65Z" fill="url(#saturn-planet)"/>
+        <path d="M9 62C24 49 61 33 91 38C83 49 52 65 16 73" fill="none" stroke={ink} strokeWidth="7" strokeLinecap="round"/>
+        <path d="M8 61C24 48 60 34 89 38" fill="none" stroke={light ? '#FFFFFF' : '#8B1E45'} strokeWidth="3" strokeLinecap="round"/>
+        <path d="M14 70Q31 62 49 75Q67 62 86 70L82 83Q65 76 49 91Q32 76 17 83Z" fill="none" stroke={page} strokeWidth="4" strokeLinejoin="round"/>
+        <path d="M49 75V89" stroke={light ? '#F1D5DF' : '#A32652'} strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M80 7L83 15L91 18L83 21L80 29L77 21L69 18L77 15Z" fill={light ? '#E9D5FF' : '#8B5CF6'}/>
       </svg>
       {!compact && (
         <span className="flex min-w-0 flex-col leading-none">
-          <span className="whitespace-nowrap text-[1.45rem] font-extrabold tracking-tight" style={{ color: titleColor }}>
-            Saturn <span style={{ color: light ? '#D8B4FE' : '#A32652' }}>ERP</span>
+          <span className="whitespace-nowrap text-[1.45rem] font-extrabold tracking-tight" style={{ color: light ? '#FFFFFF' : '#321020' }}>
+            Saturn <span style={{ color: light ? '#F0D8E2' : '#A32652' }}>ERP</span>
           </span>
           <span className={`mt-1.5 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.18em] ${light ? 'text-white/75' : 'text-slate-500'}`}>
             Tuition Management System
