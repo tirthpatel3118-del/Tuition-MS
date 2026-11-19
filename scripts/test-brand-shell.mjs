@@ -20,6 +20,7 @@ const packageJson = JSON.parse(read('../package.json'));
 const appVersion = read('../src/lib/appVersion.ts');
 const versionedPwaIcon = read('../public/pwa-icon-v1.0.1.svg');
 const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.1.svg');
+const versionedFavicon = read('../public/favicon-v1.0.1.svg');
 
 // Footer content, contact links and version match the supplied reference.
 assert.ok(app.includes('EduLedger'));
@@ -71,7 +72,10 @@ assert.ok(html.includes('<title>EduLedger ERP</title>'));
 assert.ok(manifest.includes('"short_name": "EduLedger"'));
 assert.ok(manifest.includes('/pwa-icon-v1.0.1.svg'));
 assert.ok(manifest.includes('/pwa-maskable-v1.0.1.svg'));
-assert.ok(html.includes('/pwa-icon-v1.0.1.svg'));
+assert.ok(html.includes('/favicon-v1.0.1.svg'));
+assert.ok(versionedFavicon.includes('width="64" height="64"'));
+assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
+assert.ok(html.includes('/favicon-v1.0.1.svg'));
 assert.ok(versionedPwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(versionedPwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(serviceWorker.includes("eduledger-shell-v1.0.1"));
