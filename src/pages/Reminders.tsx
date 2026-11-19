@@ -37,6 +37,7 @@ export const Reminders: React.FC = () => {
   // Tabs: 'dues' | 'logs'
   const [activeTab, setActiveTab] = useState<'dues' | 'logs'>('dues');
   const [search, setSearch] = useState('');
+  const [dueFilter, setDueFilter] = useState<'all' | 'today' | 'late' | 'no_installment'>('all');
 
   // Bulk selection state
   const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<string[]>([]);
@@ -206,8 +207,7 @@ export const Reminders: React.FC = () => {
     }
   }, [searchParams, dueItems]);
 
-  // Filtered due items list
-  const filteredDueInstallments = dueItems.filter(inst => {
+  const searchedDueItems = dueItems.filter(inst => {
     return (
       inst.studentName.toLowerCase().includes(search.toLowerCase()) ||
       inst.studentRoll.toLowerCase().includes(search.toLowerCase()) ||
@@ -216,6 +216,20 @@ export const Reminders: React.FC = () => {
       inst.displayInstallment.toLowerCase().includes(search.toLowerCase()) ||
       (inst.remarks && inst.remarks.toLowerCase().includes(search.toLowerCase()))
     );
+  });
+
+  const dueFilterCounts = {
+    all: searchedDueItems.length,
+    today: searchedDueItems.filter(item => !item.isDirect && item.dueLabel === 'Due today').length,
+    late: searchedDueItems.filter(item => !item.isDirect && item.daysLate > 0).length,
+    no_installment: searchedDueItems.filter(item => item.isDirect).length,
+  };
+
+  const filteredDueInstallments = searchedDueItems.filter(item => {
+    if (dueFilter === 'today') return !item.isDirect && item.dueLabel === 'Due today';
+    if (dueFilter === 'late') return !item.isDirect && item.daysLate > 0;
+    if (dueFilter === 'no_installment') return item.isDirect;
+    return true;
   });
 
   // Sorting logic
@@ -439,8 +453,35 @@ export const Reminders: React.FC = () => {
               </div>
 
               <div className="text-xs font-semibold text-slate-500 shrink-0">
-                {selectedInstallmentIds.length} of {filteredDueInstallments.length} selected
+                {selectedInstallmentIds.filter(id => filteredDueInstallments.some(item => item.id === id)).length} of {filteredDueInstallments.length} selected
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print" aria-label="Filter dues by due status">
+              {([
+                { id: 'all', label: 'All dues' },
+                { id: 'today', label: "Today's due" },
+                { id: 'late', label: 'Late dues' },
+                { id: 'no_installment', label: 'No installment' },
+              ] as const).map(option => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setDueFilter(option.id);
+                    setCurrentPage(1);
+                  }}
+                  aria-pressed={dueFilter === option.id}
+                  className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+                    dueFilter === option.id
+                      ? 'border-[#6B1F38] bg-[#F8E9ED] text-[#6B1F38]'
+                      : 'border-[#E5DDE0] bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="block text-[11px] font-semibold">{option.label}</span>
+                  <span className="mt-1 block text-lg font-bold tabular-nums">{dueFilterCounts[option.id]}</span>
+                </button>
+              ))}
             </div>
 
             {/* Table Content */}
