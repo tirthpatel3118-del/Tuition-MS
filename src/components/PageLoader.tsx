@@ -1,18 +1,16 @@
 import React from 'react';
-import { useData } from '../context/DataContext';
+import { BrandLogo } from './BrandLogo';
 
 export const PageLoader: React.FC = () => {
-  const { settings } = useData();
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-10 select-none animate-fade-in">
-      <div className="relative flex items-center justify-center">
-        {/* Animated Spin Ring */}
-        <div className="w-14 h-14 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-        {/* Small Center Dot */}
-        <div className="absolute w-2 h-2 bg-blue-600 rounded-full"></div>
+    <div role="status" aria-live="polite" className="flex min-h-[400px] w-full select-none flex-col items-center justify-center p-8 text-center animate-fade-in">
+      <BrandLogo className="mb-7" />
+      <div className="relative mb-5 h-9 w-9" aria-hidden="true">
+        <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-[#E8D5DC] border-t-[#6B1F38]" />
+        <div className="absolute inset-[13px] rounded-full bg-[#A03B5E]" />
       </div>
-      <h3 className="text-slate-700 text-xs font-bold uppercase tracking-widest mt-4">Loading {settings?.instituteName || 'EduLedger'}</h3>
-      <p className="text-[10px] text-slate-400 font-semibold mt-1">Retrieving database state...</p>
+      <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#6B1F38]">Saturn ERP</h3>
+      <p className="mt-2 text-xs font-medium text-slate-500">Preparing your institute workspace…</p>
     </div>
   );
 };
