@@ -1,5 +1,6 @@
 import React from 'react';
 import { EduLedgerMark } from './EduLedgerMark';
+import { APP_VERSION } from '../lib/appVersion';
 
 export function BrandLoading({ message = 'Preparing your institute workspace...' }: { message?: string }) {
   return (
@@ -32,7 +33,7 @@ export function BrandLoading({ message = 'Preparing your institute workspace...'
         </div>
         <div className="mt-4 flex flex-col items-center justify-between gap-2 border-t border-[#E5DDE0] pt-3 text-xs text-slate-500 sm:flex-row">
           <span>© 2026 EduLedger. All rights reserved.</span>
-          <span className="rounded-full bg-[#F1E7EB] px-3 py-1 font-medium text-[#6B1F38]">v1.0.1</span>
+          <span className="rounded-full bg-[#F1E7EB] px-3 py-1 font-medium text-[#6B1F38]">v{APP_VERSION}</span>
         </div>
       </footer>
     </main>
