@@ -31,6 +31,7 @@ export interface Student {
   course_id: string;
   admission_date: string;
   course_fee: number;
+  expected_fee_due_date?: string | null;
   discount: number;
   status: 'Active' | 'Inactive' | 'Completed';
   created_at: string;
