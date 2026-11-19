@@ -1,5 +1,5 @@
-const CACHE_NAME = 'eduledger-shell-v1';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/pwa-icon.svg', '/pwa-maskable.svg'];
+const CACHE_NAME = 'eduledger-shell-v1.0.1';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/pwa-icon-v1.0.1.svg', '/pwa-maskable-v1.0.1.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
