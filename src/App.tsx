@@ -52,7 +52,7 @@ function AppContent() {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setMobileOpen(true)}
-              className="rounded-lg p-2 text-[#6B1F38] transition-colors hover:bg-[#F8E9ED] md:hidden"
+              className="rounded-lg p-2 text-[#6B1F38] transition-colors hover:bg-[#F8E9ED] lg:hidden"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -120,7 +120,7 @@ function AppContent() {
         </header>
 
         {/* Page Router Body */}
-        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-24 pt-5 sm:px-6 md:px-8 md:pb-8 md:pt-7">
+        <main className="mx-auto w-full max-w-[1440px] min-w-0 flex-1 px-3 pb-24 pt-4 sm:px-5 sm:pt-5 lg:px-8 lg:pb-8 lg:pt-7">
           <Suspense fallback={<div className="py-12 text-center text-sm text-slate-500">Loading workspace…</div>}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
@@ -136,7 +136,7 @@ function AppContent() {
         </main>
 
         {/* Mobile primary navigation */}
-        <nav aria-label="Mobile primary navigation" className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-[#E5DDE0] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-6px_24px_rgba(31,41,55,0.06)] backdrop-blur md:hidden">
+        <nav aria-label="Mobile primary navigation" className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-[#E5DDE0] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-6px_24px_rgba(31,41,55,0.06)] backdrop-blur lg:hidden">
           {[
             { to: '/', label: 'Home', icon: LayoutDashboard },
             { to: '/admissions', label: 'Admissions', icon: UserPlus },
@@ -153,35 +153,35 @@ function AppContent() {
           })}
         </nav>
 
-        {/* EduLedger product footer */}
-        <footer className="mt-auto w-full border-t border-[#D8CDD2] bg-white px-4 pb-24 pt-6 text-xs text-[#51404A] no-print sm:px-6 md:pb-5">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[1fr_1.2fr_1fr] sm:gap-4">
-              <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start">
-                <EduLedgerMark className="h-16 w-16 shrink-0 text-[#790D3D]" />
-                <div className="min-w-0 border-l border-[#D8CDD2] pl-4">
-                  <p className="text-2xl font-bold tracking-tight text-[#790D3D]">EduLedger</p>
-                  <p className="mt-1 whitespace-nowrap text-xs font-semibold text-[#790D3D]">— Learning Made Organized —</p>
+        {/* EduLedger product footer — fluid layout from phones to wide desktop */}
+        <footer className="mt-auto w-full min-w-0 border-t border-[#D8CDD2] bg-white px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-6 text-xs text-[#51404A] no-print sm:px-6 lg:pb-5">
+          <div className="mx-auto w-full max-w-7xl">
+            <div className="grid min-w-0 grid-cols-1 items-center gap-5 sm:grid-cols-2 sm:gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)]">
+              <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start xl:pr-4">
+                <EduLedgerMark className="h-14 w-14 shrink-0 text-[#790D3D] sm:h-16 sm:w-16" />
+                <div className="min-w-0 border-l border-[#D8CDD2] pl-3 sm:pl-4">
+                  <p className="text-xl font-bold tracking-tight text-[#790D3D] sm:text-2xl">EduLedger</p>
+                  <p className="mt-1 text-[10px] font-semibold text-[#790D3D] sm:text-xs">— Learning Made Organized —</p>
                 </div>
               </div>
-              <p className="border-y border-[#D8CDD2] px-4 py-4 text-center text-base leading-relaxed sm:border-y-0 sm:border-x sm:py-2">
+              <p className="min-w-0 border-y border-[#D8CDD2] px-3 py-4 text-center text-sm leading-relaxed sm:col-span-2 sm:row-start-2 sm:text-base xl:col-span-1 xl:row-start-1 xl:border-y-0 xl:border-x xl:px-5">
                 A complete Tuition Management System for Educational Institutes.
               </p>
-              <div className="flex flex-col items-center gap-3 sm:items-start sm:pl-6">
-                <a href="mailto:tirth.freelance31@gmail.com" className="flex items-center gap-3 text-base transition-colors hover:text-[#790D3D]">
-                  <Mail className="h-6 w-6 shrink-0 text-[#790D3D]" aria-hidden="true" />
-                  <span>tirth.freelance31@gmail.com</span>
+              <div className="flex min-w-0 flex-col items-center gap-3 sm:items-start sm:justify-self-end sm:pr-1 xl:justify-self-start xl:pl-5">
+                <a href="mailto:tirth.freelance31@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
+                  <Mail className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />
+                  <span className="break-all">tirth.freelance31@gmail.com</span>
                 </a>
-                <a href="https://wa.me/918160733101" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-base transition-colors hover:text-[#790D3D]">
-                  <MessageCircle className="h-6 w-6 shrink-0 text-[#790D3D]" aria-hidden="true" />
-                  <span>+91 81607 33101</span>
+                <a href="https://wa.me/918160733101" target="_blank" rel="noreferrer" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
+                  <MessageCircle className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />
+                  <span className="whitespace-nowrap">+91 81607 33101</span>
                 </a>
               </div>
             </div>
-            <div className="mt-5 grid grid-cols-1 items-center gap-3 border-t border-[#D8CDD2] pt-4 text-center sm:grid-cols-3 sm:text-left">
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center xl:flex-row xl:text-left">
               <span>© 2026 EduLedger. All rights reserved.</span>
-              <span className="font-medium italic text-[#5B2941] sm:text-center">—　Empowering Education. Together.　—</span>
-              <span className="justify-self-center rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941] sm:justify-self-end">v1.0.0</span>
+              <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
+              <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v1.0.0</span>
             </div>
           </div>
         </footer>
