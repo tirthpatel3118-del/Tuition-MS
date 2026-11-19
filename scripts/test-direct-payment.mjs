@@ -634,8 +634,33 @@ async function runRegressionTests() {
   assert.equal(fifoStudent.feesDue, 7000);
   console.log('✓ Reversal offset FIFO allocations and restored first/second installment states');
 
+  // --------------------------------------------------------------------------
+  console.log('\nTest 9: Amount above scheduled installments remains an unallocated balance');
+  // --------------------------------------------------------------------------
+  engine.addStudent({
+    id: 'student_fifo_excess', institute_id: instituteId, full_name: 'FIFO Excess QA',
+    course_fee: 15000, status: 'Active', course_id: 'c_math_10'
+  });
+  engine.addInstallment({ id: 'fifo_excess_1', student_id: 'student_fifo_excess', institute_id: instituteId,
+    installment_number: 1, amount: 4000, due_date: '2026-11-01' });
+  engine.addInstallment({ id: 'fifo_excess_2', student_id: 'student_fifo_excess', institute_id: instituteId,
+    installment_number: 2, amount: 6000, due_date: '2026-12-01' });
+  const excessPay = engine.recordPaymentAtomic({
+    instituteId, studentId: 'student_fifo_excess', amount: 12000, paymentMode: 'UPI',
+    paymentDate: '2026-11-19', remarks: 'Scheduled plus direct balance',
+    idempotencyKey: 'key_fifo_excess_001'
+  });
+  const excessStudent = engine.students.get('student_fifo_excess');
+  const excessAllocated = engine.paymentAllocations.filter(a => a.payment_id === excessPay.paymentId)
+    .reduce((sum, a) => sum + a.allocated_amount, 0);
+  assert.equal(excessAllocated, 10000);
+  assert.equal(excessStudent.feesDue, 3000);
+  assert.equal(engine.installments.get('fifo_excess_1').status, 'Paid');
+  assert.equal(engine.installments.get('fifo_excess_2').status, 'Paid');
+  console.log('✓ ₹12,000 payment allocated ₹10,000 to schedule; remaining ₹2,000 reduced direct balance with ₹3,000 still due');
+
   console.log('\n================================================================');
-  console.log('ALL 8 REGRESSION & REVERSAL / IDEMPOTENCY TESTS PASSED (8/8)!');
+  console.log('ALL 9 REGRESSION & REVERSAL / IDEMPOTENCY TESTS PASSED (9/9)!');
   console.log('================================================================');
 }
 
