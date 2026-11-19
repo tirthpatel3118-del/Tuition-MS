@@ -40,7 +40,7 @@ export const renderReminderTemplate = (
     InstallmentAmount: formatAmount(values.installmentAmount ?? values.amount ?? values.remainingFee, currencySymbol),
     DueDate: isDirect ? '' : (values.dueDate && values.dueDate !== '—' ? values.dueDate : ''),
     RemainingFee: formatAmount(values.remainingFee ?? values.amount ?? values.installmentAmount, currencySymbol),
-    InstituteName: values.instituteName || 'EduLedger ERP',
+    InstituteName: values.instituteName || 'your institute',
   };
 
   let rendered = template;
