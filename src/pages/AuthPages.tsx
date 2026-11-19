@@ -1,4 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -44,6 +45,7 @@ export function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -88,7 +90,7 @@ export function AuthPage() {
         </label>
         <label className="block text-sm font-semibold text-slate-700">
           Password
-          <input required minLength={8} type="password" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" />
+          <div className="relative mt-1.5"><input required minLength={8} type={showPassword ? 'text' : 'password'} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-slate-500 hover:text-[#6B1F38]">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
         </label>
         {(formError || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{formError || authError}</p>}
         {message && <p role="status" className="rounded-xl bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800">{message}</p>}
@@ -137,6 +139,7 @@ export function PasswordResetPage() {
   const { session, updatePassword, signOut } = useAuth();
   const navigate = useNavigate();
   const [password, setPassword] = useState(''); const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false); const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState(''); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setError('');
@@ -149,8 +152,8 @@ export function PasswordResetPage() {
   if (!session) return <AuthFrame title="Reset link unavailable" description="This link may have expired or already been used. Request a new password reset link to continue."><Link to="/forgot-password" className="block w-full rounded-xl bg-blue-600 px-4 py-3 text-center text-sm font-bold text-white">Request a new link</Link></AuthFrame>;
   if (done) return <AuthFrame title="Password updated" description="Your password has been changed. Sign in with your new password to continue."><button onClick={async () => { await signOut(); navigate('/sign-in', { replace: true }); }} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white">Continue to sign in</button></AuthFrame>;
   return <AuthFrame title="Choose a new password" description="Use at least 8 characters for your new password."><form onSubmit={submit} className="space-y-4">
-    <label className="block text-sm font-semibold text-slate-700">New password<input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /></label>
-    <label className="block text-sm font-semibold text-slate-700">Confirm new password<input required minLength={8} type="password" autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /></label>
+    <label className="block text-sm font-semibold text-slate-700">New password<div className="relative mt-1.5"><input required minLength={8} type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500 hover:text-[#6B1F38]">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div></label>
+    <label className="block text-sm font-semibold text-slate-700">Confirm new password<div className="relative mt-1.5"><input required minLength={8} type={showConfirm ? 'text' : 'password'} autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowConfirm(value => !value)} aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500 hover:text-[#6B1F38]">{showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div></label>
     {error && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error}</p>}
     <button disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">{busy ? 'Updating…' : 'Update password'}</button>
   </form></AuthFrame>;
