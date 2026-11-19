@@ -33,6 +33,7 @@ DECLARE
     v_canonical_allocations JSONB;
     v_requested_allocations JSONB;
     v_remaining_to_allocate NUMERIC(10, 2);
+    v_fifo_alloc_amount NUMERIC(10, 2);
 BEGIN
     -- 1. Role Authorization Gate
     PERFORM 1 FROM public.institutes WHERE id = p_institute_id FOR SHARE;
@@ -149,13 +150,13 @@ BEGIN
             ORDER BY i.due_date ASC, i.installment_number ASC, i.id ASC
         LOOP
             EXIT WHEN v_remaining_to_allocate <= 0;
-            v_alloc.amount := LEAST(v_remaining_to_allocate, v_alloc.balance);
+            v_fifo_alloc_amount := LEAST(v_remaining_to_allocate, v_alloc.balance);
             v_canonical_allocations := v_canonical_allocations ||
                 jsonb_build_array(jsonb_build_object(
                     'installment_id', v_alloc.installment_id,
-                    'amount', v_alloc.amount
+                    'amount', v_fifo_alloc_amount
                 ));
-            v_remaining_to_allocate := v_remaining_to_allocate - v_alloc.amount;
+            v_remaining_to_allocate := v_remaining_to_allocate - v_fifo_alloc_amount;
         END LOOP;
     END IF;
 
