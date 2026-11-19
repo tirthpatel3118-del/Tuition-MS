@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { addMonthsToDateInput, formatDateForDisplay, formatLocalDateInput } from '../lib/date';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { MonthlyAttendanceReport } from '../components/MonthlyAttendanceReport';
 import { useAuth } from '../context/AuthContext';
 import { Student, Installment } from '../data/mockData';
 import { 
@@ -61,6 +62,7 @@ export const Admissions: React.FC = () => {
   // Selected student for detail side-panel
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAttendanceReportOpen, setIsAttendanceReportOpen] = useState(false);
 
   // Loading indicator for table searches
   const [isLoadingTable, setIsLoadingTable] = useState(true);
@@ -1179,7 +1181,7 @@ export const Admissions: React.FC = () => {
       )}
 
       {/* Student detail backdrop and drawer */}
-      {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
+      {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); setIsAttendanceReportOpen(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
       {/* Side Details drawer (Slides in from the right when student clicked) */}
       <div role="dialog" aria-modal={Boolean(selectedStudentId)} aria-hidden={!selectedStudentId} aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col no-print ${selectedStudentId ? 'pointer-events-auto' : 'pointer-events-none'}
         ${selectedStudentId ? 'translate-x-0' : 'translate-x-full'}
@@ -1210,7 +1212,16 @@ export const Admissions: React.FC = () => {
 
             {/* Drawer Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
-              {!isEditing ? (
+              {isAttendanceReportOpen && selectedStudent && activeMembership?.role === 'owner' ? (
+                <MonthlyAttendanceReport
+                  instituteId={activeMembership.instituteId}
+                  studentId={selectedStudent.id}
+                  studentName={selectedStudent.name}
+                  rollNumber={selectedStudent.rollNumber}
+                  batches={batches.map(batch => ({ id: batch.id, name: batch.name }))}
+                  onBack={() => setIsAttendanceReportOpen(false)}
+                />
+              ) : !isEditing ? (
                 /* Detail View */
                 <div className="space-y-7">
                   {/* Student Title Profile Card */}
@@ -1773,13 +1784,13 @@ export const Admissions: React.FC = () => {
             </div>
 
             {/* Drawer Footer Actions */}
-            {!isEditing && (
+            {!isEditing && !isAttendanceReportOpen && (
               <div className="p-5 border-t border-[#E5DDE0] bg-slate-50/50 flex flex-wrap gap-2">
                 {activeMembership?.role === 'owner' && (
-                  <Link to={`/attendance?studentId=${encodeURIComponent(selectedStudent.id)}`} onClick={() => { setSelectedStudentId(null); setIsEditing(false); }} className="flex basis-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#57172D]">
+                  <button type="button" onClick={() => setIsAttendanceReportOpen(true)} className="flex basis-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#57172D]">
                     <ClipboardCheck className="h-4 w-4" />
-                    <span>View Attendance Report</span>
-                  </Link>
+                    <span>Attendance Report</span>
+                  </button>
                 )}
                 <button 
                   onClick={() => startEdit(selectedStudent)}
