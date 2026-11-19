@@ -176,19 +176,21 @@ export const Reminders: React.FC = () => {
           installmentNumber: undefined,
           displayInstallment: 'Direct Fee',
           amount: remainingAllowance,
-          dueDate: '',
-          displayDueDate: '—',
+          dueDate: studentInsts.length === 0 ? (student.expectedFeeDueDate || '') : '',
+          displayDueDate: studentInsts.length === 0 && student.expectedFeeDueDate
+            ? formatDateForDisplay(student.expectedFeeDueDate, settings?.dateFormat) || student.expectedFeeDueDate
+            : '—',
           status: 'Pending',
           remarks: 'Direct fee balance',
           remainingFee: student.feesDue,
-          dueLabel: 'No due date',
-          daysLate: 0,
+          dueLabel: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').label,
+          daysLate: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').daysLate,
         });
       }
     }
 
     // Hide future scheduled installments from the default follow-up list.
-    // Keep unscheduled direct balances visible so outstanding fees are not missed.
+    // Keep direct balances visible when no expected date is set; scheduled expected dates appear when due.
     return items.filter(item => isActionableFeeDue(item.dueDate));
   }, [students, installments, installmentPaidTotals, settings?.dateFormat]);
 
