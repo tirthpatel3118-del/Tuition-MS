@@ -15,6 +15,7 @@ const pwaIcon = read('../public/pwa-icon.svg');
 const pwaMaskable = read('../public/pwa-maskable.svg');
 const html = read('../index.html');
 const manifest = read('../public/manifest.webmanifest');
+const versionedFavicon = read('../public/favicon-v1.0.1.svg');
 
 // Footer content, contact links and version match the supplied reference.
 assert.ok(app.includes('EduLedger'));
@@ -58,6 +59,9 @@ assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(html.includes('<title>EduLedger ERP</title>'));
+assert.ok(html.includes('/favicon-v1.0.1.svg'));
+assert.ok(versionedFavicon.includes('width="64" height="64"'));
+assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(manifest.includes('"short_name": "EduLedger"'));
 
 console.log('EduLedger responsive brand shell checks passed.');
