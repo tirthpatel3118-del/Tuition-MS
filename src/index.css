@@ -264,8 +264,8 @@
   }
 }
 
-@media (min-width: 640px) and (max-width: 1023px) {
-  /* Tablets use the mobile drawer and bottom navigation, preserving page width. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  /* Tablets and compact laptops use the mobile drawer and bottom navigation, preserving page width. */
   main {
     padding-bottom: 6rem;
   }
