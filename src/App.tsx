@@ -152,33 +152,16 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Saturn ERP footer */}
-        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 py-6 pb-24 text-sm text-slate-600 no-print select-none md:px-6 md:pb-6">
-          <div className="mx-auto grid max-w-7xl gap-6 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:items-center">
-            <div className="space-y-1">
-              <p className="font-semibold tracking-tight text-[#6B1F38]">Saturn ERP</p>
-              <p className="text-xs font-medium text-slate-500">Tuition Management Platform</p>
-              <p className="max-w-md text-xs leading-5 text-slate-500">
-                Simplifying tuition management, one classroom at a time.
-              </p>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <p className="font-semibold uppercase tracking-wider text-slate-500">Get in touch</p>
-              <a href="mailto:tirth.freelance31@gmail.com" className="block w-fit text-slate-600 transition-colors hover:text-[#6B1F38]">
-                tirth.freelance31@gmail.com
-              </a>
-              <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="block w-fit text-slate-600 transition-colors hover:text-[#6B1F38]">
-                WhatsApp: +91 8160733101
-              </a>
-            </div>
-
-            <div className="space-y-2 text-xs sm:col-span-2 lg:col-span-1 lg:text-right">
-              <p className="font-medium text-slate-600">Developed with <span className="text-[#A03B5E]" aria-label="love">♥</span> by Tirth Patel</p>
-              <p className="text-slate-400">Saturn ERP v1.0.0</p>
-              <p className="text-slate-400">© {new Date().getFullYear()} Saturn ERP. All rights reserved.</p>
-            </div>
-          </div>
+        {/* Simple Saturn ERP footer */}
+        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 py-4 pb-20 text-center text-xs leading-6 text-slate-500 no-print select-none md:pb-4">
+          <p>Saturn ERP · Tuition Management Platform</p>
+          <p>Simplifying tuition management, one classroom at a time.</p>
+          <p>
+            <a href="mailto:tirth.freelance31@gmail.com" className="hover:text-[#6B1F38]">tirth.freelance31@gmail.com</a>
+            <span className="px-2 text-slate-300">·</span>
+            <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="hover:text-[#6B1F38]">+91 8160733101</a>
+          </p>
+          <p>Developed with ♥ by Tirth Patel · Saturn ERP v1.0.0 · © {new Date().getFullYear()} Saturn ERP. All rights reserved.</p>
         </footer>
       </div>
     </div>
