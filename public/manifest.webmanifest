@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "EduLedger",
-  "short_name": "EduLedger",
+  "name": "Saturn ERP",
+  "short_name": "Saturn ERP",
   "description": "Your institute workspace for teaching, attendance and academic records.",
   "start_url": "/",
   "scope": "/",
