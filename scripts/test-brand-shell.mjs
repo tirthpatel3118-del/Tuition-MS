@@ -14,32 +14,31 @@ const pwaMaskable = read('../public/pwa-maskable.svg');
 const html = read('../index.html');
 const manifest = read('../public/manifest.webmanifest');
 
-// Product footer uses EduLedger's own brand and published contact details.
-assert.match(app, /EduLedgerMark/);
-assert.match(app, /Learning Made Organized/);\nassert.match(app, /Empowering Education\\. Together\\./);\nassert.doesNotMatch(app, /info@eduledger\\.in|98765 43210/);
-assert.match(app, /A complete Tuition Management System for Educational Institutes/);
-assert.match(app, /info@eduledger\.in/);
-assert.match(app, /\+91 98765 43210/);
-assert.match(app, /mailto:info@eduledger\.in/);
-assert.match(app, /tel:\+919876543210/);
-assert.match(app, /v1\.0\.1/);
-assert.doesNotMatch(app, /settings\.logoUrl/);
+// Match the supplied product footer reference without inventing contact details.
+assert.ok(app.includes('EduLedgerMark'));
+assert.ok(app.includes('Learning Made Organized'));
+assert.ok(app.includes('A complete Tuition Management System for Educational Institutes.'));
+assert.ok(app.includes('Empowering Education. Together.'));
+assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
+assert.ok(app.includes('v1.0.1'));
+assert.ok(!app.includes('info@eduledger.in'));
+assert.ok(!app.includes('98765 43210'));
 
-// Institute identity remains in the sidebar header, not the product footer.
-assert.match(sidebar, /EduLedgerMark className=/);
-assert.match(sidebar, /settings\.instituteName/);
-assert.match(sidebar, /Institute workspace/);
-assert.match(auth, /<BrandLoading message=\{message\} \/>/);
-assert.match(loader, /<EduLedgerMark/);
-assert.match(brandLoader, /Loading EduLedger/);
+// Institute name stays in the sidebar beside the shared product mark.
+assert.ok(sidebar.includes('EduLedgerMark className='));
+assert.ok(sidebar.includes('settings.instituteName'));
+assert.ok(sidebar.includes('Institute workspace'));
+assert.ok(auth.includes('<BrandLoading message={message} />'));
+assert.ok(loader.includes('<EduLedgerMark'));
+assert.ok(brandLoader.includes('Loading EduLedger'));
 
-// Shared mark and install icons now consistently depict a graduation cap and open book.
-assert.match(mark, /M5 19\.5L32 7\.5L59 19\.5/);
-assert.match(mark, /Open book/);
-assert.match(favicon, /M5 19\.5L32 7\.5L59 19\.5/);
-assert.match(pwaIcon, /M5 19\.5L32 7\.5L59 19\.5/);
-assert.match(pwaMaskable, /M5 19\.5L32 7\.5L59 19\.5/);
-assert.match(html, /<title>EduLedger ERP<\/title>/);
-assert.match(manifest, /"short_name": "EduLedger"/);
+// Shared mark and install icons consistently depict a graduation cap and open book.
+assert.ok(mark.includes('M5 19.5L32 7.5L59 19.5'));
+assert.ok(mark.includes('Open book'));
+assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
+assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
+assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
+assert.ok(html.includes('<title>EduLedger ERP</title>'));
+assert.ok(manifest.includes('"short_name": "EduLedger"'));
 
 console.log('EduLedger brand shell checks passed.');
