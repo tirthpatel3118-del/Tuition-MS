@@ -372,12 +372,21 @@ export const Reminders: React.FC = () => {
     selectedTemplateType === 'direct' ? directFeeTemplate : installmentTemplate
   );
 
-  // Generate dynamic WhatsApp link using parsed template text
+  // Normalize Indian parent numbers for WhatsApp's click-to-chat URL.
+  const getWhatsAppPhone = (phone?: string) => {
+    const digits = (phone || '').replace(/\D/g, '');
+    if (digits.length === 10) return `91${digits}`;
+    if (digits.length === 11 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+    if (digits.length === 12 && digits.startsWith('91')) return digits;
+    return null;
+  };
+
+  // Generate a prefilled WhatsApp link; opening it is a manual user action.
   const getWhatsAppLink = (inst: (typeof dueItems)[0]) => {
+    const phone = getWhatsAppPhone(inst.parentPhone);
+    if (!phone) return undefined;
     const message = parseItemReminder(inst);
-    const cleanPhone = (inst.parentPhone || '').replace(/[^0-9]/g, '');
-    const phoneWithCountry = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-    return `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
   // Send single/bulk reminder trigger
@@ -598,11 +607,11 @@ export const Reminders: React.FC = () => {
                                     href={isDemoMode ? undefined : getWhatsAppLink(inst)}
                                     target={isDemoMode ? undefined : '_blank'}
                                     rel={isDemoMode ? undefined : 'noreferrer'}
-                                    aria-disabled={isDemoMode}
+                                    aria-disabled={isDemoMode || !getWhatsAppPhone(inst.parentPhone)}
                                     onClick={event => {
-                                      if (isDemoMode) {
+                                      if (isDemoMode || !getWhatsAppPhone(inst.parentPhone)) {
                                         event.preventDefault();
-                                        showToast('Demo mode: no WhatsApp message was sent.', 'info');
+                                        showToast(isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Add a valid parent WhatsApp number before opening this reminder.', 'info');
                                         return;
                                       }
                                       void sendReminder(inst.studentId, 'WhatsApp', inst.id).then(() => {
@@ -611,8 +620,8 @@ export const Reminders: React.FC = () => {
                                         showToast(error instanceof Error ? error.message : 'Could not record the reminder.', 'error');
                                       });
                                     }}
-                                    title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : 'Send WhatsApp Reminder'}
-                                    className={`p-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode ? 'cursor-not-allowed opacity-60' : ''}`}
+                                    title={isDemoMode ? 'Demo mode: WhatsApp messages are disabled.' : !getWhatsAppPhone(inst.parentPhone) ? 'A valid parent WhatsApp number is required.' : 'Open WhatsApp with a prefilled reminder'}
+                                    className={`p-1.5 border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors ${isDemoMode || !getWhatsAppPhone(inst.parentPhone) ? 'cursor-not-allowed opacity-60' : ''}`}
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
