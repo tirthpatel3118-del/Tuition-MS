@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink 
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
+import { EduLedgerMark } from './components/EduLedgerMark';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
@@ -152,12 +153,22 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Global Layout Footer */}
-        <footer className="mt-auto hidden w-full border-t border-[#E5DDE0] bg-white py-5 text-center text-xs text-slate-400 no-print select-none md:block">
-          <div className="max-w-7xl mx-auto px-6 space-y-1">
-            <div className="text-slate-500 font-semibold">EduLedger ERP v1.0.1</div>
-            <div className="text-slate-400">
-              © 2026 EduLedger ERP
+        {/* Global product footer */}
+        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-500 no-print select-none sm:px-6 md:pb-5">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col items-center justify-between gap-5 sm:flex-row">
+              <div className="flex items-center gap-3">
+                <EduLedgerMark className="h-12 w-12 shrink-0 text-[#6B1F38]" />
+                <div className="border-l border-[#E5DDE0] pl-3">
+                  <p className="text-lg font-bold tracking-tight text-[#6B1F38]">EduLedger</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Tuition Management Platform</p>
+                </div>
+              </div>
+              <p className="text-center text-xs italic text-slate-500 sm:text-right">Simplifying institute management, one classroom at a time.</p>
+            </div>
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#E5DDE0] pt-4 sm:flex-row">
+              <span>© 2026 EduLedger. All rights reserved.</span>
+              <span className="rounded-full bg-[#F1E7EB] px-3 py-1 font-semibold text-[#6B1F38]">v1.0.1</span>
             </div>
           </div>
         </footer>
