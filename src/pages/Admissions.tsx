@@ -1332,7 +1332,7 @@ export const Admissions: React.FC = () => {
                       {/* Installment Schedule Table (Requirement 5) */}
                       <div className="space-y-3 pt-2 border-t border-[#E5DDE0]">
                         <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Installment Schedule</h4>
-                        <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+                        <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-xs">
                           <table className="w-full text-left border-collapse text-xs">
                             <thead>
                               <tr className="bg-slate-50 border-b border-[#E5DDE0] text-slate-400 font-bold text-[10px] uppercase">
