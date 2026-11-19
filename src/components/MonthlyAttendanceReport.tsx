@@ -26,6 +26,7 @@ interface AttendanceReportRecord {
 
 interface MonthlyAttendanceReportProps {
   instituteId: string;
+  initialStudentId?: string;
   students: ReportStudent[];
   batches: ReportBatch[];
 }
@@ -49,9 +50,9 @@ function getMonthRange(month: string) {
   };
 }
 
-export function MonthlyAttendanceReport({ instituteId, students, batches }: MonthlyAttendanceReportProps) {
+export function MonthlyAttendanceReport({ instituteId, students, batches, initialStudentId }: MonthlyAttendanceReportProps) {
   const [month, setMonth] = useState(() => formatLocalDateInput().slice(0, 7));
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(initialStudentId ?? '');
   const uniqueStudents = useMemo(() => Array.from(new Map(students.map(student => [student.id, student])).values()).sort((a, b) => a.full_name.localeCompare(b.full_name)), [students]);
   const [records, setRecords] = useState<AttendanceReportRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -130,21 +131,24 @@ export function MonthlyAttendanceReport({ instituteId, students, batches }: Mont
     <section className="attendance-report-print-root overflow-hidden rounded-2xl border border-[#E5DDE0] bg-white shadow-sm">
       <style>{`
         @media print {
+          @page { size: A4 portrait; margin: 10mm; }
+          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
           body * { visibility: hidden !important; }
           .attendance-report-print-root,
           .attendance-report-print-root * { visibility: visible !important; }
-          .attendance-report-print-root { position: absolute !important; inset: 0 auto auto 0 !important; width: 100% !important; border: 0 !important; box-shadow: none !important; }
+          .attendance-report-print-root { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; max-width: none !important; overflow: visible !important; border: 0 !important; box-shadow: none !important; break-inside: avoid; }
           .attendance-report-print-controls { display: none !important; }
-          @page { size: A4 portrait; margin: 12mm; }
+          .attendance-report-print-root table { width: 100% !important; min-width: 0 !important; }
+          .attendance-report-print-root tr { break-inside: avoid; }
         }
       `}</style>
-      <div className="flex flex-col gap-3 border-b border-[#E5DDE0] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-[#E5DDE0] px-5 py-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-[#6B1F38]">Student report</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-900">Monthly attendance</h2>
           <p className="mt-1 text-xs text-slate-500">Review every recorded class session for an individual student.</p>
         </div>
-        <div className="attendance-report-print-controls flex flex-col gap-2 sm:flex-row">
+        <div className="attendance-report-print-controls flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end xl:w-auto">
           <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
             <span className="sr-only">Select student</span>
             <select aria-label="Select student for monthly report" value={studentId} onChange={event => setStudentId(event.target.value)} className="min-w-0 bg-transparent py-2 text-sm text-slate-700 outline-none" disabled={!uniqueStudents.length}>
@@ -158,7 +162,7 @@ export function MonthlyAttendanceReport({ instituteId, students, batches }: Mont
             <span className="sr-only">Report month</span>
             <input aria-label="Report month" type="month" value={month} onChange={event => setMonth(event.target.value)} className="min-w-0 py-2 text-sm text-slate-700 outline-none" />
           </label>
-          <button type="button" onClick={() => window.print()} disabled={!selectedStudent || loading || records.length === 0} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6B1F38] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" onClick={() => window.print()} disabled={!selectedStudent || loading || records.length === 0} className="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#6B1F38] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">
             <Download className="h-4 w-4" /> Print / Save PDF
           </button>
         </div>
