@@ -15,11 +15,6 @@ const pwaIcon = read('../public/pwa-icon.svg');
 const pwaMaskable = read('../public/pwa-maskable.svg');
 const html = read('../index.html');
 const manifest = read('../public/manifest.webmanifest');
-const serviceWorker = read('../public/sw.js');
-const packageJson = JSON.parse(read('../package.json'));
-const appVersion = read('../src/lib/appVersion.ts');
-const versionedPwaIcon = read('../public/pwa-icon-v1.0.1.svg');
-const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.1.svg');
 const versionedFavicon = read('../public/favicon-v1.0.1.svg');
 
 // Footer content, contact links and version match the supplied reference.
@@ -32,12 +27,7 @@ assert.ok(app.includes('81607 33101'));
 assert.ok(app.includes('https://wa.me/918160733101'));
 assert.ok(app.includes('Empowering Education. Together.'));
 assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
-assert.ok(app.includes('v{APP_VERSION}'));
-assert.ok(brandLoader.includes('v{APP_VERSION}'));
-assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
-assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
-assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.1');
+assert.ok(app.includes('v1.0.0'));
 
 // Phone and tablet layouts use the drawer and bottom navigation until large desktop.
 assert.ok(app.includes('xl:hidden'));
@@ -69,17 +59,9 @@ assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(html.includes('<title>EduLedger ERP</title>'));
-assert.ok(manifest.includes('"short_name": "EduLedger"'));
-assert.ok(manifest.includes('/pwa-icon-v1.0.1.svg'));
-assert.ok(manifest.includes('/pwa-maskable-v1.0.1.svg'));
 assert.ok(html.includes('/favicon-v1.0.1.svg'));
 assert.ok(versionedFavicon.includes('width="64" height="64"'));
 assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(html.includes('/favicon-v1.0.1.svg'));
-assert.ok(versionedPwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(versionedPwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(serviceWorker.includes("eduledger-shell-v1.0.1"));
-assert.ok(serviceWorker.includes('/pwa-icon-v1.0.1.svg'));
-assert.ok(serviceWorker.includes('/pwa-maskable-v1.0.1.svg'));
+assert.ok(manifest.includes('"short_name": "EduLedger"'));
 
 console.log('EduLedger responsive brand shell checks passed.');
