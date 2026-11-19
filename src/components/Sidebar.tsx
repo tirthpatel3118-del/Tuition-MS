@@ -46,6 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ...(role === 'owner' || !auth.configured ? [{ to: '/settings', label: 'Settings', icon: Settings }] : []),
   ];
 
+  const rawInstituteName = settings?.instituteName?.trim() || auth.activeMembership?.instituteName?.trim() || '';
+  const instituteName = /^(edu\s*ledger)(\s*erp)?$/i.test(rawInstituteName) ? 'Your Institute' : (rawInstituteName || 'Your Institute');
+
   const profileLabel = auth.configured
     ? (auth.activeMembership?.role || 'Member')
     : 'Demo workspace';
@@ -67,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold tracking-tight text-white">
-                {settings?.instituteName || 'Your Institute'}
+                {instituteName}
               </span>
               <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#E8C9D4]">
                 Institute workspace
