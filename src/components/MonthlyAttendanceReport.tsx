@@ -52,20 +52,21 @@ function getMonthRange(month: string) {
 export function MonthlyAttendanceReport({ instituteId, students, batches }: MonthlyAttendanceReportProps) {
   const [month, setMonth] = useState(() => formatLocalDateInput().slice(0, 7));
   const [studentId, setStudentId] = useState('');
+  const uniqueStudents = useMemo(() => Array.from(new Map(students.map(student => [student.id, student])).values()).sort((a, b) => a.full_name.localeCompare(b.full_name)), [students]);
   const [records, setRecords] = useState<AttendanceReportRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!students.length) {
+    if (!uniqueStudents.length) {
       setStudentId('');
       setRecords([]);
       return;
     }
-    if (!studentId || !students.some(student => student.id === studentId)) {
-      setStudentId(students[0].id);
+    if (!studentId || !uniqueStudents.some(student => student.id === studentId)) {
+      setStudentId(uniqueStudents[0].id);
     }
-  }, [studentId, students]);
+  }, [studentId, uniqueStudents]);
 
   useEffect(() => {
     const range = getMonthRange(month);
@@ -105,7 +106,7 @@ export function MonthlyAttendanceReport({ instituteId, students, batches }: Mont
     };
   }, [instituteId, month, studentId]);
 
-  const selectedStudent = students.find(student => student.id === studentId);
+  const selectedStudent = uniqueStudents.find(student => student.id === studentId);
   const batchNames = useMemo(() => new Map(batches.map(batch => [batch.id, batch.name])), [batches]);
   const totals = useMemo(() => {
     const counts = { Present: 0, Absent: 0, Late: 0, Leave: 0 };
@@ -146,8 +147,8 @@ export function MonthlyAttendanceReport({ instituteId, students, batches }: Mont
         <div className="attendance-report-print-controls flex flex-col gap-2 sm:flex-row">
           <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
             <span className="sr-only">Select student</span>
-            <select aria-label="Select student for monthly report" value={studentId} onChange={event => setStudentId(event.target.value)} className="min-w-0 bg-transparent py-2 text-sm text-slate-700 outline-none" disabled={!students.length}>
-              {students.length ? students.map(student => (
+            <select aria-label="Select student for monthly report" value={studentId} onChange={event => setStudentId(event.target.value)} className="min-w-0 bg-transparent py-2 text-sm text-slate-700 outline-none" disabled={!uniqueStudents.length}>
+              {uniqueStudents.length ? uniqueStudents.map(student => (
                 <option key={student.id} value={student.id}>{student.full_name}{student.roll_number ? ` · ${student.roll_number}` : ''}</option>
               )) : <option value="">No students available</option>}
             </select>
@@ -178,7 +179,7 @@ export function MonthlyAttendanceReport({ instituteId, students, batches }: Mont
 
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading monthly report…</div>
-        ) : !students.length ? (
+        ) : !uniqueStudents.length ? (
           <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">No students are available for this institute.</div>
         ) : (
           <>
