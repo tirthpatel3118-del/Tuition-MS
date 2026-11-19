@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed, mobil
     <div className="flex h-full flex-col border-r border-[#5A1732] bg-[#681D3B] text-white select-none">
       <div className={`flex items-center justify-between border-b border-white/10 px-4 py-5 ${collapsed ? 'justify-center px-2' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
-          <BrandLogo compact={collapsed} light />
+          <BrandLogo compact light />
           {!collapsed && <div className="min-w-0"><p className="truncate text-sm font-bold text-white">Saturn ERP</p><p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-rose-100/75">Institute workspace</p></div>}
         </div>
         <button onClick={() => setMobileOpen(false)} className="rounded-lg p-1 text-rose-100 hover:bg-white/10 md:hidden" aria-label="Close navigation"><X className="h-5 w-5" /></button>
