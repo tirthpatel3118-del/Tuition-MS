@@ -151,7 +151,9 @@ export function MonthlyAttendanceReport({ instituteId, studentId, studentName, r
           html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
           body * { visibility: hidden !important; }
           .attendance-student-report, .attendance-student-report * { visibility: visible !important; }
-          .attendance-student-report { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; max-width: none !important; border: 0 !important; box-shadow: none !important; overflow: visible !important; }
+          .attendance-report-drawer { position: absolute !important; inset: 0 auto auto 0 !important; width: 100% !important; height: auto !important; max-height: none !important; transform: none !important; overflow: visible !important; border: 0 !important; box-shadow: none !important; }
+          .attendance-report-drawer-body { display: block !important; height: auto !important; min-height: 0 !important; overflow: visible !important; padding: 0 !important; }
+          .attendance-student-report { position: relative !important; width: 100% !important; max-width: none !important; border: 0 !important; box-shadow: none !important; overflow: visible !important; }
           .attendance-report-no-print { display: none !important; }
           .attendance-student-report .attendance-calendar-day { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
           .attendance-student-report .attendance-session-table tr { break-inside: avoid; }
