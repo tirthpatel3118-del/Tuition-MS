@@ -152,16 +152,29 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Simple Saturn ERP footer */}
-        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 py-4 pb-20 text-center text-xs leading-6 text-slate-500 no-print select-none md:pb-4">
-          <p>Saturn ERP · Tuition Management Platform</p>
-          <p>Simplifying tuition management, one classroom at a time.</p>
-          <p>
-            <a href="mailto:tirth.freelance31@gmail.com" className="hover:text-[#6B1F38]">tirth.freelance31@gmail.com</a>
-            <span className="px-2 text-slate-300">·</span>
-            <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="hover:text-[#6B1F38]">+91 8160733101</a>
-          </p>
-          <p>Developed with ♥ by Tirth Patel · Saturn ERP v1.0.0 · © {new Date().getFullYear()} Saturn ERP. All rights reserved.</p>
+        {/* Saturn ERP product footer */}
+        <footer className="no-print mt-auto w-full border-t border-[#E8E0E4] bg-white px-5 pb-24 pt-7 text-sm text-slate-600 select-none md:px-8 md:pb-6">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center justify-center gap-4 md:justify-start">
+              <BrandLogo className="[&>svg]:h-14 [&>svg]:w-16" />
+              <span className="hidden h-12 w-px bg-[#E8E0E4] sm:block" aria-hidden="true" />
+              <p className="hidden text-xs leading-5 text-slate-500 sm:block">Tuition Management Platform<br />Simplifying tuition management, one classroom at a time.</p>
+            </div>
+            <div className="flex flex-col items-center gap-2 text-xs sm:flex-row sm:gap-5 md:items-start">
+              <a href="mailto:tirth.freelance31@gmail.com" className="inline-flex items-center gap-2.5 transition-colors hover:text-[#6B1F38]">
+                <span className="font-semibold text-[#6B1F38]">Email</span>
+                <span>tirth.freelance31@gmail.com</span>
+              </a>
+              <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2.5 transition-colors hover:text-[#6B1F38]">
+                <span className="font-semibold text-[#6B1F38]">WhatsApp</span>
+                <span>+91 8160733101</span>
+              </a>
+            </div>
+          </div>
+          <div className="mx-auto mt-6 flex w-full max-w-6xl flex-col items-center justify-between gap-2 border-t border-[#EEE8EB] pt-4 text-[11px] text-slate-500 sm:flex-row">
+            <p className="text-center sm:text-left">Developed with <span className="text-[#A32652]">♥</span> by Tirth Patel</p>
+            <p>© {new Date().getFullYear()} Saturn ERP. All rights reserved. <span className="mx-1 text-slate-300">·</span> v1.0.0</p>
+          </div>
         </footer>
       </div>
     </div>
