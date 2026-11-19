@@ -26,7 +26,7 @@ const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { confirmAction } = useData();
+  const { confirmAction, settings } = useData();
   const auth = useAuth();
 
   return (
@@ -153,21 +153,42 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Global product footer */}
-        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-500 no-print select-none sm:px-6 md:pb-5">
+        {/* Institute contact and product footer */}
+        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-600 no-print sm:px-6 md:pb-5">
           <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col items-center justify-between gap-5 sm:flex-row">
-              <div className="flex items-center gap-3">
-                <EduLedgerMark className="h-12 w-12 shrink-0 text-[#6B1F38]" />
-                <div className="border-l border-[#E5DDE0] pl-3">
-                  <p className="text-lg font-bold tracking-tight text-[#6B1F38]">EduLedger</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Tuition Management Platform</p>
+            <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[1fr_1.2fr_1fr] sm:gap-4">
+              <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start">
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg object-contain" />
+                ) : (
+                  <EduLedgerMark className="h-12 w-12 shrink-0 text-[#6B1F38]" />
+                )}
+                <div className="min-w-0 border-l border-[#E5DDE0] pl-3">
+                  <p className="truncate text-lg font-bold tracking-tight text-[#6B1F38]">{settings.instituteName || 'Your Institute'}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Learning Made Organized</p>
                 </div>
               </div>
-              <p className="text-center text-xs italic text-slate-500 sm:text-right">Simplifying institute management, one classroom at a time.</p>
+              <p className="border-y border-[#E5DDE0] py-4 text-center text-sm leading-relaxed text-slate-600 sm:border-y-0 sm:border-x sm:px-5 sm:py-2">
+                A complete Tuition Management System for Educational Institutes.
+              </p>
+              <div className="flex flex-col items-center gap-2 sm:items-start sm:pl-3">
+                {settings.email && (
+                  <a href={`mailto:${settings.email}`} className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
+                    <span aria-hidden="true" className="w-5 text-center text-base text-[#6B1F38]">✉</span>
+                    <span className="break-all">{settings.email}</span>
+                  </a>
+                )}
+                {settings.contactNumber && (
+                  <a href={`tel:${settings.contactNumber.replace(/[^+\d]/g, '')}`} className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
+                    <span aria-hidden="true" className="w-5 text-center text-base text-[#6B1F38]">☎</span>
+                    <span>{settings.contactNumber}</span>
+                  </a>
+                )}
+              </div>
             </div>
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#E5DDE0] pt-4 sm:flex-row">
+            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#E5DDE0] pt-4 text-center sm:flex-row sm:text-left">
               <span>© 2026 EduLedger. All rights reserved.</span>
+              <span className="font-medium italic text-[#6B1F38]">Empowering Education. Together.</span>
               <span className="rounded-full bg-[#F1E7EB] px-3 py-1 font-semibold text-[#6B1F38]">v1.0.1</span>
             </div>
           </div>
