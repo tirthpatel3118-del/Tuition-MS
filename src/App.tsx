@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { EduLedgerMark } from './components/EduLedgerMark';
 import { PWAControls } from './components/PWAControls';
-import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
+import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, Phone } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
@@ -26,7 +26,7 @@ const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { confirmAction, settings } = useData();
+  const { confirmAction } = useData();
   const auth = useAuth();
 
   return (
@@ -153,37 +153,29 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Institute contact and product footer */}
+        {/* EduLedger product footer — separate from each institute's own identity */}
         <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-600 no-print sm:px-6 md:pb-5">
           <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[1fr_1.2fr_1fr] sm:gap-4">
-              <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start">
-                {settings.logoUrl ? (
-                  <img src={settings.logoUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg object-contain" />
-                ) : (
-                  <EduLedgerMark className="h-12 w-12 shrink-0 text-[#6B1F38]" />
-                )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1.2fr_1fr] sm:items-center sm:gap-4">
+              <div className="flex min-w-0 items-center justify-center gap-3 border-b border-[#E5DDE0] pb-4 sm:justify-start sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
+                <EduLedgerMark className="h-14 w-14 shrink-0 text-[#6B1F38]" />
                 <div className="min-w-0 border-l border-[#E5DDE0] pl-3">
-                  <p className="truncate text-lg font-bold tracking-tight text-[#6B1F38]">{settings.instituteName || 'Your Institute'}</p>
+                  <p className="text-lg font-bold tracking-tight text-[#6B1F38]">EduLedger</p>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Learning Made Organized</p>
                 </div>
               </div>
-              <p className="border-y border-[#E5DDE0] py-4 text-center text-sm leading-relaxed text-slate-600 sm:border-y-0 sm:border-x sm:px-5 sm:py-2">
+              <p className="border-b border-[#E5DDE0] px-2 pb-4 text-center text-sm leading-relaxed text-slate-600 sm:border-b-0 sm:border-r sm:px-5 sm:pb-0">
                 A complete Tuition Management System for Educational Institutes.
               </p>
-              <div className="flex flex-col items-center gap-2 sm:items-start sm:pl-3">
-                {settings.email && (
-                  <a href={`mailto:${settings.email}`} className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
-                    <span aria-hidden="true" className="w-5 text-center text-base text-[#6B1F38]">✉</span>
-                    <span className="break-all">{settings.email}</span>
-                  </a>
-                )}
-                {settings.contactNumber && (
-                  <a href={`tel:${settings.contactNumber.replace(/[^+\d]/g, '')}`} className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
-                    <span aria-hidden="true" className="w-5 text-center text-base text-[#6B1F38]">☎</span>
-                    <span>{settings.contactNumber}</span>
-                  </a>
-                )}
+              <div className="flex flex-col items-center gap-3 pb-1 sm:items-start sm:pl-3">
+                <a href="mailto:info@eduledger.in" className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
+                  <Mail className="h-4 w-4 shrink-0 text-[#6B1F38]" aria-hidden="true" />
+                  <span>info@eduledger.in</span>
+                </a>
+                <a href="tel:+919876543210" className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
+                  <Phone className="h-4 w-4 shrink-0 text-[#6B1F38]" aria-hidden="true" />
+                  <span>+91 98765 43210</span>
+                </a>
               </div>
             </div>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#E5DDE0] pt-4 text-center sm:flex-row sm:text-left">
