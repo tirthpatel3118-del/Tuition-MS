@@ -23,12 +23,17 @@ export function AuthFrame({ title, description, children }: { title: string; des
   );
 }
 
-export function AuthLoading({ message = 'Checking your secure workspace…' }: { message?: string }) {
+export function AuthLoading({ message = 'Preparing your secure workspace…' }: { message?: string }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4">
+    <main role="status" aria-live="polite" className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-[#6B1F38]" />
-        <p className="text-sm font-medium text-slate-600">{message}</p>
+        <BrandLogo className="mb-8" />
+        <div className="relative mx-auto mb-5 h-9 w-9" aria-hidden="true">
+          <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-[#E8D5DC] border-t-[#6B1F38]" />
+          <div className="absolute inset-[13px] rounded-full bg-[#A03B5E]" />
+        </div>
+        <p className="text-sm font-semibold text-[#6B1F38]">Saturn ERP</p>
+        <p className="mt-2 text-xs font-medium text-slate-500">{message}</p>
       </div>
     </main>
   );
