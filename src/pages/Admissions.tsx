@@ -73,6 +73,7 @@ export const Admissions: React.FC = () => {
     courseId: '',
     batch: '',
     totalFees: 0,
+    expectedFeeDueDate: '',
     status: 'Active' as Student['status'],
     notes: '',
   });
@@ -328,6 +329,7 @@ export const Admissions: React.FC = () => {
         courseId: formData.courseId,
         batch: formData.batch,
         totalFees: formData.totalFees,
+        expectedFeeDueDate: formData.expectedFeeDueDate || undefined,
         status: formData.status,
         notes: formData.notes,
       }, plannedInstallments);
@@ -337,7 +339,7 @@ export const Admissions: React.FC = () => {
       // Reset Form & Switch tab
       setFormData({
         name: '', email: '', phone: '', parentName: '', parentPhone: '',
-        courseId: '', batch: '', totalFees: 0, status: 'Active', notes: ''
+        courseId: '', batch: '', totalFees: 0, expectedFeeDueDate: '', status: 'Active', notes: ''
       });
       setPlannedInstallments([]);
       setFormErrors({});
@@ -362,6 +364,7 @@ export const Admissions: React.FC = () => {
         courseId: formData.courseId,
         batch: formData.batch,
         totalFees: formData.totalFees,
+        expectedFeeDueDate: formData.expectedFeeDueDate || undefined,
         status: formData.status,
         notes: formData.notes,
       }, plannedInstallments);
@@ -383,6 +386,7 @@ export const Admissions: React.FC = () => {
       courseId: student.courseId,
       batch: student.batch,
       totalFees: student.totalFees,
+      expectedFeeDueDate: student.expectedFeeDueDate || '',
       status: student.status,
       notes: student.notes || '',
     });
@@ -873,6 +877,21 @@ export const Admissions: React.FC = () => {
                   className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E] bg-slate-50 font-semibold"
                 />
               </div>
+
+              {plannedInstallments.length === 0 && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600">
+                    Expected Fee Due Date <span className="font-normal text-slate-400">(Optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.expectedFeeDueDate}
+                    onChange={e => setFormData(prev => ({ ...prev, expectedFeeDueDate: e.target.value }))}
+                    className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F8E9ED] focus:border-[#A03B5E]"
+                  />
+                  <p className="text-[10px] text-slate-500">For students without an installment schedule, this date determines when the fee appears in Dues & Reminders.</p>
+                </div>
+              )}
 
               {/* Parent Name */}
               <div className="space-y-1">
