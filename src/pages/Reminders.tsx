@@ -185,7 +185,7 @@ export const Reminders: React.FC = () => {
           displayDueDate: studentInsts.length === 0 && student.expectedFeeDueDate
             ? formatDateForDisplay(student.expectedFeeDueDate, settings?.dateFormat) || student.expectedFeeDueDate
             : '—',
-          status: 'Pending',
+          status: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').status === 'overdue' ? 'Overdue' : 'Pending',
           remarks: 'Direct fee balance',
           remainingFee: student.feesDue,
           dueLabel: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').label,
