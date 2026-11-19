@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { BrandLogo } from './BrandLogo';
 import { 
   LayoutDashboard, 
   UserPlus, 
@@ -12,7 +13,6 @@ import {
   ChevronLeft, 
   ChevronRight,
   X,
-  Sparkles,
   Settings,
   LogOut
 } from 'lucide-react';
@@ -48,19 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Header / Logo */}
       <div className={`flex items-center justify-between p-5 border-b border-slate-50 ${collapsed ? 'justify-center px-2' : ''}`}>
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200 shrink-0 overflow-hidden">
-            {settings?.logoUrl ? (
-              <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            )}
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-slate-800 text-sm leading-none tracking-tight truncate max-w-[130px]">{settings?.instituteName || 'EduLedger'}</span>
-              <span className="text-[9px] text-blue-600 font-semibold tracking-wider uppercase mt-0.5">ERP Suite</span>
-            </div>
-          )}
+          <BrandLogo compact={collapsed} />
         </div>
         
         {/* Mobile close button only */}
