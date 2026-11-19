@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink 
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
+import { BrandLogo } from './components/BrandLogo';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
@@ -152,28 +153,18 @@ function AppContent() {
           })}
         </nav>
 
-        {/* Saturn ERP product footer */}
-        <footer className="no-print mt-auto w-full border-t border-[#E8E0E4] bg-white px-5 pb-24 pt-7 text-sm text-slate-600 select-none md:px-8 md:pb-6">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center justify-center gap-4 md:justify-start">
-              <BrandLogo className="[&>svg]:h-14 [&>svg]:w-16" />
-              <span className="hidden h-12 w-px bg-[#E8E0E4] sm:block" aria-hidden="true" />
-              <p className="hidden text-xs leading-5 text-slate-500 sm:block">Tuition Management Platform<br />Simplifying tuition management, one classroom at a time.</p>
+        {/* Quiet Saturn ERP footer */}
+        <footer className="no-print mt-auto border-t border-[#E8E0E4] bg-white px-4 py-4 text-center text-[11px] leading-5 text-slate-500 select-none">
+          <div className="mx-auto flex max-w-4xl flex-col items-center gap-2">
+            <BrandLogo compact className="h-8 w-8 rounded-lg" />
+            <p className="font-semibold text-[#6B1F38]">Saturn ERP · Tuition Management Platform</p>
+            <p>Simplifying tuition management, one classroom at a time.</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+              <a href="mailto:tirth.freelance31@gmail.com" className="hover:text-[#6B1F38]">tirth.freelance31@gmail.com</a>
+              <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="hover:text-[#6B1F38]">+91 8160733101</a>
             </div>
-            <div className="flex flex-col items-center gap-2 text-xs sm:flex-row sm:gap-5 md:items-start">
-              <a href="mailto:tirth.freelance31@gmail.com" className="inline-flex items-center gap-2.5 transition-colors hover:text-[#6B1F38]">
-                <span className="font-semibold text-[#6B1F38]">Email</span>
-                <span>tirth.freelance31@gmail.com</span>
-              </a>
-              <a href="https://wa.me/918160731101" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2.5 transition-colors hover:text-[#6B1F38]">
-                <span className="font-semibold text-[#6B1F38]">WhatsApp</span>
-                <span>+91 8160733101</span>
-              </a>
-            </div>
-          </div>
-          <div className="mx-auto mt-6 flex w-full max-w-6xl flex-col items-center justify-between gap-2 border-t border-[#EEE8EB] pt-4 text-[11px] text-slate-500 sm:flex-row">
-            <p className="text-center sm:text-left">Developed with <span className="text-[#A32652]">♥</span> by Tirth Patel</p>
-            <p>© {new Date().getFullYear()} Saturn ERP. All rights reserved. <span className="mx-1 text-slate-300">·</span> v1.0.0</p>
+            <p>Developed with <span className="text-[#A32652]">♥</span> by Tirth Patel</p>
+            <p>© {new Date().getFullYear()} Saturn ERP. All rights reserved. · v1.0.0</p>
           </div>
         </footer>
       </div>
