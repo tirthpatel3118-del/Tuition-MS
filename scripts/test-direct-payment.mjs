@@ -168,7 +168,8 @@ class MockPaymentEngine {
         totalAllocated += alloc.amount;
       }
 
-      if (totalAllocated !== amount) {
+      // Explicit allocations must cover the full payment. FIFO auto-allocation may leave a general-balance remainder unallocated.
+      if (allocations && allocations.length > 0 && totalAllocated !== amount) {
         throw new Error(`Validation Failed: Sum of allocations (${totalAllocated}) does not match payment amount (${amount}).`);
       }
     }
