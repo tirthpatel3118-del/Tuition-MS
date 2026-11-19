@@ -64,10 +64,14 @@ export function MonthlyAttendanceReport({ instituteId, students, batches, initia
       setRecords([]);
       return;
     }
+    if (initialStudentId && uniqueStudents.some(student => student.id === initialStudentId)) {
+      setStudentId(initialStudentId);
+      return;
+    }
     if (!studentId || !uniqueStudents.some(student => student.id === studentId)) {
       setStudentId(uniqueStudents[0].id);
     }
-  }, [studentId, uniqueStudents]);
+  }, [initialStudentId, studentId, uniqueStudents]);
 
   useEffect(() => {
     const range = getMonthRange(month);
