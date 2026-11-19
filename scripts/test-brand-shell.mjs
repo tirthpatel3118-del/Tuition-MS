@@ -45,6 +45,8 @@ assert.ok(admissions.includes('overflow-x-auto bg-white shadow-xs'));
 assert.ok(sidebar.includes('EduLedgerMark className='));
 assert.ok(sidebar.includes('settings.instituteName'));
 assert.ok(sidebar.includes('Institute workspace'));
+assert.ok(sidebar.includes("collapsed ? 'xl:hidden' : ''"));
+assert.ok(sidebar.includes("window.matchMedia('(min-width: 1280px)')"));
 assert.ok(auth.includes('<BrandLoading message={message} />'));
 assert.ok(loader.includes('<EduLedgerMark'));
 assert.ok(brandLoader.includes('Loading EduLedger'));
