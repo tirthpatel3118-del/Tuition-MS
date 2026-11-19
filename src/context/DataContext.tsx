@@ -161,6 +161,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalFees: Number(s.course_fee),
           feesPaid: paidByStudent[s.id] ?? 0,
           feesDue: Math.max(0, Number(s.course_fee) - (paidByStudent[s.id] ?? 0)),
+          expectedFeeDueDate: s.expected_fee_due_date || undefined,
           status: s.status
         };
       });
@@ -319,6 +320,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           course_id: studentData.courseId,
           admission_date: studentData.enrollmentDate,
           course_fee: studentData.totalFees,
+          expected_fee_due_date: studentData.expectedFeeDueDate || null,
           discount: 0,
           status: studentData.status
         }, studentData.batch);
@@ -414,6 +416,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (updatedFields.parentPhone) dbUpdates.parent_whatsapp = updatedFields.parentPhone;
         if (updatedFields.courseId) dbUpdates.course_id = updatedFields.courseId;
         if (updatedFields.totalFees !== undefined) dbUpdates.course_fee = updatedFields.totalFees;
+        if (updatedFields.expectedFeeDueDate !== undefined) dbUpdates.expected_fee_due_date = updatedFields.expectedFeeDueDate || null;
         if (updatedFields.status) dbUpdates.status = updatedFields.status;
 
         if (Object.keys(dbUpdates).length > 0) {
