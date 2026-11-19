@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)
+          onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="hidden min-h-9 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#D9AEBE] transition-colors hover:bg-white/10 hover:text-white md:flex"
         >
