@@ -181,6 +181,7 @@ function AppContent() {
             </div>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
               <span>© 2026 EduLedger. All rights reserved.</span>
+              <span className="font-medium text-[#5B2941]">Developed with <span aria-label="love" role="img">❤️</span> by Tirth Patel</span>
               <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
               <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v{APP_VERSION}</span>
             </div>
