@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { BrandLogo } from './BrandLogo';
 import {
   LayoutDashboard,
   UserPlus,
@@ -66,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold tracking-tight text-white">
-                {settings?.instituteName || 'EduLedger'}
+                {settings?.instituteName || 'Your Institute'}
               </span>
               <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#E8C9D4]">
                 Institute workspace
@@ -138,9 +139,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
+        <div className={`flex items-center justify-center border-t border-white/10 pt-3 ${collapsed ? 'md:px-0' : ''}`}>
+          <BrandLogo compact={collapsed} light className={collapsed ? '' : 'scale-[0.78] origin-left'} />
+        </div>
+
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => setCollapsed(!collapsed)
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="hidden min-h-9 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#D9AEBE] transition-colors hover:bg-white/10 hover:text-white md:flex"
         >
