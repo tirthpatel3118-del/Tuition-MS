@@ -213,8 +213,10 @@ export function MonthlyAttendanceReport({ instituteId, studentId, studentName, r
                 ))}
               </div>
               <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-200" /> Present / Late</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-200" /> Present</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-100 ring-1 ring-amber-200" /> Late</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-rose-100 ring-1 ring-rose-200" /> Absent</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-violet-100 ring-1 ring-violet-200" /> Leave</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-slate-100 ring-1 ring-slate-200" /> Not marked / holiday</span>
                 <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-amber-50 ring-1 ring-amber-200" /> Mixed sessions</span>
               </div>
