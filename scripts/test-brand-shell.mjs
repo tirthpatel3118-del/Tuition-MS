@@ -14,15 +14,17 @@ const pwaMaskable = read('../public/pwa-maskable.svg');
 const html = read('../index.html');
 const manifest = read('../public/manifest.webmanifest');
 
-// Match the supplied product footer reference without inventing contact details.
-assert.ok(app.includes('EduLedgerMark'));
+// Footer content, contact links and version match the supplied reference.
+assert.ok(app.includes('EduLedger'));
 assert.ok(app.includes('Learning Made Organized'));
 assert.ok(app.includes('A complete Tuition Management System for Educational Institutes.'));
+assert.ok(app.includes('tirth.freelance31@gmail.com'));
+assert.ok(app.includes('mailto:tirth.freelance31@gmail.com'));
+assert.ok(app.includes('81607 33101'));
+assert.ok(app.includes('https://wa.me/918160733101'));
 assert.ok(app.includes('Empowering Education. Together.'));
 assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
-assert.ok(app.includes('v1.0.1'));
-assert.ok(!app.includes('info@eduledger.in'));
-assert.ok(!app.includes('98765 43210'));
+assert.ok(app.includes('v1.0.0'));
 
 // Institute name stays in the sidebar beside the shared product mark.
 assert.ok(sidebar.includes('EduLedgerMark className='));
