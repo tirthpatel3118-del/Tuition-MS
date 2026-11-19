@@ -22,6 +22,7 @@ export interface Student {
   totalFees: number;
   feesPaid: number;
   feesDue: number;
+  expectedFeeDueDate?: string;
   status: 'Active' | 'Inactive' | 'Completed';
   notes?: string;
 }
