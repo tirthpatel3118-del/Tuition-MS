@@ -226,3 +226,54 @@
     color: #6B1F38;
   }
 }
+
+
+/* Responsive app-shell safeguards */
+@layer base {
+  html, body, #root {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  img, svg, video, canvas {
+    max-width: 100%;
+  }
+
+  input, select, textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 639px) {
+  /* Keep dense data tables usable on phones without widening the whole page. */
+  main {
+    overflow-x: clip;
+  }
+
+  main table {
+    min-width: 36rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1279px) {
+  /* Tablets and compact laptops use the mobile drawer and bottom navigation, preserving page width. */
+  main {
+    padding-bottom: 6rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Short landscape screens need compact fixed navigation and safe footer spacing. */
+  main {
+    padding-bottom: 5rem;
+  }
+}
