@@ -122,7 +122,7 @@ export const Reminders: React.FC = () => {
       // Unpaid installments, sorted deterministically by installmentNumber, then dueDate, then id
       const unpaidInsts = studentInsts
         .filter(inst => inst.status !== 'Paid')
-        .sort((a, b) => (a.installmentNumber - b.installmentNumber) || a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id));
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id));
 
       let remainingAllowance = student.feesDue;
 
