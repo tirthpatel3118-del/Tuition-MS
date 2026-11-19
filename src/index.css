@@ -3,35 +3,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-
+    --background: 330 20% 98%;
+    --foreground: 225 24% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-
+    --card-foreground: 225 24% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.75rem;
+    --popover-foreground: 225 24% 10%;
+    --primary: 337 56% 26%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 336 32% 95%;
+    --secondary-foreground: 337 56% 26%;
+    --muted: 330 18% 96%;
+    --muted-foreground: 218 13% 46%;
+    --accent: 336 32% 95%;
+    --accent-foreground: 337 56% 26%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 330 15% 90%;
+    --input: 330 15% 90%;
+    --ring: 337 56% 36%;
+    --radius: 0.85rem;
   }
 }
 
@@ -41,60 +32,61 @@
   --color-ring: hsl(var(--ring));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
-
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-
   --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 }
 
 body {
-  background-color: #f8fafc;
+  background-color: #faf8f9;
   color: hsl(var(--foreground));
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+/* Saturn ERP brand palette: burgundy primary, rose secondary, warm ivory surfaces. */
+@layer utilities {
+  .bg-blue-600 { background-color: #681D3B; }
+  .bg-blue-700 { background-color: #50152E; }
+  .bg-blue-50 { background-color: #F9EDF1; }
+  .bg-blue-100 { background-color: #F4DDE5; }
+  .text-blue-600 { color: #7A2949; }
+  .text-blue-700 { color: #681D3B; }
+  .text-blue-800 { color: #50152E; }
+  .border-blue-300 { border-color: #D9A8BA; }
+  .border-blue-500 { border-color: #8A3555; }
+  .border-blue-600 { border-color: #681D3B; }
+  .ring-blue-100 { --tw-ring-color: #F4DDE5; }
+  .focus\\:border-blue-500:focus { border-color: #8A3555; }
+  .focus\\:ring-blue-100:focus { --tw-ring-color: #F4DDE5; }
+  .hover\\:bg-blue-700:hover { background-color: #50152E; }
+  .hover\\:text-blue-700:hover { color: #50152E; }
+  .hover\\:border-blue-300:hover { border-color: #D9A8BA; }
+  .bg-rose-50 { background-color: #F9EDF1; }
+  .text-rose-700 { color: #681D3B; }
 }
 
-/* Glassmorphism style cards */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E7D9DE; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #D4BCC6; }
+
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(231, 217, 222, 0.85);
 }
