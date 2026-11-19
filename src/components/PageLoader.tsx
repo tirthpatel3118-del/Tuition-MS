@@ -1,18 +1,18 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
+import { EduLedgerMark } from './EduLedgerMark';
 
 export const PageLoader: React.FC = () => {
   const { settings } = useData();
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] w-full p-10 select-none animate-fade-in">
-      <div className="relative flex items-center justify-center">
-        {/* Animated Spin Ring */}
-        <div className="w-14 h-14 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-        {/* Small Center Dot */}
-        <div className="absolute w-2 h-2 bg-blue-600 rounded-full"></div>
+    <div role="status" aria-live="polite" className="flex min-h-[400px] w-full flex-col items-center justify-center p-8 text-center select-none animate-fade-in">
+      <EduLedgerMark className="h-16 w-16 text-[#6B1F38]" />
+      <div className="relative mt-5 flex h-11 w-11 items-center justify-center">
+        <div className="absolute inset-0 animate-spin rounded-full border-[4px] border-[#F1DCE4] border-t-[#8B2145]" />
+        <div className="h-1.5 w-1.5 rounded-full bg-[#8B2145]" />
       </div>
-      <h3 className="text-slate-700 text-xs font-bold uppercase tracking-widest mt-4">Loading {settings?.instituteName || 'EduLedger'}</h3>
-      <p className="text-[10px] text-slate-400 font-semibold mt-1">Retrieving database state...</p>
+      <h3 className="mt-4 text-sm font-bold tracking-tight text-[#6B1F38]">Loading {settings?.instituteName || 'EduLedger'}</h3>
+      <p className="mt-1 text-xs text-slate-500">Preparing your institute workspace...</p>
     </div>
   );
 };
