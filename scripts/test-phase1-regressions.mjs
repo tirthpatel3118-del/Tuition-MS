@@ -65,7 +65,9 @@ const reminderService = await read('../src/services/reminderService.ts');
 const remindersPage = await read('../src/pages/Reminders.tsx');
 assert.match(reminderService, /\.from\('reminders'\)\.insert/);
 assert.match(reminderService, /\.from\('reminders'\)\s*\n\s*\.select/);
-assert.match(remindersPage, /They will be recorded as queued, not sent automatically/);
+assert.match(remindersPage, /This does not open WhatsApp or send messages/);
+assert.match(remindersPage, /Manual message opening only/);
+assert.doesNotMatch(remindersPage, /SMS Text|Email Inbox/);
 assert.match(remindersPage, /getWhatsAppLink\(inst\)/);
 
 const sidebar = await read('../src/components/Sidebar.tsx');
