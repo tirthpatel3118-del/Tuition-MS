@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { AuthFrame } from "./AuthPages";
 import { useAuth } from "../context/AuthContext";
 
@@ -18,6 +19,8 @@ export function PlatformInvitationAcceptancePage() {
   const [requiresPasswordSetup] = useState(() => new URLSearchParams(window.location.search).get("setup") === "1");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -64,11 +67,11 @@ export function PlatformInvitationAcceptancePage() {
       {requiresPasswordSetup && <>
         <label className="block text-sm font-semibold text-slate-700">
           Create password
-          <input required minLength={8} type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" />
+          <div className="relative mt-1.5"><input required minLength={8} type={showPassword ? "text" : "password"} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500 hover:text-[#6B1F38]">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
         </label>
         <label className="block text-sm font-semibold text-slate-700">
           Confirm password
-          <input required minLength={8} type="password" autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3.5 py-3 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" />
+          <div className="relative mt-1.5"><input required minLength={8} type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowConfirmPassword(value => !value)} aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500 hover:text-[#6B1F38]">{showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
         </label>
       </>}
       <p className="text-xs leading-5 text-slate-500">{requiresPasswordSetup ? "After activation, you will sign in using this email and password." : "This account already exists. Accepting the invitation adds the requested institute access."}</p>
