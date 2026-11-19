@@ -126,15 +126,20 @@ export const Reminders: React.FC = () => {
 
       let remainingAllowance = student.feesDue;
 
+      let activeInstallmentAdded = false;
       for (const inst of unpaidInsts) {
         if (remainingAllowance <= 0) break;
 
         const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
         if (nominalBalance <= 0) continue;
 
-        // Cap installment reminder amount so sum never exceeds student.feesDue
+        // Allocate the student's balance across the full schedule to avoid
+        // counting future installments again as a direct balance. Only the
+        // first outstanding installment is the active reminder target.
         const amount = Math.min(nominalBalance, remainingAllowance);
         remainingAllowance -= amount;
+        if (activeInstallmentAdded) continue;
+        activeInstallmentAdded = true;
 
         const isOverdue = inst.status === 'Overdue';
 
@@ -222,14 +227,14 @@ export const Reminders: React.FC = () => {
 
   const dueFilterCounts = {
     all: searchedDueItems.length,
-    today: searchedDueItems.filter(item => !item.isDirect && item.dueLabel === 'Due today').length,
-    late: searchedDueItems.filter(item => !item.isDirect && item.daysLate > 0).length,
+    today: searchedDueItems.filter(item => item.dueLabel === 'Due today').length,
+    late: searchedDueItems.filter(item => item.daysLate > 0).length,
     no_installment: searchedDueItems.filter(item => item.isDirect).length,
   };
 
   const filteredDueInstallments = searchedDueItems.filter(item => {
-    if (dueFilter === 'today') return !item.isDirect && item.dueLabel === 'Due today';
-    if (dueFilter === 'late') return !item.isDirect && item.daysLate > 0;
+    if (dueFilter === 'today') return item.dueLabel === 'Due today';
+    if (dueFilter === 'late') return item.daysLate > 0;
     if (dueFilter === 'no_installment') return item.isDirect;
     return true;
   });
@@ -303,7 +308,7 @@ export const Reminders: React.FC = () => {
       installmentNumber: inst.isDirect ? undefined : inst.installmentNumber,
       amount: inst.amount,
       installmentAmount: inst.amount,
-      dueDate: inst.isDirect ? '' : (formatDateForDisplay(inst.dueDate, settings?.dateFormat) || ''),
+      dueDate: inst.dueDate ? (formatDateForDisplay(inst.dueDate, settings?.dateFormat) || inst.dueDate) : '',
       remainingFee: inst.remainingFee,
       instituteName: settings?.instituteName,
       currencySymbol: settings?.currencySymbol,
