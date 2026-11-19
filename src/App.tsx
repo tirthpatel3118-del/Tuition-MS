@@ -155,9 +155,9 @@ function AppContent() {
         {/* Global Layout Footer */}
         <footer className="mt-auto hidden w-full border-t border-[#E5DDE0] bg-white py-5 text-center text-xs text-slate-400 no-print select-none md:block">
           <div className="max-w-7xl mx-auto px-6 space-y-1">
-            <div className="text-slate-500 font-semibold">EduLedger ERP v1.0.0</div>
+            <div className="text-slate-500 font-semibold">Saturn ERP ERP v1.0.0</div>
             <div className="text-slate-400">
-              © 2026 EduLedger ERP
+              © 2026 Saturn ERP ERP
             </div>
           </div>
         </footer>
@@ -181,7 +181,7 @@ function AppEntry() {
           <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <h1 className="text-xl font-bold text-slate-900">Workspace setup required</h1>
             <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">
-              EduLedger is not connected to its authentication and database service. Please contact your administrator.
+              Saturn ERP is not connected to its authentication and database service. Please contact your administrator.
             </p>
           </section>
         </main>
@@ -229,7 +229,7 @@ function AppEntry() {
         <section className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-8 shadow-sm">
           <h1 className="text-xl font-bold text-slate-900">Workspace access is unavailable</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            This institute subscription is {auth.activeMembership.accessStatus}. Contact EduLedger administration or your institute owner to restore access.
+            This institute subscription is {auth.activeMembership.accessStatus}. Contact Saturn ERP administration or your institute owner to restore access.
           </p>
           {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').length > 0 && (
             <div className="mt-5 space-y-2">
