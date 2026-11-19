@@ -236,7 +236,7 @@ BEGIN
             END IF;
         END LOOP;
 
-        IF v_total_allocated != p_amount THEN
+        IF jsonb_array_length(v_requested_allocations) > 0 AND v_total_allocated != p_amount THEN
             RAISE EXCEPTION 'Validation Failed: Sum of allocations (%) does not match payment amount (%).', v_total_allocated, p_amount;
         END IF;
     END IF;
