@@ -54,7 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const sidebarContent = (
     <div className="flex h-full flex-col select-none bg-[#6B1F38] text-[#FAF7F8]">
-      <div className={`flex min-h-[76px] items-center justify-between border-b border-white/10 px-5 py-4 ${collapsed ? 'md:justify-center md:px-2' : ''}`}>
+      <div className={`flex min-h-[76px] items-center justify-between border-b border-white/10 px-5 py-4 ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
             <EduLedgerMark className="h-9 w-9 text-[#6B1F38]" />
@@ -72,13 +72,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           type="button"
           onClick={() => setMobileOpen(false)}
           aria-label="Close navigation"
-          className="rounded-lg p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+          className="rounded-lg p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className={`px-5 pb-2 pt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D9AEBE] ${collapsed ? 'md:hidden' : ''}`}>
+      <div className={`px-5 pb-2 pt-6 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D9AEBE] ${collapsed ? 'lg:hidden' : ''}`}>
         Workspace
       </div>
       <nav aria-label="Main navigation" className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
@@ -97,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ${isActive
                   ? 'bg-white text-[#6B1F38] shadow-sm'
                   : 'text-[#F4E7EC] hover:bg-white/10 hover:text-white'}
-                ${collapsed ? 'md:justify-center md:px-2' : ''}
+                ${collapsed ? 'lg:justify-center lg:px-2' : ''}
               `}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} aria-hidden="true" />
@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       <div className="space-y-3 border-t border-white/10 p-4">
-        <div className={`flex min-w-0 items-center gap-3 rounded-lg bg-black/10 p-2.5 ${collapsed ? 'md:justify-center md:px-1' : ''}`}>
+        <div className={`flex min-w-0 items-center gap-3 rounded-lg bg-black/10 p-2.5 ${collapsed ? 'lg:justify-center lg:px-1' : ''}`}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8E9ED] text-xs font-bold uppercase text-[#6B1F38]">
             {(profileLabel.slice(0, 2) || 'ED').toUpperCase()}
           </div>
@@ -124,7 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={() => void auth.signOut().catch(() => showToast('Could not sign out. Please try again.', 'error'))}
-            className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-[#F4E7EC] transition-colors hover:bg-white/10 hover:text-white ${collapsed ? 'md:justify-center md:px-2' : ''}`}
+            className={`flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-[#F4E7EC] transition-colors hover:bg-white/10 hover:text-white ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}
             title={collapsed ? 'Sign out' : undefined}
           >
             <LogOut className="h-4 w-4 shrink-0" />
@@ -132,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <div className={`flex items-center gap-3 border-t border-white/15 pt-4 ${collapsed ? 'md:justify-center' : ''}`}>
+        <div className={`flex items-center gap-3 border-t border-white/15 pt-4 ${collapsed ? 'lg:justify-center' : ''}`}>
           <EduLedgerMark className="h-10 w-10 shrink-0 text-white" />
           {!collapsed && (
             <div className="min-w-0 border-l border-white/25 pl-3">
@@ -145,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           type="button"
           onClick={() => setCollapsed(!collapsed)}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="hidden min-h-9 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#D9AEBE] transition-colors hover:bg-white/10 hover:text-white md:flex"
+          className="hidden min-h-9 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#D9AEBE] transition-colors hover:bg-white/10 hover:text-white lg:flex"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <><ChevronLeft className="h-4 w-4" /><span>Collapse sidebar</span></>}
         </button>
@@ -155,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <aside className={`sticky top-0 hidden h-screen shrink-0 transition-[width] duration-200 md:block ${collapsed ? 'w-[76px]' : 'w-[252px]'}`}>
+      <aside className={`sticky top-0 hidden h-screen shrink-0 transition-[width] duration-200 lg:block ${collapsed ? 'w-[76px]' : 'w-[252px]'}`}>
         {sidebarContent}
       </aside>
 
@@ -164,12 +164,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           type="button"
           aria-label="Close navigation"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/40 md:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
         />
       )}
       <aside
         aria-label="Mobile navigation"
-        className={`fixed inset-y-0 left-0 z-50 w-[280px] shadow-2xl transition-transform duration-200 md:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-50 w-[280px] shadow-2xl transition-transform duration-200 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
         aria-hidden={!mobileOpen}
       >
         {sidebarContent}
