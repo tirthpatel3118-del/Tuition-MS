@@ -26,6 +26,7 @@ assert.ok(app.includes('mailto:tirth.freelance31@gmail.com'));
 assert.ok(app.includes('81607 33101'));
 assert.ok(app.includes('https://wa.me/918160733101'));
 assert.ok(app.includes('Empowering Education. Together.'));
+assert.ok(app.includes('Developed by Tirth Patel'));
 assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
 assert.ok(app.includes('v1.0.0'));
 
