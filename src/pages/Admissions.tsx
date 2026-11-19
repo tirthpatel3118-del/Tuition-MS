@@ -536,7 +536,7 @@ export const Admissions: React.FC = () => {
               setFormData({
                 name: '', email: '', phone: '', parentName: '', parentPhone: '',
                 courseId: defaultCourse?.id || '', batch: defaultBatch ? batchLabel(defaultBatch) : '',
-                totalFees: defaultBatch?.courseFee ?? defaultCourse?.fees ?? 0, status: 'Active', notes: ''
+                totalFees: defaultBatch?.courseFee ?? defaultCourse?.fees ?? 0, expectedFeeDueDate: '', status: 'Active', notes: ''
               });
               setFormErrors({});
             }}
