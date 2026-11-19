@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { EduLedgerMark } from './components/EduLedgerMark';
 import { PWAControls } from './components/PWAControls';
-import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, Phone } from 'lucide-react';
+import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
@@ -156,32 +156,22 @@ function AppContent() {
         {/* EduLedger product footer — separate from each institute's own identity */}
         <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-600 no-print sm:px-6 md:pb-5">
           <div className="mx-auto max-w-7xl">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_1.2fr_1fr] sm:items-center sm:gap-4">
-              <div className="flex min-w-0 items-center justify-center gap-3 border-b border-[#E5DDE0] pb-4 sm:justify-start sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
-                <EduLedgerMark className="h-14 w-14 shrink-0 text-[#6B1F38]" />
-                <div className="min-w-0 border-l border-[#E5DDE0] pl-3">
-                  <p className="text-lg font-bold tracking-tight text-[#6B1F38]">EduLedger</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Learning Made Organized</p>
+            <div className="flex flex-col items-center gap-5">
+              <div className="flex items-center justify-center gap-4">
+                <EduLedgerMark className="h-16 w-16 shrink-0 text-[#6B1F38]" />
+                <div className="border-l border-[#E5DDE0] pl-4 text-left">
+                  <p className="text-2xl font-semibold tracking-tight text-[#6B1F38]">EduLedger ERP</p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Learning Made Organized</p>
                 </div>
               </div>
-              <p className="border-b border-[#E5DDE0] px-2 pb-4 text-center text-sm leading-relaxed text-slate-600 sm:border-b-0 sm:border-r sm:px-5 sm:pb-0">
+              <p className="w-full border-y border-[#E5DDE0] px-3 py-6 text-center text-base leading-relaxed text-slate-600">
                 A complete Tuition Management System for Educational Institutes.
               </p>
-              <div className="flex flex-col items-center gap-3 pb-1 sm:items-start sm:pl-3">
-                <a href="mailto:info@eduledger.in" className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
-                  <Mail className="h-4 w-4 shrink-0 text-[#6B1F38]" aria-hidden="true" />
-                  <span>info@eduledger.in</span>
-                </a>
-                <a href="tel:+919876543210" className="flex max-w-full items-center gap-2.5 text-sm transition-colors hover:text-[#6B1F38]">
-                  <Phone className="h-4 w-4 shrink-0 text-[#6B1F38]" aria-hidden="true" />
-                  <span>+91 98765 43210</span>
-                </a>
-              </div>
             </div>
-            <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#E5DDE0] pt-4 text-center sm:flex-row sm:text-left">
-              <span>© 2026 EduLedger. All rights reserved.</span>
-              <span className="font-medium italic text-[#6B1F38]">Empowering Education. Together.</span>
-              <span className="rounded-full bg-[#F1E7EB] px-3 py-1 font-semibold text-[#6B1F38]">v1.0.1</span>
+            <div className="mt-8 flex flex-col items-center gap-3 border-t border-[#E5DDE0] pt-7 text-center">
+              <span className="text-sm">© 2026 EduLedger. All rights reserved.</span>
+              <span className="text-base italic text-[#6B1F38]">Empowering Education. Together.</span>
+              <span className="rounded-full bg-[#F1E7EB] px-4 py-1.5 text-sm font-semibold text-[#6B1F38]">v1.0.1</span>
             </div>
           </div>
         </footer>
