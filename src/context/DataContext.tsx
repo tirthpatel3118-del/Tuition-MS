@@ -680,6 +680,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let remainingAllowance = student.feesDue;
 
+    let activeInstallmentAdded = false;
     for (const inst of unpaidInsts) {
       if (remainingAllowance <= 0) break;
       const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
@@ -687,7 +688,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const amount = Math.min(nominalBalance, remainingAllowance);
       remainingAllowance -= amount;
-      itemAmounts.set(inst.id, amount);
+      if (!activeInstallmentAdded) {
+        itemAmounts.set(inst.id, amount);
+        activeInstallmentAdded = true;
+      }
     }
 
     if (remainingAllowance > 0) {
