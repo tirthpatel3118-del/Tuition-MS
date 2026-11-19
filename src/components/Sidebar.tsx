@@ -64,13 +64,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {settings?.logoUrl ? (
               <img src={settings.logoUrl} alt="Institute logo" className="h-full w-full object-contain" />
             ) : (
-              <Sparkles className="h-5 w-5" aria-hidden="true" />
+              <BrandLogo compact />
             )}
           </div>
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold tracking-tight text-white">
-                {instituteName}
+                Saturn ERP
               </span>
               <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#E8C9D4]">
                 Institute workspace
@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <div className={`flex items-center justify-center border-t border-white/10 pt-3 ${collapsed ? 'md:px-0' : ''}`}>
-          <BrandLogo compact={collapsed} light className={collapsed ? '' : 'scale-[0.78] origin-left'} />
+          <BrandLogo compact={collapsed} light className={collapsed ? '' : 'scale-[0.92] origin-center'} />
         </div>
 
         <button
