@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { EduLedgerMark } from './components/EduLedgerMark';
 import { PWAControls } from './components/PWAControls';
-import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
+import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, MessageCircle } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
@@ -153,25 +153,35 @@ function AppContent() {
           })}
         </nav>
 
-        {/* EduLedger product footer — separate from each institute's own identity */}
-        <footer className="mt-auto w-full border-t border-[#E5DDE0] bg-white px-4 pb-24 pt-6 text-xs text-slate-600 no-print sm:px-6 md:pb-5">
+        {/* EduLedger product footer */}
+        <footer className="mt-auto w-full border-t border-[#D8CDD2] bg-white px-4 pb-24 pt-6 text-xs text-[#51404A] no-print sm:px-6 md:pb-5">
           <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col items-center gap-5">
-              <div className="flex items-center justify-center gap-4">
-                <EduLedgerMark className="h-16 w-16 shrink-0 text-[#6B1F38]" />
-                <div className="border-l border-[#E5DDE0] pl-4 text-left">
-                  <p className="text-2xl font-semibold tracking-tight text-[#6B1F38]">EduLedger ERP</p>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Learning Made Organized</p>
+            <div className="grid grid-cols-1 items-center gap-5 sm:grid-cols-[1fr_1.2fr_1fr] sm:gap-4">
+              <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start">
+                <EduLedgerMark className="h-16 w-16 shrink-0 text-[#790D3D]" />
+                <div className="min-w-0 border-l border-[#D8CDD2] pl-4">
+                  <p className="text-2xl font-bold tracking-tight text-[#790D3D]">EduLedger</p>
+                  <p className="mt-1 whitespace-nowrap text-xs font-semibold text-[#790D3D]">— Learning Made Organized —</p>
                 </div>
               </div>
-              <p className="w-full border-y border-[#E5DDE0] px-3 py-6 text-center text-base leading-relaxed text-slate-600">
+              <p className="border-y border-[#D8CDD2] px-4 py-4 text-center text-base leading-relaxed sm:border-y-0 sm:border-x sm:py-2">
                 A complete Tuition Management System for Educational Institutes.
               </p>
+              <div className="flex flex-col items-center gap-3 sm:items-start sm:pl-6">
+                <a href="mailto:tirth.freelance31@gmail.com" className="flex items-center gap-3 text-base transition-colors hover:text-[#790D3D]">
+                  <Mail className="h-6 w-6 shrink-0 text-[#790D3D]" aria-hidden="true" />
+                  <span>tirth.freelance31@gmail.com</span>
+                </a>
+                <a href="https://wa.me/918160733101" target="_blank" rel="noreferrer" className="flex items-center gap-3 text-base transition-colors hover:text-[#790D3D]">
+                  <MessageCircle className="h-6 w-6 shrink-0 text-[#790D3D]" aria-hidden="true" />
+                  <span>+91 81607 33101</span>
+                </a>
+              </div>
             </div>
-            <div className="mt-8 flex flex-col items-center gap-3 border-t border-[#E5DDE0] pt-7 text-center">
-              <span className="text-sm">© 2026 EduLedger. All rights reserved.</span>
-              <span className="text-base italic text-[#6B1F38]">Empowering Education. Together.</span>
-              <span className="rounded-full bg-[#F1E7EB] px-4 py-1.5 text-sm font-semibold text-[#6B1F38]">v1.0.1</span>
+            <div className="mt-5 grid grid-cols-1 items-center gap-3 border-t border-[#D8CDD2] pt-4 text-center sm:grid-cols-3 sm:text-left">
+              <span>© 2026 EduLedger. All rights reserved.</span>
+              <span className="font-medium italic text-[#5B2941] sm:text-center">—　Empowering Education. Together.　—</span>
+              <span className="justify-self-center rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941] sm:justify-self-end">v1.0.0</span>
             </div>
           </div>
         </footer>
