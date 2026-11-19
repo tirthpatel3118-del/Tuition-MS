@@ -673,8 +673,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unpaidInsts = data.installments
       .filter(inst => inst.studentId === student.id && inst.status !== 'Paid')
       .sort((a, b) =>
-        (a.installmentNumber - b.installmentNumber) ||
         a.dueDate.localeCompare(b.dueDate) ||
+        (a.installmentNumber - b.installmentNumber) ||
         a.id.localeCompare(b.id)
       );
 
