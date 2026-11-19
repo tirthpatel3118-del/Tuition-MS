@@ -395,17 +395,17 @@ export const Reminders: React.FC = () => {
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
+        <div className="inline-flex max-w-full self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => setActiveTab('dues')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             <BellRing className="w-3.5 h-3.5" />
             <span>Outstanding Dues</span>
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <History className="w-3.5 h-3.5" />
             <span>Reminder Logs</span>
@@ -419,10 +419,10 @@ export const Reminders: React.FC = () => {
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Selected for reminder</p><p className="mt-2 text-2xl font-semibold text-slate-900">{selectedInstallmentIds.length}</p><p className="mt-1 text-xs text-slate-500">Ready for manual review</p></div>
       </section>
       {activeTab === 'dues' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6 items-start">
           
           {/* Main Dues Table (Left columns) */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="2xl:col-span-2 space-y-4">
             <div className="ui-card p-4 flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -450,7 +450,7 @@ export const Reminders: React.FC = () => {
               <div className="space-y-4">
                 <div className="ui-card overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full min-w-[760px] text-left border-collapse">
                       <thead>
                         <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
                           <th className="px-4 py-3 text-center w-12 no-print">
