@@ -2,13 +2,17 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { EduLedgerMark } from '../components/EduLedgerMark';
+import { BrandLoading } from '../components/BrandLoading';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF7F8] px-4 py-10">
       <section className="relative w-full max-w-md rounded-2xl border border-[#E5DDE0] bg-white p-6 shadow-[0_18px_60px_-36px_rgba(72,25,43,0.28)] sm:p-8">
         <div className="mb-8">
-          <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-[#6B1F38] text-lg font-bold text-white">E</div>
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F8E9ED] text-[#6B1F38]">
+            <EduLedgerMark className="h-12 w-12" />
+          </div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A03B5E]">EduLedger</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
@@ -23,15 +27,8 @@ export function AuthFrame({ title, description, children }: { title: string; des
   );
 }
 
-export function AuthLoading({ message = 'Checking your secure workspace…' }: { message?: string }) {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4">
-      <div className="text-center">
-        <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-[#6B1F38]" />
-        <p className="text-sm font-medium text-slate-600">{message}</p>
-      </div>
-    </main>
-  );
+export function AuthLoading({ message = 'Preparing your institute workspace...' }: { message?: string }) {
+  return <BrandLoading message={message} />;
 }
 
 export function AuthPage() {
