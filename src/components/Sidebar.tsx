@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { EduLedgerMark } from './EduLedgerMark';
 import {
   LayoutDashboard,
   UserPlus,
@@ -56,19 +57,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex h-full flex-col select-none bg-[#6B1F38] text-[#FAF7F8]">
       <div className={`flex min-h-[76px] items-center justify-between border-b border-white/10 px-5 py-4 ${collapsed ? 'md:justify-center md:px-2' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-[#6B1F38]">
-            {settings?.logoUrl ? (
-              <img src={settings.logoUrl} alt="Institute logo" className="h-full w-full object-contain" />
-            ) : (
-              <Sparkles className="h-5 w-5" aria-hidden="true" />
-            )}
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white text-[#6B1F38] shadow-sm">
+            <EduLedgerMark className="h-9 w-9" />
           </div>
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold tracking-tight text-white">
-                {settings?.instituteName || 'EduLedger'}
-              </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[#E8C9D4]">
+              <span className="truncate text-lg font-bold tracking-tight text-white">EduLedger</span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#E8C9D4]">
                 Institute workspace
               </span>
             </div>
@@ -138,9 +133,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
+        <div className={`flex items-center gap-3 border-t border-white/15 pt-4 ${collapsed ? 'md:justify-center' : ''}`}>
+          <EduLedgerMark className="h-10 w-10 shrink-0 text-white" />
+          {!collapsed && (
+            <div className="min-w-0 border-l border-white/25 pl-3">
+              <p className="text-base font-bold leading-tight text-white">EduLedger</p>
+              <p className="mt-1 text-[9px] font-medium uppercase tracking-[0.13em] text-[#E8C9D4]">Tuition Management System</p>
+            </div>
+          )}
+        </div>
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => setCollapsed(!collapsed)
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className="hidden min-h-9 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#D9AEBE] transition-colors hover:bg-white/10 hover:text-white md:flex"
         >
