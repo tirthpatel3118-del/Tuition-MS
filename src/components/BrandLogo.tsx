@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface BrandLogoProps {
   compact?: boolean;
@@ -6,31 +6,40 @@ interface BrandLogoProps {
   className?: string;
 }
 
-export const BrandLogo: React.FC<BrandLogoProps> = ({ compact = false, light = false, className = '' }) => (
-  <div className={`inline-flex items-center gap-2.5 ${className}`} aria-label="Saturn ERP">
-    <svg viewBox="0 0 64 64" className="h-10 w-10 shrink-0" role="img" aria-hidden="true">
-      <defs>
-        <linearGradient id="saturn-planet" x1="12" y1="10" x2="50" y2="55" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#8B5CF6" />
-          <stop offset=".55" stopColor="#5B4BE8" />
-          <stop offset="1" stopColor="#168BDB" />
-        </linearGradient>
-        <linearGradient id="saturn-ring" x1="3" y1="22" x2="61" y2="44" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#4F46E5" />
-          <stop offset=".55" stopColor="#8B5CF6" />
-          <stop offset="1" stopColor="#38BDF8" />
-        </linearGradient>
-      </defs>
-      <circle cx="32" cy="31" r="17" fill="url(#saturn-planet)" />
-      <path d="M5 37.5C17 23.5 46 18.5 59 28.5C49 42.5 19 49 5 37.5Z" fill="none" stroke="url(#saturn-ring)" strokeWidth="5.5" strokeLinecap="round" />
-      <path d="M7 39.5C20 46 43 43 57 31.5" fill="none" stroke="#A5B4FC" strokeWidth="1.5" strokeLinecap="round" opacity=".9" />
-      <path d="M47 8.5L49 13.5L54 15.5L49 17.5L47 22.5L45 17.5L40 15.5L45 13.5L47 8.5Z" fill="#8B5CF6" />
-      <circle cx="14" cy="17" r="1.8" fill="#38BDF8" />
-    </svg>
-    {!compact && (
-      <span className={`whitespace-nowrap text-[1.05rem] font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
-        Saturn<span className="text-violet-600">ERP</span>
-      </span>
-    )}
-  </div>
-);
+export const BrandLogo: React.FC<BrandLogoProps> = ({ compact = false, light = false, className = '' }) => {
+  const gradientId = useId().replace(/:/g, '');
+  const planetGradient = `saturn-planet-${gradientId}`;
+  const ringGradient = `saturn-ring-${gradientId}`;
+
+  return (
+    <div className={`inline-flex min-w-0 items-center gap-2.5 ${className}`} aria-label="Saturn ERP">
+      <svg viewBox="0 0 72 72" className="h-10 w-10 shrink-0" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id={planetGradient} x1="12" y1="9" x2="55" y2="58" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#38BDF8" />
+            <stop offset=".42" stopColor="#6545E8" />
+            <stop offset="1" stopColor="#35105F" />
+          </linearGradient>
+          <linearGradient id={ringGradient} x1="3" y1="25" x2="68" y2="47" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#06B6D4" />
+            <stop offset=".48" stopColor="#7650F2" />
+            <stop offset="1" stopColor="#A855F7" />
+          </linearGradient>
+        </defs>
+        {/* Rear orbit and planet: Saturn grows out of the open book. */}
+        <path d="M5 39C19 20 51 15 67 28" fill="none" stroke={ringGradient} strokeWidth="5.2" strokeLinecap="round" />
+        <path d="M36 10C49 10 59 20 59 32C59 43 49 51 36 51C23 51 13 43 13 32C13 20 23 10 36 10Z" fill={`url(#${planetGradient})`} />
+        <path d="M4 40C20 49 51 48 68 30" fill="none" stroke={ringGradient} strokeWidth="5.2" strokeLinecap="round" />
+        {/* Open pages form the base of the planet. */}
+        <path d="M10 44C20 39 29 41 36 48C43 41 52 39 62 44V59C52 55 43 56 36 64C29 56 20 55 10 59V44Z" fill="#FFFFFF" stroke="#4C1D75" strokeWidth="2" strokeLinejoin="round" />
+        <path d="M36 48V63M13 48C22 45 29 47 36 53M59 48C50 45 43 47 36 53" fill="none" stroke="#B9A4F4" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M53 5L55 10L60 12L55 14L53 19L51 14L46 12L51 10L53 5Z" fill="#8B5CF6" />
+      </svg>
+      {!compact && (
+        <span className={`whitespace-nowrap text-[1.05rem] font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
+          Saturn<span className="text-rose-700"> ERP</span>
+        </span>
+      )}
+    </div>
+  );
+};
