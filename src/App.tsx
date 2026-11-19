@@ -126,9 +126,9 @@ function AppContent() {
         {/* Global Layout Footer */}
         <footer className="w-full py-5 mt-auto bg-white border-t border-slate-100 text-center text-xs text-slate-400 no-print select-none">
           <div className="max-w-7xl mx-auto px-6 space-y-1">
-            <div className="text-slate-500 font-semibold">EduLedger ERP v1.0.0</div>
+            <div className="text-slate-500 font-semibold">Saturn ERP v1.0.0</div>
             <div className="text-slate-400">
-              © 2026 EduLedger ERP
+              © 2026 Saturn ERP
             </div>
           </div>
         </footer>
@@ -152,7 +152,7 @@ function AppEntry() {
           <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <h1 className="text-xl font-bold text-slate-900">Workspace setup required</h1>
             <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">
-              EduLedger is not connected to its authentication and database service. Please contact your administrator.
+              Saturn ERP is not connected to its authentication and database service. Please contact your administrator.
             </p>
           </section>
         </main>
