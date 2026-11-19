@@ -16,7 +16,7 @@ const manifest = read('../public/manifest.webmanifest');
 
 // Product footer uses EduLedger's own brand and published contact details.
 assert.match(app, /EduLedgerMark/);
-assert.match(app, /Learning Made Organized/);
+assert.match(app, /Learning Made Organized/);\nassert.match(app, /Empowering Education\\. Together\\./);\nassert.doesNotMatch(app, /info@eduledger\\.in|98765 43210/);
 assert.match(app, /A complete Tuition Management System for Educational Institutes/);
 assert.match(app, /info@eduledger\.in/);
 assert.match(app, /\+91 98765 43210/);
