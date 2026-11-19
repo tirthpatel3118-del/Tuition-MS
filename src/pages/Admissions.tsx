@@ -1183,7 +1183,7 @@ export const Admissions: React.FC = () => {
       {/* Student detail backdrop and drawer */}
       {selectedStudentId && <button type="button" aria-label="Close student details" onClick={() => { setSelectedStudentId(null); setIsEditing(false); setIsAttendanceReportOpen(false); }} className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px] no-print" />}
       {/* Side Details drawer (Slides in from the right when student clicked) */}
-      <div role="dialog" aria-modal={Boolean(selectedStudentId)} aria-hidden={!selectedStudentId} aria-label="Student details" className={`fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col ${isAttendanceReportOpen ? '' : 'no-print'} ${selectedStudentId ? 'pointer-events-auto' : 'pointer-events-none'}
+      <div role="dialog" aria-modal={Boolean(selectedStudentId)} aria-hidden={!selectedStudentId} aria-label="Student details" className={`attendance-report-drawer fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-[#E5DDE0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col ${isAttendanceReportOpen ? '' : 'no-print'} ${selectedStudentId ? 'pointer-events-auto' : 'pointer-events-none'}
         ${selectedStudentId ? 'translate-x-0' : 'translate-x-full'}
       `}>
         {selectedStudent ? (
@@ -1211,7 +1211,7 @@ export const Admissions: React.FC = () => {
             </div>
 
             {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+            <div className={`attendance-report-drawer-body flex-1 ${isAttendanceReportOpen ? 'overflow-visible' : 'overflow-y-auto'} p-5 space-y-6`}>
               {isAttendanceReportOpen && selectedStudent && activeMembership?.role === 'owner' ? (
                 <MonthlyAttendanceReport
                   instituteId={activeMembership.instituteId}
