@@ -8,8 +8,6 @@ import {
   Search, 
   Send, 
   History, 
-  MessageSquare, 
-  Mail, 
   MessageCircle,
   CheckCircle2,
   AlertCircle,
@@ -41,7 +39,7 @@ export const Reminders: React.FC = () => {
 
   // Bulk selection state
   const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<string[]>([]);
-  const [reminderType, setReminderType] = useState<'WhatsApp' | 'SMS' | 'Email'>('WhatsApp');
+  const reminderType = 'WhatsApp' as const;
   
   // Message templates
   const [installmentTemplate, setInstallmentTemplate] = useState(() =>
@@ -390,9 +388,9 @@ export const Reminders: React.FC = () => {
     }
 
     confirmAction({
-      title: 'Send Fee Reminders',
-      message: `Add reminders for ${selectedInstallmentIds.length} selected item(s) to the ${reminderType} queue? They will be recorded as queued, not sent automatically.`,
-      confirmText: 'Queue Reminders',
+      title: 'Queue WhatsApp Follow-ups',
+      message: `Record ${selectedInstallmentIds.length} selected WhatsApp follow-up(s) in the reminder log? This does not open WhatsApp or send messages. Open each parent chat manually from the dues list.`,
+      confirmText: 'Record Follow-ups',
       type: 'primary',
       onConfirm: () => {
         void sendBulkReminders(selectedInstallmentIds, reminderType).then(() => {
@@ -412,7 +410,7 @@ export const Reminders: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Collections follow-up</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Dues & reminders</h1>
-          <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
+          <p className="text-sm text-slate-500 mt-1">Review outstanding dues and open parent chats in WhatsApp manually. Bulk follow-ups are only logged; messages are never sent automatically.</p>
         </div>
 
         {/* Tab Toggle buttons */}
@@ -693,40 +691,13 @@ export const Reminders: React.FC = () => {
                 <span>Send Notifications</span>
               </h3>
 
-              {/* Channel Select */}
+              {/* v1.0 supports manual WhatsApp only. SMS and email delivery are future features. */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reminder Channel</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button 
-                    onClick={() => setReminderType('WhatsApp')}
-                    className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
-                      ${reminderType === 'WhatsApp' 
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' 
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <MessageCircle className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">WhatsApp</span>
-                  </button>
-                  <button 
-                    onClick={() => setReminderType('SMS')}
-                    className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
-                      ${reminderType === 'SMS' 
-                        ? 'border-[#A03B5E] bg-[#F8E9ED] text-[#6B1F38] font-bold' 
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <MessageSquare className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">SMS Text</span>
-                  </button>
-                  <button 
-                    onClick={() => setReminderType('Email')}
-                    className={`flex flex-col items-center justify-center py-2.5 border rounded-xl gap-1 transition-all cursor-pointer
-                      ${reminderType === 'Email' 
-                        ? 'border-violet-500 bg-violet-50 text-violet-700 font-bold' 
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <Mail className="w-5 h-5 shrink-0" />
-                    <span className="text-[10px]">Email Inbox</span>
-                  </button>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reminder Channel</p>
+                <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                  <MessageCircle className="h-4 w-4 text-emerald-700" />
+                  <span className="font-medium">WhatsApp</span>
+                  <span className="text-slate-500">· Manual message opening only</span>
                 </div>
               </div>
 
@@ -784,7 +755,7 @@ export const Reminders: React.FC = () => {
                 className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
               >
                 <Users className="w-4 h-4" />
-                <span>Dispatch {selectedInstallmentIds.length} Reminders</span>
+                <span>Queue {selectedInstallmentIds.length} WhatsApp Follow-ups</span>
               </button>
             </div>
 
