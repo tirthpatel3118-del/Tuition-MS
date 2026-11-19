@@ -5,6 +5,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const app = read('../src/App.tsx');
 const sidebar = read('../src/components/Sidebar.tsx');
 const css = read('../src/index.css');
+const admissions = read('../src/pages/Admissions.tsx');
 const auth = read('../src/pages/AuthPages.tsx');
 const loader = read('../src/components/PageLoader.tsx');
 const mark = read('../src/components/EduLedgerMark.tsx');
@@ -28,13 +29,17 @@ assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
 assert.ok(app.includes('v1.0.0'));
 
 // Phone and tablet layouts use the drawer and bottom navigation until large desktop.
-assert.ok(app.includes('lg:hidden'));
-assert.ok(sidebar.includes('lg:block'));
-assert.ok(sidebar.includes('lg:hidden'));
-assert.ok(app.includes('xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)]'));
+assert.ok(app.includes('xl:hidden'));
+assert.ok(sidebar.includes('xl:block'));
+assert.ok(sidebar.includes('xl:hidden'));
+assert.ok(app.includes('2xl:grid-cols-[minmax(17rem,1fr)_minmax(20rem,1.15fr)_minmax(19rem,1fr)]'));
 assert.ok(app.includes('break-all'));
 assert.ok(css.includes('overflow-x: hidden'));
 assert.ok(css.includes('main table'));
+assert.ok(css.includes('max-width: 1279px'));
+assert.ok(app.includes('2xl:flex-row'));
+assert.ok(app.includes('min-h-dvh'));
+assert.ok(admissions.includes('overflow-x-auto bg-white shadow-xs'));
 
 // Institute name stays in the sidebar beside the shared product mark.
 assert.ok(sidebar.includes('EduLedgerMark className='));
