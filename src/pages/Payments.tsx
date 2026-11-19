@@ -68,25 +68,26 @@ export const Payments: React.FC = () => {
       && outstandingInstallmentAmount(installment) > 0)
     .sort((a, b) => a.installmentNumber - b.installmentNumber);
 
-  // Allocate each student's outstanding balance across scheduled installments
-  // once, so partial payments and direct balances are never double-counted.
+  // Show the active due only: the first unpaid installment. Once it is
+  // fully paid, the next installment naturally becomes the active due date.
+  // Direct-fee students use their optional expected fee due date.
   const feeDueSummary = students.reduce((summary, student) => {
     if (student.status === 'Inactive' || student.feesDue <= 0) return summary;
-    let remaining = student.feesDue;
-    const studentInstallments = installments
-      .filter(item => item.studentId === student.id && item.status !== 'Paid')
-      .sort((a, b) => a.installmentNumber - b.installmentNumber || a.dueDate.localeCompare(b.dueDate));
-    for (const installment of studentInstallments) {
-      if (remaining <= 0) break;
-      const balance = Math.min(outstandingInstallmentAmount(installment), remaining);
-      if (balance <= 0) continue;
-      remaining -= balance;
-      const dueStatus = getFeeDueStatus(installment.dueDate);
+    const nextInstallment = getUnpaidInstallments(student.id)[0];
+    if (nextInstallment) {
+      const balance = Math.min(outstandingInstallmentAmount(nextInstallment), student.feesDue);
+      const dueStatus = getFeeDueStatus(nextInstallment.dueDate);
       if (dueStatus.status === 'due_today') summary.dueToday += balance;
       else if (dueStatus.status === 'overdue') summary.overdue += balance;
       else if (dueStatus.status === 'upcoming') summary.upcoming += balance;
+      return summary;
     }
-    summary.unscheduled += remaining;
+
+    const dueStatus = getFeeDueStatus(student.expectedFeeDueDate);
+    if (dueStatus.status === 'due_today') summary.dueToday += student.feesDue;
+    else if (dueStatus.status === 'overdue') summary.overdue += student.feesDue;
+    else if (dueStatus.status === 'upcoming') summary.upcoming += student.feesDue;
+    else summary.unscheduled += student.feesDue;
     return summary;
   }, { dueToday: 0, overdue: 0, upcoming: 0, unscheduled: 0 });
 
