@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const app = read('../src/App.tsx');
 const sidebar = read('../src/components/Sidebar.tsx');
+const css = read('../src/index.css');
 const auth = read('../src/pages/AuthPages.tsx');
 const loader = read('../src/components/PageLoader.tsx');
 const mark = read('../src/components/EduLedgerMark.tsx');
@@ -26,6 +27,15 @@ assert.ok(app.includes('Empowering Education. Together.'));
 assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
 assert.ok(app.includes('v1.0.0'));
 
+// Phone and tablet layouts use the drawer and bottom navigation until large desktop.
+assert.ok(app.includes('lg:hidden'));
+assert.ok(sidebar.includes('lg:block'));
+assert.ok(sidebar.includes('lg:hidden'));
+assert.ok(app.includes('xl:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)]'));
+assert.ok(app.includes('break-all'));
+assert.ok(css.includes('overflow-x: hidden'));
+assert.ok(css.includes('main table'));
+
 // Institute name stays in the sidebar beside the shared product mark.
 assert.ok(sidebar.includes('EduLedgerMark className='));
 assert.ok(sidebar.includes('settings.instituteName'));
@@ -43,4 +53,4 @@ assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(html.includes('<title>EduLedger ERP</title>'));
 assert.ok(manifest.includes('"short_name": "EduLedger"'));
 
-console.log('EduLedger brand shell checks passed.');
+console.log('EduLedger responsive brand shell checks passed.');
