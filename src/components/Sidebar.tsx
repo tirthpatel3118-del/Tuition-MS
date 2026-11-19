@@ -57,11 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className={`flex min-h-[76px] items-center justify-between border-b border-white/10 px-5 py-4 ${collapsed ? 'md:justify-center md:px-2' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
-            {settings.logoUrl ? (
-              <img src={settings.logoUrl} alt="" className="h-full w-full object-contain" />
-            ) : (
-              <EduLedgerMark className="h-9 w-9 text-[#6B1F38]" />
-            )}
+            <EduLedgerMark className="h-9 w-9 text-[#6B1F38]" />
           </div>
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
