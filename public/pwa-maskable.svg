@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#6B1F38"/>
-  <circle cx="256" cy="256" r="190" fill="#7C2945"/>
-  <path d="M156 126h154c60 0 98 34 98 87 0 35-19 61-50 74 41 11 65 41 65 84 0 64-47 106-119 106H156V126zm72 62v76h77c21 0 33-14 33-38s-13-38-36-38h-74zm0 134v92h84c31 0 48-16 48-45s-18-47-49-47h-83z" fill="#fff"/>
-  <path d="M156 96h63v320h-63z" fill="#E8B8C7"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100">
+  <defs><linearGradient id="planet" x1="25%" y1="5%" x2="78%" y2="100%"><stop stop-color="#fff"/><stop offset=".52" stop-color="#F6E8ED"/><stop offset="1" stop-color="#D98AA5"/></linearGradient></defs>
+  <rect width="100" height="100" rx="0" fill="#6B1F38"/>
+  <path d="M17 58C22 27 40 10 58 12C75 14 85 30 82 48C79 65 65 75 48 74C32 73 20 67 17 58Z" fill="url(#planet)"/>
+  <path d="M9 55C24 42 61 26 91 31C83 42 52 58 16 66" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+  <path d="M8 54C24 41 60 27 89 31" fill="none" stroke="#F3DCE5" stroke-width="3" stroke-linecap="round"/>
+  <path d="M14 63Q31 55 49 68Q67 55 86 63L82 76Q65 69 49 84Q32 69 17 76Z" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M49 68V82" stroke="#F1D5DF" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M80 3L83 11L91 14L83 17L80 25L77 17L69 14L77 11Z" fill="#E9D5FF"/>
 </svg>
