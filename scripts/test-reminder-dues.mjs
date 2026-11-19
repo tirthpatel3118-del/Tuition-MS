@@ -252,6 +252,28 @@ const totalItems2Amount = items2.reduce((sum, item) => sum + item.amount, 0);
 assert.equal(totalItems2Amount, 6000, 'Only the next installment is active; later installments wait their turn');
 console.log('✓ Successfully generated only the next scheduled installment reminder\n');
 
+// Paying the active installment early advances the reminder target to the next date.
+const s2AfterEarlyPayment = { ...s2, feesDue: 6000 };
+const items2AfterEarlyPayment = generateDueItems({
+  students: [s2AfterEarlyPayment],
+  installments: [{ ...inst2a, status: 'Paid' }, inst2b],
+  installmentPaidTotals: { inst_2a: 6000 },
+});
+assert.equal(items2AfterEarlyPayment.length, 1);
+assert.equal(items2AfterEarlyPayment[0].id, 'inst_2b');
+assert.equal(items2AfterEarlyPayment[0].dueDate, '2026-09-01');
+
+// Partial payment reduces the active amount but retains the current installment date.
+const items2Partial = generateDueItems({
+  students: [{ ...s2, feesDue: 4000 }],
+  installments: [inst2a, inst2b],
+  installmentPaidTotals: { inst_2a: 2000 },
+});
+assert.equal(items2Partial[0].id, 'inst_2a');
+assert.equal(items2Partial[0].amount, 4000);
+assert.equal(items2Partial[0].dueDate, '2026-08-01');
+
+
 // ============================================================================
 // TEST 3: Student with partially planned installments
 // ============================================================================
