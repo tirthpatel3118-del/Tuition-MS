@@ -3,7 +3,7 @@
 -- If legacy data has the migration institute, require a real owner before
 -- removing legacy access. A clean install has no seeded institute and uses
 -- create_institute_atomic to establish its first signed-in owner.
-DO $
+DO $$
 DECLARE
     v_dev_institute_id CONSTANT UUID := '00000000-0000-0000-0000-000000000001';
 BEGIN
@@ -14,7 +14,7 @@ BEGIN
        ) THEN
         RAISE EXCEPTION 'RLS cutover blocked: link and verify an Auth user as owner of the migrated institute first.';
     END IF;
-END $;
+END $$;
 
 -- Remove the legacy public CRUD policies regardless of their exact historical names.
 DO $$

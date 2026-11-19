@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '../lib/date';
+import { getFeeDueStatus } from '../utils/feeDueStatus';
 import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
 import { Installment, Payment } from '../data/mockData';
@@ -65,7 +66,30 @@ export const Payments: React.FC = () => {
     .filter(installment => installment.studentId === studentId
       && installment.status !== 'Paid'
       && outstandingInstallmentAmount(installment) > 0)
-    .sort((a, b) => a.installmentNumber - b.installmentNumber);
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id));
+
+  // Show the active due only: the first unpaid installment. Once it is
+  // fully paid, the next installment naturally becomes the active due date.
+  // Direct-fee students use their optional expected fee due date.
+  const feeDueSummary = students.reduce((summary, student) => {
+    if (student.status === 'Inactive' || student.feesDue <= 0) return summary;
+    const nextInstallment = getUnpaidInstallments(student.id)[0];
+    if (nextInstallment) {
+      const balance = Math.min(outstandingInstallmentAmount(nextInstallment), student.feesDue);
+      const dueStatus = getFeeDueStatus(nextInstallment.dueDate);
+      if (dueStatus.status === 'due_today') summary.dueToday += balance;
+      else if (dueStatus.status === 'overdue') summary.overdue += balance;
+      else if (dueStatus.status === 'upcoming') summary.upcoming += balance;
+      return summary;
+    }
+
+    const dueStatus = getFeeDueStatus(student.expectedFeeDueDate);
+    if (dueStatus.status === 'due_today') summary.dueToday += student.feesDue;
+    else if (dueStatus.status === 'overdue') summary.overdue += student.feesDue;
+    else if (dueStatus.status === 'upcoming') summary.upcoming += student.feesDue;
+    else summary.unscheduled += student.feesDue;
+    return summary;
+  }, { dueToday: 0, overdue: 0, upcoming: 0, unscheduled: 0 });
 
   // Trigger simulated loader when filter/tab changes
   useEffect(() => {
@@ -357,10 +381,16 @@ export const Payments: React.FC = () => {
         </div>
       </div>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Collection summary">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label="Collection summary">
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Total collected</p><p className="mt-2 text-2xl font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Across recorded transactions</p></div>
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Transactions</p><p className="mt-2 text-2xl font-semibold text-slate-900">{payments.length}</p><p className="mt-1 text-xs text-slate-500">Payments in the ledger</p></div>
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Students with pending dues</p><p className="mt-2 text-2xl font-semibold text-slate-900">{students.filter(student => student.status !== 'Inactive' && student.feesDue > 0).length}</p><p className="mt-1 text-xs text-slate-500">Require fee follow-up</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Due today</p><p className="mt-2 text-2xl font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{feeDueSummary.dueToday.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Scheduled for today</p></div>
+        <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Overdue</p><p className="mt-2 text-2xl font-semibold text-rose-700">{settings?.currencySymbol || '₹'}{feeDueSummary.overdue.toLocaleString('en-IN')}</p><p className="mt-1 text-xs text-slate-500">Past the due date</p></div>
+      </section>
+      <section className="ui-card flex flex-wrap items-center justify-between gap-3 px-4 py-3" aria-label="Other fee balances">
+        <div><p className="text-xs font-semibold text-slate-700">Other outstanding balances</p><p className="mt-1 text-[11px] text-slate-500">Upcoming scheduled fees and direct balances without a due date</p></div>
+        <div className="flex flex-wrap gap-4 text-xs"><span className="text-slate-600">Upcoming: <strong>{settings?.currencySymbol || '₹'}{feeDueSummary.upcoming.toLocaleString('en-IN')}</strong></span><span className="text-slate-600">No schedule: <strong>{settings?.currencySymbol || '₹'}{feeDueSummary.unscheduled.toLocaleString('en-IN')}</strong></span></div>
       </section>
 
       {activeTab === 'ledger' ? (
@@ -742,7 +772,7 @@ export const Payments: React.FC = () => {
                     </option>
                     {selectedStudentInstallments.map(inst => (
                       <option key={inst.id} value={inst.id}>
-                        Installment #{inst.installmentNumber} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
+                        Installment #{inst.installmentNumber} — {getFeeDueStatus(inst.dueDate).label} — Balance: {settings?.currencySymbol || '₹'}{outstandingInstallmentAmount(inst).toLocaleString('en-IN')} (Due: {formatDateForDisplay(inst.dueDate, settings?.dateFormat)}) {inst.remarks ? `[${inst.remarks}]` : ''}
                       </option>
                     ))}
                   </select>

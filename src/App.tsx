@@ -4,11 +4,13 @@ import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { PWAControls } from './components/PWAControls';
-import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen } from 'lucide-react';
+import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
 import { isDemoMode } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
+import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
+import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const Admissions = lazy(() => import('./pages/Admissions').then(module => ({ default: module.Admissions })));
@@ -63,6 +65,11 @@ function AppContent() {
           {/* Right header actions */}
           <div className="flex items-center gap-3 sm:gap-4">
             <PWAControls />
+            {auth.platformAdmin && (
+              <NavLink to="/super-admin" className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5DDE0] bg-white px-3 py-2 text-xs font-semibold text-[#6B1F38] hover:bg-[#F8E9ED]">
+                <ShieldCheck className="h-4 w-4" />Super Admin
+              </NavLink>
+            )}
             {auth.configured && auth.activeMembership && (
               <div className="hidden items-center gap-2 sm:flex">
                 {auth.memberships.length > 1 && (
@@ -189,6 +196,7 @@ function AppEntry() {
 
   if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
   if (location.pathname === '/reset-password') return <PasswordResetPage />;
+  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
 
   if (auth.status === 'signed-out') return <AuthPage />;
 
@@ -207,9 +215,35 @@ function AppEntry() {
 
   if (isInvitationRoute) return <InvitationAcceptancePage />;
   if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
+  if (location.pathname === '/super-admin') return <SuperAdminDashboard />;
+  if (auth.platformAdmin && location.pathname === '/') return <Navigate to="/super-admin" replace />;
 
-  if (auth.memberships.length === 0) return <CreateInstitutePage />;
+  if (auth.memberships.length === 0) {
+    if (auth.platformAdmin) return <Navigate to="/super-admin" replace />;
+    return <CreateInstitutePage />;
+  }
   if (!auth.activeMembership) return <SelectInstitutePage />;
+  if (auth.activeMembership.accessStatus !== 'active') {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4 py-10">
+        <section className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-8 shadow-sm">
+          <h1 className="text-xl font-bold text-slate-900">Workspace access is unavailable</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            This institute subscription is {auth.activeMembership.accessStatus}. Contact EduLedger administration or your institute owner to restore access.
+          </p>
+          {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').length > 0 && (
+            <div className="mt-5 space-y-2">
+              <p className="text-xs font-semibold text-slate-500">Other available workspaces</p>
+              {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').map(item => (
+                <button key={item.instituteId} onClick={() => auth.selectInstitute(item.instituteId)} className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50">{item.instituteName}</button>
+              ))}
+            </div>
+          )}
+          <button onClick={() => void auth.signOut()} className="mt-5 w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Sign out</button>
+        </section>
+      </main>
+    );
+  }
   if (auth.activeMembership.role === 'teacher') {
     return <Suspense fallback={<AuthLoading />}><TeacherWorkspace /></Suspense>;
   }

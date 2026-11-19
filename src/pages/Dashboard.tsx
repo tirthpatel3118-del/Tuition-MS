@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
+import { getFeeDueStatus } from '../utils/feeDueStatus';
 
 export const Dashboard: React.FC = () => {
-  const { students, payments, courses, installments, settings } = useData();
+  const { students, payments, courses, installments, installmentPaidTotals, settings } = useData();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,19 +44,44 @@ export const Dashboard: React.FC = () => {
   sevenDaysLater.setDate(today.getDate() + 7);
   const sevenDaysLaterStr = toDateKey(sevenDaysLater);
 
-  // Today's Due: Pending or Overdue installments due today (or overdue in the past)
-  const todaysDue = (installments || [])
-    .filter(inst => inst.status !== 'Paid' && inst.dueDate <= todayStr)
-    .reduce((sum, inst) => sum + inst.amount, 0);
-
-  // Upcoming Due: Pending/Overdue installments due in the next 7 days
-  const upcomingDue = (installments || [])
-    .filter(inst => inst.status !== 'Paid' && inst.dueDate > todayStr && inst.dueDate <= sevenDaysLaterStr)
-    .reduce((sum, inst) => sum + inst.amount, 0);
-
+  // Allocate each student's remaining fee across scheduled installments once, then
+  // classify only the remaining amount by due date (the same approach as Reminders).
+  let dueToday = 0;
+  let overdueDue = 0;
+  let upcomingDue = 0;
+  let directDue = 0;
+  let dueTodayCount = 0;
+  let overdueCount = 0;
+  let upcomingDueCount = 0;
   const pendingInstallmentsCount = (installments || []).filter(inst => inst.status !== 'Paid').length;
-  const todaysDueCount = (installments || []).filter(inst => inst.status !== 'Paid' && inst.dueDate <= todayStr).length;
-  const upcomingDueCount = (installments || []).filter(inst => inst.status !== 'Paid' && inst.dueDate > todayStr && inst.dueDate <= sevenDaysLaterStr).length;
+
+  for (const student of students.filter(item => item.status !== 'Inactive' && item.feesDue > 0)) {
+    let remainingAllowance = student.feesDue;
+    const studentInstallments = (installments || [])
+      .filter(inst => inst.studentId === student.id && inst.status !== 'Paid')
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber);
+
+    for (const inst of studentInstallments) {
+      if (remainingAllowance <= 0) break;
+      const unpaidAmount = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
+      const amount = Math.min(unpaidAmount, remainingAllowance);
+      if (amount <= 0) continue;
+      remainingAllowance -= amount;
+      const dueStatus = getFeeDueStatus(inst.dueDate, today);
+      if (dueStatus.status === 'overdue') {
+        overdueDue += amount;
+        overdueCount += 1;
+      } else if (dueStatus.status === 'due_today') {
+        dueToday += amount;
+        dueTodayCount += 1;
+      } else if (dueStatus.status === 'upcoming' && inst.dueDate <= sevenDaysLaterStr) {
+        upcomingDue += amount;
+        upcomingDueCount += 1;
+      }
+    }
+    // Unscheduled balances are visible separately rather than silently omitted.
+    directDue += remainingAllowance;
+  }
 
   // Total Fees: sum of total fees of non-inactive students
   const totalFeesExpected = students
@@ -184,9 +210,11 @@ export const Dashboard: React.FC = () => {
         <article className="ui-card p-4 sm:p-5">
           <div className="mb-5"><h2 className="text-base font-semibold text-slate-900">Fee schedule</h2><p className="mt-1 text-xs text-slate-500">Upcoming collection priorities.</p></div>
           <div className="divide-y divide-[#EEE7EA]">
-            <div className="flex items-center justify-between gap-3 py-4 first:pt-0"><div><p className="text-sm font-medium text-slate-800">Due today & overdue</p><p className="mt-1 text-xs text-slate-500">{todaysDueCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-rose-700">{settings?.currencySymbol || '₹'}{todaysDue.toLocaleString('en-IN')}</p></div>
-            <div className="flex items-center justify-between gap-3 py-4"><div><p className="text-sm font-medium text-slate-800">Next 7 days</p><p className="mt-1 text-xs text-slate-500">{upcomingDueCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{upcomingDue.toLocaleString('en-IN')}</p></div>
-            <div className="flex items-center justify-between gap-3 py-4 last:pb-0"><div><p className="text-sm font-medium text-slate-800">Total outstanding</p><p className="mt-1 text-xs text-slate-500">Across active students</p></div><p className="whitespace-nowrap text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{outstandingDues.toLocaleString('en-IN')}</p></div>
+            <div className="flex items-center justify-between gap-3 py-3 first:pt-0"><div><p className="text-sm font-medium text-slate-800">Due today</p><p className="mt-1 text-xs text-slate-500">{dueTodayCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{dueToday.toLocaleString('en-IN')}</p></div>
+            <div className="flex items-center justify-between gap-3 py-3"><div><p className="text-sm font-medium text-slate-800">Late payments</p><p className="mt-1 text-xs text-slate-500">{overdueCount} overdue installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-rose-700">{settings?.currencySymbol || '₹'}{overdueDue.toLocaleString('en-IN')}</p></div>
+            <div className="flex items-center justify-between gap-3 py-3"><div><p className="text-sm font-medium text-slate-800">Next 7 days</p><p className="mt-1 text-xs text-slate-500">{upcomingDueCount} installments</p></div><p className="whitespace-nowrap text-sm font-semibold text-amber-700">{settings?.currencySymbol || '₹'}{upcomingDue.toLocaleString('en-IN')}</p></div>
+            {directDue > 0 && <div className="flex items-center justify-between gap-3 py-3"><div><p className="text-sm font-medium text-slate-800">No due date</p><p className="mt-1 text-xs text-slate-500">Unscheduled fee balances</p></div><p className="whitespace-nowrap text-sm font-semibold text-slate-700">{settings?.currencySymbol || '₹'}{directDue.toLocaleString('en-IN')}</p></div>}
+            <div className="flex items-center justify-between gap-3 py-3 last:pb-0"><div><p className="text-sm font-medium text-slate-800">Total outstanding</p><p className="mt-1 text-xs text-slate-500">Across active students</p></div><p className="whitespace-nowrap text-sm font-semibold text-slate-900">{settings?.currencySymbol || '₹'}{outstandingDues.toLocaleString('en-IN')}</p></div>
           </div>
           <Link to="/reminders" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#E5DDE0] px-3 py-2.5 text-sm font-semibold text-[#6B1F38] transition-colors hover:bg-[#F8E9ED]">Review pending dues <ArrowRight className="h-4 w-4" /></Link>
         </article>

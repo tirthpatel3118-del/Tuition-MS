@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '../lib/date';
+import { getFeeDueStatus, isActionableFeeDue } from '../utils/feeDueStatus';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -36,6 +37,7 @@ export const Reminders: React.FC = () => {
   // Tabs: 'dues' | 'logs'
   const [activeTab, setActiveTab] = useState<'dues' | 'logs'>('dues');
   const [search, setSearch] = useState('');
+  const [dueFilter, setDueFilter] = useState<'all' | 'today' | 'late' | 'no_installment'>('all');
 
   // Bulk selection state
   const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<string[]>([]);
@@ -97,6 +99,8 @@ export const Reminders: React.FC = () => {
       status: 'Pending' | 'Overdue';
       remarks?: string;
       remainingFee: number;
+      dueLabel: string;
+      daysLate: number;
     }> = [];
 
     // Filter active students with positive feesDue
@@ -118,19 +122,24 @@ export const Reminders: React.FC = () => {
       // Unpaid installments, sorted deterministically by installmentNumber, then dueDate, then id
       const unpaidInsts = studentInsts
         .filter(inst => inst.status !== 'Paid')
-        .sort((a, b) => (a.installmentNumber - b.installmentNumber) || a.dueDate.localeCompare(b.dueDate) || a.id.localeCompare(b.id));
+        .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.installmentNumber - b.installmentNumber || a.id.localeCompare(b.id));
 
       let remainingAllowance = student.feesDue;
 
+      let activeInstallmentAdded = false;
       for (const inst of unpaidInsts) {
         if (remainingAllowance <= 0) break;
 
         const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
         if (nominalBalance <= 0) continue;
 
-        // Cap installment reminder amount so sum never exceeds student.feesDue
+        // Allocate the student's balance across the full schedule to avoid
+        // counting future installments again as a direct balance. Only the
+        // first outstanding installment is the active reminder target.
         const amount = Math.min(nominalBalance, remainingAllowance);
         remainingAllowance -= amount;
+        if (activeInstallmentAdded) continue;
+        activeInstallmentAdded = true;
 
         const isOverdue = inst.status === 'Overdue';
 
@@ -152,6 +161,8 @@ export const Reminders: React.FC = () => {
           status: isOverdue ? 'Overdue' : 'Pending',
           remarks: inst.remarks,
           remainingFee: student.feesDue,
+          dueLabel: getFeeDueStatus(inst.dueDate).label,
+          daysLate: getFeeDueStatus(inst.dueDate).daysLate,
         });
       }
 
@@ -170,16 +181,22 @@ export const Reminders: React.FC = () => {
           installmentNumber: undefined,
           displayInstallment: 'Direct Fee',
           amount: remainingAllowance,
-          dueDate: '',
-          displayDueDate: '—',
-          status: 'Pending',
+          dueDate: studentInsts.length === 0 ? (student.expectedFeeDueDate || '') : '',
+          displayDueDate: studentInsts.length === 0 && student.expectedFeeDueDate
+            ? formatDateForDisplay(student.expectedFeeDueDate, settings?.dateFormat) || student.expectedFeeDueDate
+            : '—',
+          status: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').status === 'overdue' ? 'Overdue' : 'Pending',
           remarks: 'Direct fee balance',
           remainingFee: student.feesDue,
+          dueLabel: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').label,
+          daysLate: getFeeDueStatus(studentInsts.length === 0 ? student.expectedFeeDueDate || '' : '').daysLate,
         });
       }
     }
 
-    return items;
+    // Hide future scheduled installments from the default follow-up list.
+    // Keep direct balances visible when no expected date is set; scheduled expected dates appear when due.
+    return items.filter(item => isActionableFeeDue(item.dueDate));
   }, [students, installments, installmentPaidTotals, settings?.dateFormat]);
 
   // Load focused student from dashboard query parameters
@@ -197,8 +214,7 @@ export const Reminders: React.FC = () => {
     }
   }, [searchParams, dueItems]);
 
-  // Filtered due items list
-  const filteredDueInstallments = dueItems.filter(inst => {
+  const searchedDueItems = dueItems.filter(inst => {
     return (
       inst.studentName.toLowerCase().includes(search.toLowerCase()) ||
       inst.studentRoll.toLowerCase().includes(search.toLowerCase()) ||
@@ -207,6 +223,20 @@ export const Reminders: React.FC = () => {
       inst.displayInstallment.toLowerCase().includes(search.toLowerCase()) ||
       (inst.remarks && inst.remarks.toLowerCase().includes(search.toLowerCase()))
     );
+  });
+
+  const dueFilterCounts = {
+    all: searchedDueItems.length,
+    today: searchedDueItems.filter(item => item.dueLabel === 'Due today').length,
+    late: searchedDueItems.filter(item => item.daysLate > 0).length,
+    no_installment: searchedDueItems.filter(item => item.isDirect).length,
+  };
+
+  const filteredDueInstallments = searchedDueItems.filter(item => {
+    if (dueFilter === 'today') return item.dueLabel === 'Due today';
+    if (dueFilter === 'late') return item.daysLate > 0;
+    if (dueFilter === 'no_installment') return item.isDirect;
+    return true;
   });
 
   // Sorting logic
@@ -278,7 +308,7 @@ export const Reminders: React.FC = () => {
       installmentNumber: inst.isDirect ? undefined : inst.installmentNumber,
       amount: inst.amount,
       installmentAmount: inst.amount,
-      dueDate: inst.isDirect ? '' : (formatDateForDisplay(inst.dueDate, settings?.dateFormat) || ''),
+      dueDate: inst.dueDate ? (formatDateForDisplay(inst.dueDate, settings?.dateFormat) || inst.dueDate) : '',
       remainingFee: inst.remainingFee,
       instituteName: settings?.instituteName,
       currencySymbol: settings?.currencySymbol,
@@ -309,6 +339,8 @@ export const Reminders: React.FC = () => {
         displayDueDate: '—',
         status: 'Pending' as const,
         remainingFee: 12000,
+        dueLabel: 'No due date',
+        daysLate: 0,
       };
     } else {
       if (focusedItem && !focusedItem.isDirect) return focusedItem;
@@ -330,6 +362,8 @@ export const Reminders: React.FC = () => {
         displayDueDate: '2026-08-15',
         status: 'Pending' as const,
         remainingFee: 10000,
+        dueLabel: '2 days late',
+        daysLate: 2,
       };
     }
   };
@@ -382,17 +416,17 @@ export const Reminders: React.FC = () => {
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="inline-flex self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
+        <div className="inline-flex max-w-full self-start rounded-lg border border-[#E5DDE0] bg-white p-1 no-print">
           <button 
             onClick={() => setActiveTab('dues')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'dues' ? 'bg-[#F8E9ED] text-[#6B1F38]' : 'text-slate-500 hover:text-slate-900'}`}
           >
             <BellRing className="w-3.5 h-3.5" />
             <span>Outstanding Dues</span>
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            className={`px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === 'logs' ? 'bg-white text-[#6B1F38] shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
           >
             <History className="w-3.5 h-3.5" />
             <span>Reminder Logs</span>
@@ -406,10 +440,10 @@ export const Reminders: React.FC = () => {
         <div className="ui-card p-4"><p className="text-xs font-medium text-slate-500">Selected for reminder</p><p className="mt-2 text-2xl font-semibold text-slate-900">{selectedInstallmentIds.length}</p><p className="mt-1 text-xs text-slate-500">Ready for manual review</p></div>
       </section>
       {activeTab === 'dues' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6 items-start">
           
           {/* Main Dues Table (Left columns) */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="2xl:col-span-2 space-y-4">
             <div className="ui-card p-4 flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
               <div className="relative w-full sm:max-w-xs">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -426,8 +460,35 @@ export const Reminders: React.FC = () => {
               </div>
 
               <div className="text-xs font-semibold text-slate-500 shrink-0">
-                {selectedInstallmentIds.length} of {filteredDueInstallments.length} selected
+                {selectedInstallmentIds.filter(id => filteredDueInstallments.some(item => item.id === id)).length} of {filteredDueInstallments.length} selected
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 no-print" aria-label="Filter dues by due status">
+              {([
+                { id: 'all', label: 'All dues' },
+                { id: 'today', label: "Today's due" },
+                { id: 'late', label: 'Late dues' },
+                { id: 'no_installment', label: 'No installment' },
+              ] as const).map(option => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setDueFilter(option.id);
+                    setCurrentPage(1);
+                  }}
+                  aria-pressed={dueFilter === option.id}
+                  className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+                    dueFilter === option.id
+                      ? 'border-[#6B1F38] bg-[#F8E9ED] text-[#6B1F38]'
+                      : 'border-[#E5DDE0] bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="block text-[11px] font-semibold">{option.label}</span>
+                  <span className="mt-1 block text-lg font-bold tabular-nums">{dueFilterCounts[option.id]}</span>
+                </button>
+              ))}
             </div>
 
             {/* Table Content */}
@@ -437,7 +498,7 @@ export const Reminders: React.FC = () => {
               <div className="space-y-4">
                 <div className="ui-card overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full min-w-[760px] text-left border-collapse">
                       <thead>
                         <tr className="bg-[#FCFAFB] border-b border-[#E5DDE0] text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none">
                           <th className="px-4 py-3 text-center w-12 no-print">
@@ -523,13 +584,14 @@ export const Reminders: React.FC = () => {
                                 {settings?.currencySymbol || '₹'}{inst.amount.toLocaleString('en-IN')}
                               </td>
                               <td className="px-4 py-3.5 text-center font-medium text-slate-600">
-                                {inst.displayDueDate}
+                                <div>{inst.displayDueDate}</div>
+                                <div className={`mt-1 text-[10px] font-semibold ${inst.daysLate > 0 ? 'text-rose-600' : inst.dueLabel === 'Due today' ? 'text-amber-700' : 'text-slate-400'}`}>{inst.dueLabel}</div>
                               </td>
                               <td className="px-4 py-3.5 text-center">
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border
-                                  ${inst.status === 'Overdue' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-amber-50 text-amber-600 border-amber-100'}
+                                  ${inst.daysLate > 0 ? 'bg-rose-50 text-rose-600 border-rose-100' : inst.dueLabel === 'Due today' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-slate-50 text-slate-600 border-slate-200'}
                                 `}>
-                                  {inst.status}
+                                  {inst.dueLabel}
                                 </span>
                               </td>
                               <td className="px-4 py-3.5 text-center no-print" onClick={(e) => e.stopPropagation()}>

@@ -93,7 +93,8 @@ export const studentService = {
         totalFees: student.course_fee,
         feesPaid: 0,
         feesDue: student.course_fee,
-        status: student.status
+        status: student.status,
+        expectedFeeDueDate: student.expected_fee_due_date || undefined
       };
       saveStoredData({
         ...mockData,
@@ -138,6 +139,7 @@ export const studentService = {
             if (course) merged.courseName = course.name;
           }
           if (updates.course_fee !== undefined) merged.totalFees = updates.course_fee;
+          if (updates.expected_fee_due_date !== undefined) merged.expectedFeeDueDate = updates.expected_fee_due_date || undefined;
           if (updates.status) merged.status = updates.status;
           merged.feesDue = merged.totalFees - merged.feesPaid;
           return merged;

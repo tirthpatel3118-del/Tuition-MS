@@ -118,12 +118,35 @@ class MockPaymentEngine {
       throw new Error(`Overpayment: Payment of ${amount} exceeds remaining student balance of ${currentDue}`);
     }
 
-    // 6. Validate Allocations (if provided)
-    if (allocations && allocations.length > 0) {
+    // 6. Auto-allocate general-balance payments FIFO while fingerprinting
+    // the original caller payload (empty allocations) for retry stability.
+    const effectiveAllocations = allocations && allocations.length > 0
+      ? allocations
+      : [];
+    if (!allocations || allocations.length === 0) {
+      let remaining = amount;
+      const oldestFirst = [...this.installments.values()]
+        .filter(inst => inst.student_id === studentId && inst.institute_id === instituteId)
+        .sort((a, b) => a.due_date.localeCompare(b.due_date) ||
+          a.installment_number - b.installment_number || a.id.localeCompare(b.id));
+      for (const inst of oldestFirst) {
+        const paid = this.paymentAllocations
+          .filter(pa => pa.installment_id === inst.id)
+          .reduce((sum, pa) => sum + pa.allocated_amount, 0);
+        const balance = Math.max(0, inst.amount - paid);
+        if (remaining <= 0) break;
+        const allocated = Math.min(remaining, balance);
+        if (allocated > 0) effectiveAllocations.push({ installment_id: inst.id, amount: allocated });
+        remaining -= allocated;
+      }
+    }
+
+    // 6a. Validate Allocations (if provided)
+    if (effectiveAllocations && effectiveAllocations.length > 0) {
       const seenIds = new Set();
       let totalAllocated = 0;
 
-      for (const alloc of allocations) {
+      for (const alloc of effectiveAllocations) {
         if (seenIds.has(alloc.installment_id)) {
           throw new Error('Validation Failed: Duplicate installment references present in allocations payload.');
         }
@@ -145,7 +168,7 @@ class MockPaymentEngine {
         totalAllocated += alloc.amount;
       }
 
-      if (totalAllocated !== amount) {
+      if (allocations && allocations.length > 0 && totalAllocated !== amount) {
         throw new Error(`Validation Failed: Sum of allocations (${totalAllocated}) does not match payment amount (${amount}).`);
       }
     }
@@ -183,8 +206,8 @@ class MockPaymentEngine {
     this.receipts.push(receiptRecord);
 
     // 10. Record Allocations and Update Installment Statuses (if provided)
-    if (allocations && allocations.length > 0) {
-      for (const alloc of allocations) {
+    if (effectiveAllocations && effectiveAllocations.length > 0) {
+      for (const alloc of effectiveAllocations) {
         this.paymentAllocations.push({
           id: `alloc_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           institute_id: instituteId,
@@ -549,8 +572,95 @@ async function runRegressionTests() {
   assert.equal(engine.installments.get('inst_a').status, 'Paid');
   console.log('✓ Re-paying installment 1 succeeded; Installment 1 = Paid');
 
+  // --------------------------------------------------------------------------
+  console.log('\nTest 8: General-balance payment auto-allocates FIFO across installments');
+  // --------------------------------------------------------------------------
+  engine.addStudent({
+    id: 'student_fifo', institute_id: instituteId, full_name: 'FIFO QA',
+    course_fee: 15000, status: 'Active', course_id: 'c_math_10'
+  });
+  engine.addInstallment({ id: 'fifo_1', student_id: 'student_fifo', institute_id: instituteId,
+    installment_number: 1, amount: 5000, due_date: '2026-11-01' });
+  engine.addInstallment({ id: 'fifo_2', student_id: 'student_fifo', institute_id: instituteId,
+    installment_number: 2, amount: 5000, due_date: '2026-12-01' });
+  engine.addInstallment({ id: 'fifo_3', student_id: 'student_fifo', institute_id: instituteId,
+    installment_number: 3, amount: 5000, due_date: '2027-01-01' });
+
+  const fifoPartial = engine.recordPaymentAtomic({
+    instituteId, studentId: 'student_fifo', amount: 7000, paymentMode: 'UPI',
+    paymentDate: '2026-11-19', remarks: 'General fee payment',
+    idempotencyKey: 'key_fifo_001'
+  });
+  const fifoStudent = engine.students.get('student_fifo');
+  assert.equal(fifoStudent.feesPaid, 7000);
+  assert.equal(engine.installments.get('fifo_1').status, 'Paid');
+  assert.equal(engine.installments.get('fifo_2').status, 'Partially_Paid');
+  assert.equal(engine.installments.get('fifo_3').status, 'Pending');
+  const fifoAlloc = engine.paymentAllocations.filter(a => a.payment_id === fifoPartial.paymentId);
+  assert.deepEqual(fifoAlloc.map(a => [a.installment_id, a.allocated_amount]), [['fifo_1', 5000], ['fifo_2', 2000]]);
+  console.log('✓ ₹7,000 general payment allocated ₹5,000 to oldest and ₹2,000 to next; third untouched');
+
+  // Retry must return the same payment despite changed installment balances.
+  const fifoRetry = engine.recordPaymentAtomic({
+    instituteId, studentId: 'student_fifo', amount: 7000, paymentMode: 'UPI',
+    paymentDate: '2026-11-19', remarks: 'General fee payment',
+    idempotencyKey: 'key_fifo_001'
+  });
+  assert.equal(fifoRetry.status, 'EXISTING');
+  assert.equal(fifoRetry.paymentId, fifoPartial.paymentId);
+  assert.equal(engine.paymentAllocations.filter(a => a.payment_id === fifoPartial.paymentId).length, 2);
+  console.log('✓ Idempotent retry returned original receipt without duplicating FIFO allocations');
+
+  // A later general payment finishes installment 2 and begins installment 3.
+  const fifoFinish = engine.recordPaymentAtomic({
+    instituteId, studentId: 'student_fifo', amount: 8000, paymentMode: 'Cash',
+    paymentDate: '2026-11-19', remarks: 'Finish remaining schedule and direct balance',
+    idempotencyKey: 'key_fifo_002'
+  });
+  assert.equal(engine.installments.get('fifo_2').status, 'Paid');
+  assert.equal(engine.installments.get('fifo_3').status, 'Paid');
+  assert.equal(fifoStudent.feesDue, 0);
+  assert.equal(engine.paymentAllocations.filter(a => a.payment_id === fifoFinish.paymentId)
+    .reduce((sum, a) => sum + a.allocated_amount, 0), 8000);
+  console.log('✓ Next payment settled remaining ₹3,000 on installment 2 and ₹5,000 on installment 3');
+
+  // Reverse a FIFO payment and verify net allocations/statuses are restored.
+  const fifoReverse = engine.voidPaymentAtomic({
+    instituteId, paymentId: fifoPartial.paymentId, reason: 'QA FIFO allocation reversal'
+  });
+  assert.equal(fifoReverse.status, 'SUCCESS');
+  assert.equal(engine.installments.get('fifo_1').status, 'Pending');
+  assert.equal(engine.installments.get('fifo_2').status, 'Partially_Paid');
+  assert.equal(fifoStudent.feesDue, 7000);
+  console.log('✓ Reversal offset FIFO allocations and restored first/second installment states');
+
+  // --------------------------------------------------------------------------
+  console.log('\nTest 9: Amount above scheduled installments remains an unallocated balance');
+  // --------------------------------------------------------------------------
+  engine.addStudent({
+    id: 'student_fifo_excess', institute_id: instituteId, full_name: 'FIFO Excess QA',
+    course_fee: 15000, status: 'Active', course_id: 'c_math_10'
+  });
+  engine.addInstallment({ id: 'fifo_excess_1', student_id: 'student_fifo_excess', institute_id: instituteId,
+    installment_number: 1, amount: 4000, due_date: '2026-11-01' });
+  engine.addInstallment({ id: 'fifo_excess_2', student_id: 'student_fifo_excess', institute_id: instituteId,
+    installment_number: 2, amount: 6000, due_date: '2026-12-01' });
+  const excessPay = engine.recordPaymentAtomic({
+    instituteId, studentId: 'student_fifo_excess', amount: 12000, paymentMode: 'UPI',
+    paymentDate: '2026-11-19', remarks: 'Scheduled plus direct balance',
+    idempotencyKey: 'key_fifo_excess_001'
+  });
+  const excessStudent = engine.students.get('student_fifo_excess');
+  const excessAllocated = engine.paymentAllocations.filter(a => a.payment_id === excessPay.paymentId)
+    .reduce((sum, a) => sum + a.allocated_amount, 0);
+  assert.equal(excessAllocated, 10000);
+  assert.equal(excessStudent.feesDue, 3000);
+  assert.equal(engine.installments.get('fifo_excess_1').status, 'Paid');
+  assert.equal(engine.installments.get('fifo_excess_2').status, 'Paid');
+  console.log('✓ ₹12,000 payment allocated ₹10,000 to schedule; remaining ₹2,000 reduced direct balance with ₹3,000 still due');
+
   console.log('\n================================================================');
-  console.log('ALL 7 REGRESSION & REVERSAL / IDEMPOTENCY TESTS PASSED (7/7)!');
+  console.log('ALL 9 REGRESSION & REVERSAL / IDEMPOTENCY TESTS PASSED (9/9)!');
   console.log('================================================================');
 }
 

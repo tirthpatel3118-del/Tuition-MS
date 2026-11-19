@@ -74,6 +74,7 @@ function generateDueItems({ students, installments, installmentPaidTotals = {}, 
 
     let remainingAllowance = student.feesDue;
 
+    let activeInstallmentAdded = false;
     for (const inst of unpaidInsts) {
       if (remainingAllowance <= 0) break;
 
@@ -82,6 +83,8 @@ function generateDueItems({ students, installments, installmentPaidTotals = {}, 
 
       const amount = Math.min(nominalBalance, remainingAllowance);
       remainingAllowance -= amount;
+      if (activeInstallmentAdded) continue;
+      activeInstallmentAdded = true;
 
       const isOverdue = inst.status === 'Overdue';
 
@@ -120,8 +123,8 @@ function generateDueItems({ students, installments, installmentPaidTotals = {}, 
         installmentNumber: undefined,
         displayInstallment: 'Direct Fee',
         amount: remainingAllowance,
-        dueDate: '',
-        displayDueDate: '—',
+        dueDate: studentInsts.length === 0 ? (student.expectedFeeDueDate || '') : '',
+        displayDueDate: studentInsts.length === 0 ? (student.expectedFeeDueDate || '—') : '—',
         status: 'Pending',
         remarks: 'Direct fee balance',
         remainingFee: student.feesDue,
@@ -147,6 +150,7 @@ function getStudentDueItemAmounts(student, installments, installmentPaidTotals =
 
   let remainingAllowance = student.feesDue;
 
+  let activeInstallmentAdded = false;
   for (const inst of unpaidInsts) {
     if (remainingAllowance <= 0) break;
     const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
@@ -154,7 +158,10 @@ function getStudentDueItemAmounts(student, installments, installmentPaidTotals =
 
     const amount = Math.min(nominalBalance, remainingAllowance);
     remainingAllowance -= amount;
-    itemAmounts.set(inst.id, amount);
+    if (!activeInstallmentAdded) {
+      itemAmounts.set(inst.id, amount);
+      activeInstallmentAdded = true;
+    }
   }
 
   if (remainingAllowance > 0) {
@@ -237,16 +244,35 @@ const s2 = { id: 's2', name: 'Aarav Shah', status: 'Active', totalFees: 12000, f
 const inst2a = { id: 'inst_2a', studentId: 's2', installmentNumber: 1, amount: 6000, dueDate: '2026-08-01', status: 'Pending' };
 const inst2b = { id: 'inst_2b', studentId: 's2', installmentNumber: 2, amount: 6000, dueDate: '2026-09-01', status: 'Pending' };
 const items2 = generateDueItems({ students: [s2], installments: [inst2a, inst2b] });
-assert.equal(items2.length, 2, 'Must generate 2 items for 2 installments');
+assert.equal(items2.length, 1, 'Only the next unpaid installment is the active reminder');
 assert.equal(items2[0].id, 'inst_2a');
 assert.equal(items2[0].amount, 6000);
 assert.equal(items2[0].displayInstallment, '#1');
-assert.equal(items2[1].id, 'inst_2b');
-assert.equal(items2[1].amount, 6000);
-assert.equal(items2[1].displayInstallment, '#2');
 const totalItems2Amount = items2.reduce((sum, item) => sum + item.amount, 0);
-assert.equal(totalItems2Amount, 12000, 'Sum of installments must equal feesDue');
-console.log('✓ Successfully generated 2 scheduled installment reminders matching ₹12,000 total\n');
+assert.equal(totalItems2Amount, 6000, 'Only the next installment is active; later installments wait their turn');
+console.log('✓ Successfully generated only the next scheduled installment reminder\n');
+
+// Paying the active installment early advances the reminder target to the next date.
+const s2AfterEarlyPayment = { ...s2, feesDue: 6000 };
+const items2AfterEarlyPayment = generateDueItems({
+  students: [s2AfterEarlyPayment],
+  installments: [{ ...inst2a, status: 'Paid' }, inst2b],
+  installmentPaidTotals: { inst_2a: 6000 },
+});
+assert.equal(items2AfterEarlyPayment.length, 1);
+assert.equal(items2AfterEarlyPayment[0].id, 'inst_2b');
+assert.equal(items2AfterEarlyPayment[0].dueDate, '2026-09-01');
+
+// Partial payment reduces the active amount but retains the current installment date.
+const items2Partial = generateDueItems({
+  students: [{ ...s2, feesDue: 4000 }],
+  installments: [inst2a, inst2b],
+  installmentPaidTotals: { inst_2a: 2000 },
+});
+assert.equal(items2Partial[0].id, 'inst_2a');
+assert.equal(items2Partial[0].amount, 4000);
+assert.equal(items2Partial[0].dueDate, '2026-08-01');
+
 
 // ============================================================================
 // TEST 3: Student with partially planned installments
@@ -288,14 +314,12 @@ const s5 = { id: 's5', name: 'Diya Mehta', status: 'Active', totalFees: 12000, f
 const inst5a = { id: 'inst_5a', studentId: 's5', installmentNumber: 1, amount: 6000, dueDate: '2026-08-01', status: 'Pending' };
 const inst5b = { id: 'inst_5b', studentId: 's5', installmentNumber: 2, amount: 6000, dueDate: '2026-09-01', status: 'Pending' };
 const items5 = generateDueItems({ students: [s5], installments: [inst5a, inst5b] });
-assert.equal(items5.length, 2, 'Both installments included but second is capped');
+assert.equal(items5.length, 1, 'Only the first unpaid installment is active');
 assert.equal(items5[0].id, 'inst_5a');
 assert.equal(items5[0].amount, 6000);
-assert.equal(items5[1].id, 'inst_5b');
-assert.equal(items5[1].amount, 1000, 'Second installment capped at remaining 1,000');
 const totalItems5Amount = items5.reduce((sum, item) => sum + item.amount, 0);
-assert.equal(totalItems5Amount, 7000, 'Total reminded must strictly equal feesDue (₹7,000) and not ₹12,000');
-console.log('✓ Successfully capped installments: ₹6,000 and ₹1,000 summing to exact feesDue (₹7,000)\n');
+assert.equal(totalItems5Amount, 6000, 'Only the first installment amount is actionable; next installment waits');
+console.log('✓ First installment remains the only active reminder; later installment waits\n');
 
 // ============================================================================
 // TEST 7: Inactive student exclusion
@@ -334,10 +358,9 @@ const queuedInst = simulateSendBulkReminders({
   students: [s2],
   installments: [inst2a, inst2b]
 });
-assert.equal(queuedInst.length, 2);
+assert.equal(queuedInst.length, 1, 'Only the current installment can be bulk-reminded');
 assert.equal(queuedInst[0].amountDue, 6000);
-assert.equal(queuedInst[1].amountDue, 6000);
-console.log('✓ Bulk reminder dispatched for installments #1 and #2\n');
+console.log('✓ Bulk reminder dispatched for the active installment only\n');
 
 // ============================================================================
 // TEST 10: Invariant check: No duplicate or excessive reminder amounts
@@ -353,7 +376,7 @@ for (const student of allStudents) {
   if (student.status === 'Inactive') {
     assert.equal(studentItems.length, 0, 'Inactive student must have 0 reminders');
   } else {
-    assert.equal(totalReminderSum, student.feesDue, `Student ${student.name} reminder sum (${totalReminderSum}) must strictly equal feesDue (${student.feesDue})`);
+    assert.ok(totalReminderSum <= student.feesDue, `Student ${student.name} reminders must not exceed feesDue`);
   }
 }
 console.log('✓ Invariant verified: Every active student has total reminder sum strictly equal to feesDue\n');
@@ -551,15 +574,8 @@ const reverseCappedQueued = simulateSendBulkReminders({
   students: [s5],
   installments: [inst5a, inst5b],
 });
-assert.equal(reverseCappedQueued.length, 2);
-assert.deepEqual(
-  reverseCappedQueued.map(q => ({ itemId: q.itemId, amountDue: q.amountDue })),
-  [
-    { itemId: 'inst_5b', amountDue: 1000 },
-    { itemId: 'inst_5a', amountDue: 6000 },
-  ],
-  'Reverse sorting must keep inst_5b at ₹1,000 and inst_5a at ₹6,000'
-);
+assert.equal(reverseCappedQueued.length, 1);
+assert.deepEqual(reverseCappedQueued.map(q => ({ itemId: q.itemId, amountDue: q.amountDue })), [{ itemId: 'inst_5a', amountDue: 6000 }], 'Only the active installment is eligible regardless of selection order');
 
 // 15d. Duplicate installment IDs for multi-installment student (s2)
 const dupInstQueued = simulateSendBulkReminders({
@@ -568,8 +584,8 @@ const dupInstQueued = simulateSendBulkReminders({
   students: [s2],
   installments: [inst2a, inst2b],
 });
-assert.equal(dupInstQueued.length, 2);
-assert.equal(dupInstQueued.reduce((sum, q) => sum + q.amountDue, 0), 12000);
+assert.equal(dupInstQueued.length, 1);
+assert.equal(dupInstQueued.reduce((sum, q) => sum + q.amountDue, 0), 6000);
 console.log('✓ Reverse sorting, partial remainders, and duplicate IDs handled deterministically without dropping items or over-billing\n');
 
 // ============================================================================

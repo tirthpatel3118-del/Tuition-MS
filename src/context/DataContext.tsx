@@ -161,6 +161,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           totalFees: Number(s.course_fee),
           feesPaid: paidByStudent[s.id] ?? 0,
           feesDue: Math.max(0, Number(s.course_fee) - (paidByStudent[s.id] ?? 0)),
+          expectedFeeDueDate: s.expected_fee_due_date || undefined,
           status: s.status
         };
       });
@@ -319,6 +320,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           course_id: studentData.courseId,
           admission_date: studentData.enrollmentDate,
           course_fee: studentData.totalFees,
+          expected_fee_due_date: studentData.expectedFeeDueDate || null,
           discount: 0,
           status: studentData.status
         }, studentData.batch);
@@ -414,6 +416,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (updatedFields.parentPhone) dbUpdates.parent_whatsapp = updatedFields.parentPhone;
         if (updatedFields.courseId) dbUpdates.course_id = updatedFields.courseId;
         if (updatedFields.totalFees !== undefined) dbUpdates.course_fee = updatedFields.totalFees;
+        if (updatedFields.expectedFeeDueDate !== undefined) dbUpdates.expected_fee_due_date = updatedFields.expectedFeeDueDate || null;
         if (updatedFields.status) dbUpdates.status = updatedFields.status;
 
         if (Object.keys(dbUpdates).length > 0) {
@@ -670,13 +673,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unpaidInsts = data.installments
       .filter(inst => inst.studentId === student.id && inst.status !== 'Paid')
       .sort((a, b) =>
-        (a.installmentNumber - b.installmentNumber) ||
         a.dueDate.localeCompare(b.dueDate) ||
+        (a.installmentNumber - b.installmentNumber) ||
         a.id.localeCompare(b.id)
       );
 
     let remainingAllowance = student.feesDue;
 
+    let activeInstallmentAdded = false;
     for (const inst of unpaidInsts) {
       if (remainingAllowance <= 0) break;
       const nominalBalance = Math.max(0, inst.amount - (installmentPaidTotals[inst.id] ?? 0));
@@ -684,7 +688,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const amount = Math.min(nominalBalance, remainingAllowance);
       remainingAllowance -= amount;
-      itemAmounts.set(inst.id, amount);
+      if (!activeInstallmentAdded) {
+        itemAmounts.set(inst.id, amount);
+        activeInstallmentAdded = true;
+      }
     }
 
     if (remainingAllowance > 0) {
