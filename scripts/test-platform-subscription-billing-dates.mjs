@@ -37,7 +37,7 @@ const service = readFileSync(new URL("../src/services/platformBillingService.ts"
 const migration = readFileSync(new URL("../supabase/migrations/20261118192000_platform_billing_whatsapp_reminders.sql", import.meta.url), "utf8");
 assert.ok(dashboard.includes("Due today") && dashboard.includes("Late payments"));
 assert.ok(!dashboard.includes("upcomingInvoices"), "The billing register should focus on due-today and overdue invoices");
-assert.ok(dashboard.includes('+" day late":" days late"'), "Late invoices should show singular/plural days late");
+assert.ok(dashboard.includes('daysOverdue(i.due_at,today)+(daysOverdue(i.due_at,today)===1?" day late":" days late")'), "Late invoices should show singular/plural days late");
 assert.ok(dashboard.includes("@page { size: A4; margin: 12mm; }"), "Receipt printing should use a single A4 print layout");
 assert.ok(dashboard.includes("position: fixed !important") && dashboard.includes("page-break-inside: avoid"), "Receipt print CSS should isolate the receipt from the dashboard");
 assert.ok(dashboard.includes("window.open(\"https://wa.me/\""), "WhatsApp must open as a user-initiated manual action");
