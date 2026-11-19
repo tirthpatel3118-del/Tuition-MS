@@ -4,6 +4,7 @@ import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { EduLedgerMark } from './components/EduLedgerMark';
+import { APP_VERSION } from './lib/appVersion';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, MessageCircle } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
@@ -181,7 +182,7 @@ function AppContent() {
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
               <span>© 2026 EduLedger. All rights reserved.</span>
               <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
-              <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v1.0.0</span>
+              <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v{APP_VERSION}</span>
             </div>
           </div>
         </footer>
