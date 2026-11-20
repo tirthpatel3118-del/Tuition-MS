@@ -638,7 +638,7 @@ export const Settings: React.FC = () => {
             </div>
 
             {/* Actions Footer */}
-            {activeSection !== 'backup' && activeSection !== 'team' && (
+            {activeSection !== 'backup' && (
               <div className="flex items-center justify-end gap-3 border-t border-[#E5DDE0] bg-[#FCFAFB] p-4">
                 <button
                   type="button"
