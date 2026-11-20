@@ -239,6 +239,19 @@ function AppEntry() {
     );
   }
 
+  if (auth.session?.user.app_metadata?.provider === 'google' && !auth.platformAdmin) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4">
+        <section className="w-full max-w-md rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+          <ShieldCheck className="mx-auto h-9 w-9 text-rose-700" />
+          <h1 className="mt-4 text-xl font-bold text-slate-900">Google sign-in is restricted</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">This Google sign-in entry is reserved for the designated EduLedger platform administrator. Use your invited institute account to access an institute workspace.</p>
+          <button onClick={() => void auth.signOut()} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+
   if (isInvitationRoute) return <InvitationAcceptancePage />;
   if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
   if (location.pathname === '/super-admin') return <SuperAdminDashboard />;
