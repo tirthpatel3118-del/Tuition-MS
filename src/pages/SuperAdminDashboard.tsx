@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import {
-  createPlatformInvitation, formatBytes, getPlatformOverview, listPlatformInstitutes,
+  archivePlatformInstitute, createPlatformInvitation, formatBytes, getPlatformOverview, listPlatformInstitutes, restorePlatformInstitute,
   listPlatformInvitations, revokePlatformInvitation, savePlatformInstituteControls,
   type PlatformInstitute, type PlatformInvitation, type PlatformOverview,
 } from "../services/platformAdminService";
@@ -104,6 +104,7 @@ export function SuperAdminDashboard() {
   const [receipt, setReceipt] = useState<PlatformBillingInvoice | null>(null);
   const [drafts, setDrafts] = useState<Record<string, InstituteDraft>>({});
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"owner" | "teacher" | "accountant">("owner");
   const [inviteInstitute, setInviteInstitute] = useState("");
@@ -148,12 +149,44 @@ export function SuperAdminDashboard() {
 
   const visibleInstitutes = useMemo(() => {
     const value = search.trim().toLowerCase();
-    if (!value) return institutes;
-    return institutes.filter(item => item.name.toLowerCase().includes(value) || item.slug.toLowerCase().includes(value));
-  }, [institutes, search]);
+    const scoped = institutes.filter(item => Boolean(item.archived_at) === showArchived);
+    if (!value) return scoped;
+    return scoped.filter(item => item.name.toLowerCase().includes(value) || item.slug.toLowerCase().includes(value));
+  }, [institutes, search, showArchived]);
 
   const updateDraft = (id: string, patch: Partial<InstituteDraft>) => {
     setDrafts(current => ({ ...current, [id]: { ...current[id], ...patch } }));
+  };
+
+  const archiveInstitute = async (item: PlatformInstitute) => {
+    if (item.access_status !== "suspended" || item.archived_at) return;
+    const confirmation = window.prompt("This will archive the suspended institute while retaining all academic and financial records. Type the exact institute name to continue:", "");
+    if (confirmation !== item.name) { if (confirmation !== null) setError("Institute name did not match. No changes were made."); return; }
+    const reason = window.prompt("Reason for archiving this institute (minimum 5 characters):");
+    if (!reason || reason.trim().length < 5) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await archivePlatformInstitute(item.institute_id, confirmation, reason.trim());
+      setNotice("Institute archived. All records have been retained and access remains suspended.");
+      setShowArchived(true);
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not archive institute.");
+    } finally { setBusy(false); }
+  };
+
+  const restoreInstitute = async (item: PlatformInstitute) => {
+    if (!item.archived_at) return;
+    if (!window.confirm("Restore " + item.name + " to the suspended institute list? Access will remain suspended until you explicitly reactivate it.")) return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await restorePlatformInstitute(item.institute_id);
+      setNotice("Institute restored to the suspended list. Its access status has not been changed.");
+      setShowArchived(false);
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not restore institute.");
+    } finally { setBusy(false); }
   };
 
   const saveInstitute = async (item: PlatformInstitute) => {
@@ -467,7 +500,11 @@ export function SuperAdminDashboard() {
     </div>}
     <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <SectionHeading eyebrow="Workspaces" title="Institute management" description="Review workspace health and manage subscription or access settings." icon={Building2} />
+        <SectionHeading eyebrow="Workspaces" title={showArchived ? "Archived institutes" : "Institute management"} description={showArchived ? "Archived workspaces retain their records and can be restored." : "Review workspace health and manage subscription or access settings."} icon={Building2} />
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setShowArchived(false)} className={`rounded-xl px-3 py-2 text-xs font-semibold ${!showArchived ? "bg-[#6B1F38] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>Active institutes</button>
+          <button type="button" onClick={() => setShowArchived(true)} className={`rounded-xl px-3 py-2 text-xs font-semibold ${showArchived ? "bg-[#6B1F38] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>Archived ({institutes.filter(item => item.archived_at).length})</button>
+        </div>
         <label className="relative block w-full sm:max-w-xs"><span className="sr-only">Search institutions</span><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input aria-label="Search institutions" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search institute or workspace…" className={`${fieldClass} pl-10`} /></label>
       </div>
       <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 text-xs leading-5 text-slate-500">Student and guardian details, member email addresses, fees, payments, receipts and attendance content are not exposed. The separate subscription ledger shows only EduLedger platform billing records.</div>
@@ -477,8 +514,8 @@ export function SuperAdminDashboard() {
           return <article key={item.institute_id} className="p-5 transition hover:bg-slate-50/50">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-bold text-slate-900">{item.name}</h3><span className={item.access_status === "active" ? "rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold capitalize text-emerald-700" : "rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold capitalize text-rose-700"}>{item.access_status}</span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold capitalize text-slate-600">{item.subscription_status.replace("_"," ")}</span></div>
-                <p className="mt-1.5 text-xs text-slate-500">{item.slug} · Created {new Date(item.created_at).toLocaleDateString()}</p>
+                <div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-bold text-slate-900">{item.name}</h3><span className={item.access_status === "active" ? "rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold capitalize text-emerald-700" : "rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold capitalize text-rose-700"}>{item.access_status}</span>{item.archived_at && <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-700">Archived</span>}<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold capitalize text-slate-600">{item.subscription_status.replace("_"," ")}</span></div>
+                <p className="mt-1.5 text-xs text-slate-500">{item.slug} · Created {new Date(item.created_at).toLocaleDateString()}{item.archived_at ? " · Archived " + new Date(item.archived_at).toLocaleDateString() : ""}</p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:min-w-[520px]">
                 <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Students</p><p className="mt-1 text-xl font-bold text-slate-900">{item.student_count}</p></div>
@@ -496,7 +533,9 @@ export function SuperAdminDashboard() {
                 <label className={labelClass}>Expiry date<input type="date" value={draft.expiresAt} onChange={event => updateDraft(item.institute_id,{expiresAt:event.target.value})} className={fieldClass} /></label>
                 <label className={labelClass}>Student limit<input type="number" min="0" value={draft.studentLimit} onChange={event => updateDraft(item.institute_id,{studentLimit:event.target.value})} className={fieldClass} /></label>
                 <label className={labelClass}>Team limit<input type="number" min="0" value={draft.teamLimit} onChange={event => updateDraft(item.institute_id,{teamLimit:event.target.value})} className={fieldClass} /></label>
-                <div className="flex flex-col justify-end gap-2 sm:col-span-2 xl:col-span-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] leading-5 text-slate-500">Limits are recorded for management but are not enforced in this release.</p><button type="button" disabled={busy} onClick={() => void saveInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#6B1F38] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:opacity-50">Save changes</button></div>
+                <div className="flex flex-col justify-end gap-2 sm:col-span-2 xl:col-span-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] leading-5 text-slate-500">Limits are recorded for management but are not enforced in this release.</p><button type="button" disabled={busy} onClick={() => void saveInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#6B1F38] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:opacity-50">Save changes</button>
+                  {!item.archived_at && item.access_status === "suspended" && <button type="button" disabled={busy} onClick={() => void archiveInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Archive institute</button>}
+                  {item.archived_at && <button type="button" disabled={busy} onClick={() => void restoreInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50">Restore institute</button>}</div>
               </div>}
             </details>
           </article>;
