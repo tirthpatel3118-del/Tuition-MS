@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Activity, Bot, CheckCircle2, CircleAlert, Clock3, ExternalLink, RefreshCw, Send, ShieldCheck, Wifi } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { getPlatformBillingOverview, listPlatformBilling } from "../services/platformBillingService";
@@ -58,7 +58,7 @@ export function SuperAdminOperations() {
 
   useEffect(() => { void checkHealth(); }, [checkHealth]);
 
-  const ask = async (event: React.FormEvent<HTMLFormElement>) => {
+  const ask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!question.trim()) return;
     setBusy(true); setError(""); setAnswer("");
