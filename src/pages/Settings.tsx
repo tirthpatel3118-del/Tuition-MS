@@ -19,10 +19,8 @@ import {
   Sparkles, 
   RefreshCw,
   HelpCircle,
-  Users,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
-import { TeamSettings } from '../components/TeamSettings';
 import { AppSettings } from '../types';
 
 export const Settings: React.FC = () => {
@@ -30,7 +28,7 @@ export const Settings: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup' | 'team'>('profile');
+  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup'>('profile');
 
   // Local state for the settings form
   const [formData, setFormData] = useState<AppSettings>({ ...settings });
@@ -261,13 +259,6 @@ export const Settings: React.FC = () => {
             <Database className="w-4 h-4" />
             <span>Workspace Export</span>
           </button>
-          <button
-            onClick={() => setActiveSection('team')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all border ${activeSection === 'team' ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'bg-white hover:bg-slate-50 border-slate-100 text-slate-600 hover:text-slate-900'}`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Team Access</span>
-          </button>
         </div>
 
         {/* Content Container */}
@@ -276,7 +267,6 @@ export const Settings: React.FC = () => {
             
             <div className="space-y-6 p-4 sm:p-6">
 
-              {activeSection === 'team' && <TeamSettings />}
               
               {/* SECTION 1: INSTITUTE PROFILE */}
               {activeSection === 'profile' && (
