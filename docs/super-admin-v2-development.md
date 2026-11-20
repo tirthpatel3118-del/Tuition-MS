@@ -33,3 +33,10 @@
 - `20261120130017_platform_admin_monthly_analytics.sql`: Super Admin-only 12-month institute/student registration and collected platform subscription revenue series.
 
 The monthly analytics RPC was executed under the development Super Admin JWT context and returned 12 month buckets (Dec 2025–Nov 2026 at the time of verification). Existing institute management, invitations and platform billing UI/RPCs were reused rather than duplicated.
+
+
+## Scope decision — Copilot and OAuth removed
+OpenAI Copilot and Google OAuth were removed from the product scope by request. The development Edge Function has been retired and returns HTTP 410; its source has been removed from this repository. A cleanup migration drops the development-only AI usage table and helper/reporting functions. Historical migrations that created those objects remain in Git history and are superseded by the cleanup migration. No provider credentials were configured.
+
+## Owner team invitations
+The owner-facing Settings > Team Access tab and its TeamSettings panel have been removed. Platform invitations remain managed from the Super Admin dashboard. Existing institute membership records and backend member-management functions are retained; this UI change does not delete memberships or invitation data.
