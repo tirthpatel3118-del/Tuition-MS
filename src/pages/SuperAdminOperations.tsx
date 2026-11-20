@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, Bot, CheckCircle2, CircleAlert, Clock3, ExternalLink, RefreshCw, Send, ShieldCheck, Wifi } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { getPlatformBillingOverview, listPlatformBilling } from "../services/platformBillingService";
+import { listPlatformInstitutes, listPlatformInvitations } from "../services/platformAdminService";
 
 type AiStatus = { configured: boolean; model: string; status: string };
 type Usage = { requests_today: number; requests_this_month: number; tokens_this_month: number; estimated_cost_usd_this_month: number; failed_requests_this_month: number };
@@ -14,6 +16,7 @@ export function SuperAdminOperations() {
   const [health, setHealth] = useState<Health>({ auth: "checking", database: "checking", ai: "checking", checkedAt: null });
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [usage, setUsage] = useState<Usage | null>(null);
+  const [actions, setActions] = useState<string[]>([]);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -32,6 +35,25 @@ export function SuperAdminOperations() {
     setHealth({ auth: authOk ? "ok" : "error", database: dbOk ? "ok" : "error", ai: aiState, checkedAt: new Date().toISOString() });
     const usageResult = await supabase.rpc("platform_admin_ai_usage_overview");
     if (!usageResult.error && usageResult.data) setUsage(usageResult.data as Usage);
+    try {
+      const [institutes, invitations, invoices, billing] = await Promise.all([
+        listPlatformInstitutes(), listPlatformInvitations(), listPlatformBilling(), getPlatformBillingOverview()
+      ]);
+      const now = new Date();
+      const soon = new Date(now.getTime() + 30 * 86400000);
+      const expiring = institutes.filter(item => item.expires_at && new Date(item.expires_at) >= now && new Date(item.expires_at) <= soon).length;
+      const overdue = invoices.filter(item => item.status === "issued" && item.due_at < now.toISOString().slice(0, 10)).length;
+      const pending = invitations.filter(item => item.status === "Pending").length;
+      const next: string[] = [];
+      if (overdue) next.push(overdue + " platform invoice(s) are overdue; review subscription collections.");
+      if (expiring) next.push(expiring + " institute subscription(s) expire within 30 days.");
+      if (pending) next.push(pending + " platform invitation(s) are awaiting acceptance or expiry.");
+      if (billing.pending_invoices) next.push(billing.pending_invoices + " platform invoice(s) are awaiting payment.");
+      if (next.length === 0) next.push("No urgent platform actions detected from current subscription and invitation records.");
+      setActions(next);
+    } catch {
+      setActions(["Could not refresh the action centre. Use Refresh data on the dashboard and retry."]);
+    }
   }, []);
 
   useEffect(() => { void checkHealth(); }, [checkHealth]);
@@ -64,6 +86,10 @@ export function SuperAdminOperations() {
       <div><p className={label}>Platform operations</p><h2 className="text-lg font-bold text-slate-900">Action centre & service health</h2><p className="mt-1 text-sm text-slate-500">Live checks for the signed-in admin session, database authorization and AI service.</p></div>
       <button type="button" onClick={() => void checkHealth()} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"><RefreshCw className="h-4 w-4"/>Check services</button>
     </div>
+    <article className={panel}>
+      <div className="flex items-center gap-2"><Activity className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Action centre</h3><span className="ml-auto rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">{actions.length} item(s)</span></div>
+      {actions.length ? <ul className="mt-3 space-y-2">{actions.map((item, index) => <li key={index} className="flex gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-950"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0"/>{item}</li>)}</ul> : <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-3 text-xs text-emerald-800">No urgent platform actions detected from the available records.</p>}
+    </article>
     <div className="grid gap-3 sm:grid-cols-3">
       <article className={panel}><div className="flex items-center gap-2 text-slate-700"><ShieldCheck className="h-5 w-5"/><span className="font-semibold">Admin session</span></div><div className="mt-3">{status(health.auth)}</div><p className="mt-1 text-xs text-slate-500">Authenticated browser session</p></article>
       <article className={panel}><div className="flex items-center gap-2 text-slate-700"><Wifi className="h-5 w-5"/><span className="font-semibold">Database & RBAC</span></div><div className="mt-3">{status(health.database)}</div><p className="mt-1 text-xs text-slate-500">Super Admin authorization RPC</p></article>
