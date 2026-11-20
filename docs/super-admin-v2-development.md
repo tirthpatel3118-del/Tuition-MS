@@ -26,3 +26,10 @@
 - Configure a separate production OpenAI API key/usage budget.
 - Review the migration and function source before applying/deploying to production.
 - Run build, lint, all regression scripts, browser flows and authorization tests.
+
+
+## Additional development schema changes
+- `20261120125658_platform_ai_service_role_audit_rpcs.sql`: service-role-only audit insert and rate-limit count RPCs. Authenticated users cannot execute these helper functions.
+- `20261120130017_platform_admin_monthly_analytics.sql`: Super Admin-only 12-month institute/student registration and collected platform subscription revenue series.
+
+The monthly analytics RPC was executed under the development Super Admin JWT context and returned 12 month buckets (Dec 2025–Nov 2026 at the time of verification). Existing institute management, invitations and platform billing UI/RPCs were reused rather than duplicated.
