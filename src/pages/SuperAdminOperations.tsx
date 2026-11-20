@@ -5,6 +5,7 @@ import { getPlatformBillingOverview, listPlatformBilling } from "../services/pla
 import { listPlatformInstitutes, listPlatformInvitations } from "../services/platformAdminService";
 
 type AiStatus = { configured: boolean; model: string; status: string };
+type MonthlyMetric = { month: string; new_institutes: number; new_students: number; platform_revenue_inr: number };
 type Usage = { requests_today: number; requests_this_month: number; tokens_this_month: number; estimated_cost_usd_this_month: number; failed_requests_this_month: number };
 type Health = { auth: "checking" | "ok" | "error"; database: "checking" | "ok" | "error"; ai: "checking" | "ok" | "setup" | "error"; checkedAt: string | null };
 
@@ -17,6 +18,7 @@ export function SuperAdminOperations() {
   const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [actions, setActions] = useState<string[]>([]);
+  const [monthly, setMonthly] = useState<MonthlyMetric[]>([]);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
@@ -35,6 +37,8 @@ export function SuperAdminOperations() {
     setHealth({ auth: authOk ? "ok" : "error", database: dbOk ? "ok" : "error", ai: aiState, checkedAt: new Date().toISOString() });
     const usageResult = await supabase.rpc("platform_admin_ai_usage_overview");
     if (!usageResult.error && usageResult.data) setUsage(usageResult.data as Usage);
+    const analyticsResult = await supabase.rpc("platform_admin_analytics_monthly");
+    if (!analyticsResult.error && Array.isArray(analyticsResult.data?.months)) setMonthly(analyticsResult.data.months as MonthlyMetric[]);
     try {
       const [institutes, invitations, invoices, billing] = await Promise.all([
         listPlatformInstitutes(), listPlatformInvitations(), listPlatformBilling(), getPlatformBillingOverview()
@@ -89,6 +93,25 @@ export function SuperAdminOperations() {
     <article className={panel}>
       <div className="flex items-center gap-2"><Activity className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Action centre</h3><span className="ml-auto rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">{actions.length} item(s)</span></div>
       {actions.length ? <ul className="mt-3 space-y-2">{actions.map((item, index) => <li key={index} className="flex gap-2 rounded-lg bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-950"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0"/>{item}</li>)}</ul> : <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-3 text-xs text-emerald-800">No urgent platform actions detected from the available records.</p>}
+    </article>
+    <article className={panel}>
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className={label}>Platform analytics · last 12 months</p><h3 className="font-bold text-slate-900">Growth & platform revenue</h3></div><span className="text-[10px] text-slate-500">Monthly totals</span></div>
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12">
+        {monthly.map((item) => {
+          const maxInstitutes = Math.max(1, ...monthly.map(row => Number(row.new_institutes)));
+          const maxStudents = Math.max(1, ...monthly.map(row => Number(row.new_students)));
+          const instituteHeight = Math.max(4, Number(item.new_institutes) / maxInstitutes * 54);
+          const studentHeight = Math.max(4, Number(item.new_students) / maxStudents * 54);
+          return <div key={item.month} className="min-w-0 rounded-lg bg-slate-50 p-2">
+            <div className="flex h-16 items-end justify-center gap-1"><div title={item.new_institutes + " new institutes"} style={{height:instituteHeight+"px"}} className="w-3 rounded-t bg-[#6B1F38]"/><div title={item.new_students + " new students"} style={{height:studentHeight+"px"}} className="w-3 rounded-t bg-sky-600"/></div>
+            <p className="mt-2 truncate text-center text-[10px] font-semibold text-slate-600">{item.month}</p>
+            <p className="mt-1 text-center text-[10px] tabular-nums text-slate-500">{item.new_institutes} org</p>
+            <p className="text-center text-[10px] tabular-nums text-slate-500">{Number(item.new_students).toLocaleString("en-IN")} stu</p>
+            <p className="mt-1 truncate text-center text-[10px] font-semibold text-slate-700">₹{Number(item.platform_revenue_inr).toLocaleString("en-IN",{maximumFractionDigits:0})}</p>
+          </div>;
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-4 text-[11px] text-slate-500"><span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-[#6B1F38]"/>New institutes</span><span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-sky-600"/>New students</span><span>Revenue = recorded platform subscription payments, not projected MRR.</span></div>
     </article>
     <div className="grid gap-3 sm:grid-cols-3">
       <article className={panel}><div className="flex items-center gap-2 text-slate-700"><ShieldCheck className="h-5 w-5"/><span className="font-semibold">Admin session</span></div><div className="mt-3">{status(health.auth)}</div><p className="mt-1 text-xs text-slate-500">Authenticated browser session</p></article>
