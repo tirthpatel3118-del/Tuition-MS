@@ -20,7 +20,7 @@ assert.match(auth, /signInWithOAuth/);
 assert.match(app, /Google sign-in is restricted/);
 assert.match(fn, /is_platform_admin/);
 assert.match(fn, /OPENAI_API_KEY/);
-assert.match(fn, /20 requests per hour/);
+assert.match(fn, /20 requests per administrator per hour/);
 assert.match(fn, /platform_admin_overview/);
 assert.match(fn, /platform_admin_billing_overview/);
 assert.doesNotMatch(fn, /students|attendance_records|student_phone|guardian_phone/i);
