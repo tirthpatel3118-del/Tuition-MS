@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { EduLedgerMark } from '../components/EduLedgerMark';
 import { BrandLoading } from '../components/BrandLoading';
+import { supabase } from '../lib/supabase';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
@@ -46,6 +47,7 @@ export function AuthPage() {
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState(false);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -95,6 +97,24 @@ export function AuthPage() {
           {busy ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </button>
       </form>
+      {mode === 'sign-in' && !invitationFlow && (
+        <div className="mt-4">
+          <div className="mb-3 flex items-center gap-3 text-[11px] text-slate-400"><span className="h-px flex-1 bg-slate-200" />PLATFORM ADMIN ONLY<span className="h-px flex-1 bg-slate-200" /></div>
+          <button type="button" disabled={oauthBusy || busy} onClick={async () => {
+            setOauthBusy(true); setFormError('');
+            try {
+              const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+              if (error) throw error;
+            } catch (value) {
+              setFormError(value instanceof Error ? value.message : 'Google sign-in could not be started.');
+              setOauthBusy(false);
+            }
+          }} className="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60">
+            <span className="text-base font-bold text-[#4285F4]">G</span>{oauthBusy ? 'Connecting to Google…' : 'Continue with Google'}
+          </button>
+          <p className="mt-2 text-center text-[11px] leading-5 text-slate-400">Google sign-in is restricted to the designated Super Admin account. Provider setup is required in Supabase.</p>
+        </div>
+      )}
       {invitationFlow ? (
         <p className="mt-6 text-center text-sm text-slate-500">
           {mode === 'sign-in' ? "New to EduLedger? Use your invitation to " : 'Already have an account? '}
