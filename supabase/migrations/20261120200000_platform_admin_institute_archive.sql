@@ -119,3 +119,50 @@ grant execute on function public.platform_admin_archive_institute(uuid,text,text
 grant execute on function public.platform_admin_restore_institute(uuid) to authenticated;
 revoke all on function public.platform_admin_list_institutes() from public, anon;
 grant execute on function public.platform_admin_list_institutes() to authenticated;
+
+-- Archived workspaces must remain suspended until explicitly restored.
+create or replace function public.platform_admin_set_institute_controls(
+  p_institute_id uuid,
+  p_access_status text,
+  p_plan_code text,
+  p_subscription_status text,
+  p_starts_at timestamptz default now(),
+  p_expires_at timestamptz default null,
+  p_student_limit integer default null,
+  p_team_limit integer default null
+)
+returns void
+language plpgsql
+security definer
+set search_path to ''
+as $$
+begin
+  perform private.require_platform_admin();
+  if not exists(select 1 from public.institutes where id=p_institute_id) then
+    raise exception 'Institute not found.';
+  end if;
+  if exists(select 1 from private.platform_institute_controls where institute_id=p_institute_id and archived_at is not null)
+     and p_access_status <> 'suspended' then
+    raise exception 'Restore the archived institute before changing its access status.';
+  end if;
+  if p_access_status not in ('active','suspended') then raise exception 'Invalid institute access status.'; end if;
+  if p_subscription_status not in ('trial','active','past_due','expired','cancelled') then raise exception 'Invalid subscription status.'; end if;
+  if p_plan_code is null or trim(p_plan_code)='' then raise exception 'A plan code is required.'; end if;
+  if p_student_limit is not null and p_student_limit<0 then raise exception 'Student limit cannot be negative.'; end if;
+  if p_team_limit is not null and p_team_limit<0 then raise exception 'Team limit cannot be negative.'; end if;
+  if p_expires_at is not null and p_starts_at is not null and p_expires_at<=p_starts_at then
+    raise exception 'Expiry must be later than start.';
+  end if;
+
+  insert into private.platform_institute_controls(institute_id,access_status,plan_code,subscription_status,starts_at,expires_at,student_limit,team_limit,updated_by,updated_at)
+  values(p_institute_id,p_access_status,trim(p_plan_code),p_subscription_status,coalesce(p_starts_at,now()),p_expires_at,p_student_limit,p_team_limit,auth.uid(),now())
+  on conflict(institute_id) do update set
+    access_status=excluded.access_status,plan_code=excluded.plan_code,subscription_status=excluded.subscription_status,
+    starts_at=excluded.starts_at,expires_at=excluded.expires_at,student_limit=excluded.student_limit,
+    team_limit=excluded.team_limit,updated_by=excluded.updated_by,updated_at=now();
+
+  insert into private.platform_admin_audit(actor_id,action,institute_id,details)
+  values(auth.uid(),'INSTITUTE_CONTROLS_UPDATED',p_institute_id,
+    jsonb_build_object('access_status',p_access_status,'plan_code',p_plan_code,'subscription_status',p_subscription_status));
+end;
+$$;
