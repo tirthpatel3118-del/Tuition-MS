@@ -3,6 +3,7 @@ import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ClassBandhuMark } from '../components/ClassBandhuMark';
+import { PWAControls } from '../components/PWAControls';
 import { BrandLoading } from '../components/BrandLoading';
 import { getPublishedLegalDocument, getPublishedRequiredLegalDocuments, type RequiredLegalDocument } from '../services/legalService';
 import { LegalPolicyConsentText } from './LegalPages';
@@ -12,11 +13,16 @@ export function AuthFrame({ title, description, children }: { title: string; des
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF7F8] px-4 py-10">
       <section className="relative w-full max-w-md rounded-2xl border border-[#E5DDE0] bg-white p-6 shadow-[0_18px_60px_-36px_rgba(72,25,43,0.28)] sm:p-8">
         <div className="mb-8">
-          <div className="mb-5 h-14 w-14">
-            <ClassBandhuMark className="h-14 w-14" />
+          <div className="mb-5 flex min-w-0 items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="mb-3 h-14 w-14">
+                <ClassBandhuMark className="h-14 w-14" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A03B5E]">ClassBandhu</p>
+              <p className="mt-1 text-[10px] font-medium text-[#8B5368]">Empowering Every Classroom.</p>
+            </div>
+            <PWAControls />
           </div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A03B5E]">ClassBandhu</p>
-          <p className="mt-1 text-[10px] font-medium text-[#8B5368]">Empowering Every Classroom.</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
         </div>
