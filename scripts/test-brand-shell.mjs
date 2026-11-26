@@ -45,7 +45,7 @@ assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
 assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.2');
+assert.equal(packageJson.version, '1.0.3');
 
 const legacyProductName = ['Edu', 'Ledger'].join('');
 for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
@@ -87,26 +87,19 @@ assert.ok(pwaControls.includes('deferredClassBandhuInstall'));
 assert.ok(loader.includes('<ClassBandhuMark'));
 assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
-// Shared mark and install icons consistently use the globe-orbit-book emblem.
-assert.ok(mark.includes('cx="50" cy="39" r="25"'));
-assert.ok(mark.includes('M12 71 C26 66 39 69 50 77'));
-assert.ok(mark.includes('M11 50 C27 72 68 62 84 33'));
-assert.ok(favicon.includes('cx="50" cy="39" r="25"'));
-assert.ok(pwaIcon.includes('cx="50" cy="39" r="25"'));
-assert.ok(pwaMaskable.includes('cx="50" cy="39" r="25"'));
+// Every UI surface and install identity uses the exact supplied image asset.
+const logoAsset = read('../public/classbandhu-mark-v1.0.3.svg');
+assert.ok(mark.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(mark.includes('alt="ClassBandhu logo"'));
+assert.ok(logoAsset.includes('image/webp;base64,'));
+assert.ok(logoAsset.includes('viewBox="0 0 1536 1536"'));
+assert.ok(favicon.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(pwaIcon.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.svg'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
-assert.ok(manifest.includes('"short_name": "ClassBandhu"'));
-assert.ok(manifest.includes('/pwa-icon-v1.0.2.svg'));
-assert.ok(manifest.includes('/pwa-maskable-v1.0.2.svg'));
-assert.ok(html.includes('/favicon-v1.0.2.svg'));
-assert.ok(versionedFavicon.includes('width="64" height="64"'));
-assert.ok(versionedFavicon.includes('cx="50" cy="39" r="25"'));
-assert.ok(html.includes('/favicon-v1.0.2.svg'));
-assert.ok(versionedPwaIcon.includes('cx="50" cy="39" r="25"'));
-assert.ok(versionedPwaMaskable.includes('cx="50" cy="39" r="25"'));
-assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.2"));
-assert.ok(serviceWorker.includes('LEGACY_CACHE_PREFIX'));
-assert.ok(serviceWorker.includes('/pwa-icon-v1.0.2.svg'));
-assert.ok(serviceWorker.includes('/pwa-maskable-v1.0.2.svg'));
+assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.svg"'));
+assert.ok(html.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.3"));
+assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.svg'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');

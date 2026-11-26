@@ -10,7 +10,7 @@ export function AuthFrame({ title, description, children }: { title: string; des
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FAF7F8] px-4 py-10">
       <section className="relative w-full max-w-md rounded-2xl border border-[#E5DDE0] bg-white p-6 shadow-[0_18px_60px_-36px_rgba(72,25,43,0.28)] sm:p-8">
         <div className="mb-8">
-          <div className="mb-5 h-14 w-14 overflow-hidden rounded-2xl shadow-sm">
+          <div className="mb-5 h-14 w-14">
             <ClassBandhuMark className="h-14 w-14" />
           </div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A03B5E]">ClassBandhu</p>
