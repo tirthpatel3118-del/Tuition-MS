@@ -6,12 +6,41 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#FAF7F8",
   "theme_color": "#6B1F38",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
-    { "src": "/classbandhu-mark-v1.0.3.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
-    { "src": "/classbandhu-mark-v1.0.3.png", "sizes": "384x384", "type": "image/png", "purpose": "maskable" }
-  ]
+    {
+      "src": "/pwa-icon-192-v1.0.7.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-512-v1.0.7.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512-v1.0.7.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/classbandhu-mark-v1.0.3.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "prefer_related_applications": false
 }

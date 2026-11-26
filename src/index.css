@@ -61,6 +61,7 @@
 
   body {
     min-height: 100vh;
+    min-height: 100dvh;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -241,6 +242,7 @@
 
   #root {
     min-height: 100dvh;
+    min-width: 0;
   }
 
   img, svg, video, canvas {
@@ -256,6 +258,8 @@
 @media (max-width: 639px) {
   /* Keep dense data tables usable on phones without widening the whole page. */
   main {
+    min-width: 0;
+    max-width: 100%;
     overflow-x: clip;
   }
 

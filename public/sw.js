@@ -1,6 +1,6 @@
-const CACHE_NAME = 'classbandhu-shell-v1.0.5';
+const CACHE_NAME = 'classbandhu-shell-v1.0.7';
 const LEGACY_CACHE_PREFIX = ['edu', 'ledger', '-shell-'].join('');
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/classbandhu-mark-v1.0.3.png'];
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/classbandhu-mark-v1.0.3.png', '/pwa-icon-192-v1.0.7.svg', '/pwa-icon-512-v1.0.7.svg', '/pwa-maskable-512-v1.0.7.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
