@@ -22,6 +22,7 @@ const service = read("../src/services/platformAdminService.ts");
 const archiveMigration = read("../supabase/migrations/20261120200000_platform_admin_institute_archive.sql");
 assert.match(service, /platform_admin_archive_institute/);
 assert.match(service, /platform_admin_restore_institute/);
+assert.match(dashboard, /startsAt:\s*item\.starts_at/);
 assert.match(dashboard, /item\.access_status === "suspended" && <button[\s\S]*?Archive institute/);
 assert.match(dashboard, /Type the exact institute name to continue/);
 assert.match(dashboard, /Archived \(/);
