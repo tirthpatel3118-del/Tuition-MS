@@ -4,10 +4,10 @@ import { Download, ShieldCheck } from "lucide-react";
 import { ClassBandhuMark } from "../components/ClassBandhuMark";
 import { useAuth } from "../context/AuthContext";
 import {
-  acceptCurrentLegalDocuments, acceptInstituteDpa, getInstituteDpaStatus,
+  acceptCurrentLegalDocuments, acceptInstituteDpa,
   getMyDpaRequirements, getMyPrivacyConsents, getPublishedLegalDocument,
   getPublishedRequiredLegalDocuments, listMyLegalAcceptances, setMyProductUpdateConsent,
-  type InstituteDpaStatus, type LegalSlug, type PrivacyConsent,
+  type LegalSlug, type PrivacyConsent,
   type RequiredLegalDocument, type UserLegalAcceptance,
 } from "../services/legalService";
 
@@ -339,133 +339,9 @@ export function InstituteDpaAcceptanceGate({ onAccepted }: { onAccepted: () => v
   </LegalShell>;
 }
 
-export function InstituteDpaSettingsPanel() {
-  const auth = useAuth();
-  const instituteId = auth.activeMembership?.role === "owner" ? auth.activeMembership.instituteId : null;
-  const [document, setDocument] = useState<RequiredLegalDocument | null>(null);
-  const [status, setStatus] = useState<InstituteDpaStatus | null>(null);
-  const [reviewed, setReviewed] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-
-  const refresh = useCallback(async () => {
-    if (!instituteId) {
-      setDocument(null);
-      setStatus(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const [nextDocument, nextStatus] = await Promise.all([
-        getPublishedLegalDocument("data-processing-agreement"),
-        getInstituteDpaStatus(instituteId),
-      ]);
-      setDocument(nextDocument);
-      setStatus(nextStatus);
-      setReviewed(false);
-    } catch (value) {
-      setError(value instanceof Error ? value.message : "The institution DPA status could not be loaded.");
-    } finally {
-      setLoading(false);
-    }
-  }, [instituteId]);
-
-  useEffect(() => { void refresh(); }, [refresh]);
-
-  const accept = async () => {
-    if (!instituteId || !reviewed || busy) return;
-    setBusy(true);
-    setError("");
-    setNotice("");
-    try {
-      const next = await acceptInstituteDpa(instituteId);
-      setStatus(next);
-      setNotice("The institution's DPA acceptance has been recorded.");
-      setReviewed(false);
-    } catch (value) {
-      setError(value instanceof Error ? value.message : "The DPA acceptance could not be recorded.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (!instituteId) {
-    return <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-      The Data Processing Agreement is available to institute owners only.
-    </div>;
-  }
-
-  return <section className="space-y-4">
-    <div>
-      <h3 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-        <ShieldCheck className="h-4 w-4 text-[#6B1F38]" />
-        Institution Data Processing Agreement
-      </h3>
-      <p className="mt-1 text-xs leading-5 text-slate-500">
-        Review the agreement for this institution. Only an authorised institute owner can record its acceptance.
-      </p>
-    </div>
-
-    {loading && <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">Loading current DPA…</p>}
-    {error && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-    {notice && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
-
-    {!loading && !document && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-      No published Data Processing Agreement is available yet. Contact the ClassBandhu administrator.
-    </div>}
-
-    {!loading && document && <>
-      {document.is_test_only && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">
-        DEVELOPMENT TEST COPY — This DPA is only for staging verification. It is not an approved production agreement.
-      </div>}
-      <div className="rounded-xl border border-slate-200 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h4 className="font-semibold text-slate-900">{document.title}</h4>
-            <p className="mt-1 text-xs text-slate-500">Version {document.version} · {document.locale}</p>
-          </div>
-          <span className={status?.accepted ? "rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800" : "rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"}>
-            {status?.accepted ? "Accepted" : "Awaiting review"}
-          </span>
-        </div>
-        <div className="mt-3 max-h-[28rem] overflow-y-auto rounded-lg bg-slate-50 p-3 sm:p-4">
-          <LegalMarkdownBody value={document.body_markdown ?? ""} />
-        </div>
-        <p className="mt-3 break-all text-[10px] leading-4 text-slate-500">
-          SHA-256: <code>{document.content_sha256}</code>
-        </p>
-        {status?.accepted ? <div className="mt-3 rounded-lg bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
-          Accepted by <strong>{status.accepted_by ?? "an institute owner"}</strong> on {status.accepted_at ? new Date(status.accepted_at).toLocaleString() : "recorded server-side"}.
-        </div> : <>
-          <label className="mt-4 flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 text-xs leading-5 text-slate-700">
-            <input type="checkbox" checked={reviewed} onChange={event => setReviewed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]" />
-            <span>I have reviewed this DPA and confirm that I am authorised to accept it on behalf of this institution.</span>
-          </label>
-          <button type="button" disabled={!reviewed || busy} onClick={() => void accept()} className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-            {busy ? "Recording acceptance…" : "Accept DPA for this institution"}
-          </button>
-        </>}
-      </div>
-    </>}
-    <div className="flex justify-end">
-      <button type="button" onClick={() => void refresh()} disabled={loading || busy} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-50">
-        <Download className="h-3.5 w-3.5" /> Refresh DPA status
-      </button>
-    </div>
-  </section>;
-}
-
 export function PrivacyPreferencesPage() {
-  const auth = useAuth();
   const [consent, setConsent] = useState<PrivacyConsent | null>(null);
   const [productUpdates, setProductUpdates] = useState(false);
-  const [dpa, setDpa] = useState<InstituteDpaStatus | null>(null);
-  const [dpaDocument, setDpaDocument] = useState<RequiredLegalDocument | null>(null);
-  const [dpaReviewed, setDpaReviewed] = useState(false);
   const [acceptances, setAcceptances] = useState<UserLegalAcceptance[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -475,17 +351,12 @@ export function PrivacyPreferencesPage() {
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const [nextConsent, nextAcceptances, nextDpaDocument] = await Promise.all([getMyPrivacyConsents(), listMyLegalAcceptances(), getPublishedLegalDocument('data-processing-agreement')]);
-      setDpaDocument(nextDpaDocument);
-      setDpaReviewed(false);
+      const [nextConsent, nextAcceptances] = await Promise.all([getMyPrivacyConsents(), listMyLegalAcceptances()]);
       setConsent(nextConsent); setProductUpdates(nextConsent.product_updates); setAcceptances(nextAcceptances);
-      if (auth.activeMembership?.role === "owner") {
-        setDpa(await getInstituteDpaStatus(auth.activeMembership.instituteId));
-      } else setDpa(null);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Privacy preferences could not be loaded.");
     } finally { setLoading(false); }
-  }, [auth.activeMembership?.instituteId, auth.activeMembership?.role]);
+  }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -499,16 +370,6 @@ export function PrivacyPreferencesPage() {
     finally { setBusy(false); }
   };
 
-  const acceptDpa = async () => {
-    if (!auth.activeMembership) return;
-    if (!window.confirm("Confirm that you are authorised to accept the Data Processing Agreement on behalf of this institution.")) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      setDpa(await acceptInstituteDpa(auth.activeMembership.instituteId));
-      setNotice("The institution-level DPA acceptance was recorded.");
-    } catch (value) { setError(value instanceof Error ? value.message : "DPA acceptance could not be recorded."); }
-    finally { setBusy(false); }
-  };
 
   return <LegalShell title="Privacy preferences & legal records">
     <p className="mt-2 text-sm leading-6 text-slate-600">Manage optional communications, review your own legal acceptance history, and (for institute owners) review the institution's Data Processing Agreement status.</p>
@@ -526,24 +387,6 @@ export function PrivacyPreferencesPage() {
       <button disabled={busy || loading || !consent} type="button" onClick={() => void savePreference()} className="mt-3 rounded-xl bg-[#6B1F38] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busy ? "Saving…" : "Save privacy preference"}</button>
       {consent?.updated_at && <p className="mt-2 text-xs text-slate-500">Last recorded: {new Date(consent.updated_at).toLocaleString()} · Privacy Policy v{consent.privacy_document_version}</p>}
     </section>
-
-    {auth.activeMembership?.role === "owner" && <section className="mt-6 border-t border-slate-100 pt-5">
-      <h2 className="font-bold text-slate-900">Institution Data Processing Agreement</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-600">This acceptance is recorded for the current institution and the signed-in owner. It does not replace the institution's review of its legal duties.</p>
-      {!dpa?.document || !dpaDocument ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">No published DPA is currently available.</p> : <div className="mt-3 rounded-xl border border-slate-200 p-4">
-        <p className="font-semibold text-slate-900">{dpa.document.title} · v{dpa.document.version}</p>
-        <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3"><LegalMarkdownBody value={dpaDocument.body_markdown ?? ""}/></div>
-        <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: <code>{dpa.document.content_sha256}</code></p>
-        <p className="mt-2 text-xs text-slate-500">{dpa.accepted ? "Accepted by " + (dpa.accepted_by ?? "an owner") + " on " + new Date(dpa.accepted_at ?? "").toLocaleString() : "Not yet accepted for this institution."}</p>
-        {!dpa.accepted && <>
-          <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-700">
-            <input type="checkbox" checked={dpaReviewed} onChange={event=>setDpaReviewed(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]"/>
-            <span>I have reviewed this DPA and confirm that I am authorised to accept it on behalf of the institution.</span>
-          </label>
-          <button type="button" disabled={busy || !dpaReviewed} onClick={() => void acceptDpa()} className="mt-3 rounded-xl bg-[#6B1F38] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Record institution acceptance</button>
-        </>}
-      </div>}
-    </section>}
 
     <section className="mt-6 border-t border-slate-100 pt-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
