@@ -184,6 +184,13 @@ function AppContent({ legalNotice, onReviewLegal }: { legalNotice?: string; onRe
                 </a>
               </div>
             </div>
+            <nav aria-label="Legal and privacy links" className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[#D8CDD2] pt-4 text-xs font-medium text-[#6B1F38]">
+              <NavLink to="/terms" className="hover:underline">Terms & Conditions</NavLink>
+              <NavLink to="/acceptable-use" className="hover:underline">Acceptable Use Policy</NavLink>
+              <NavLink to="/privacy" className="hover:underline">Privacy Policy</NavLink>
+              <NavLink to="/dpa" className="hover:underline">Institute DPA</NavLink>
+              <NavLink to="/privacy-request" className="hover:underline">Privacy requests</NavLink>
+            </nav>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
               <span>© 2026 ClassBandhu. All rights reserved.</span>
               <NavLink to="/privacy-preferences" className="font-medium text-[#6B1F38] hover:underline">Privacy preferences</NavLink>
@@ -395,6 +402,9 @@ function AppEntry() {
           <p className="mt-2 text-sm leading-6 text-slate-600">
             This institute subscription is {auth.activeMembership.accessStatus}. Contact ClassBandhu administration or your institute owner to restore access.
           </p>
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+            Need to request a copy or deletion of your personal data, or raise a privacy concern? Use the <NavLink to="/privacy-request" className="font-semibold text-[#6B1F38] underline">privacy request channel</NavLink>.
+          </div>
           {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').length > 0 && (
             <div className="mt-5 space-y-2">
               <p className="text-xs font-semibold text-slate-500">Other available workspaces</p>
