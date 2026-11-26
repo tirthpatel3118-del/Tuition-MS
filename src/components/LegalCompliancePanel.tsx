@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Archive, Download, FileCheck2, FileText, Plus, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import {
-  archivePlatformLegalDocument, getPlatformLegalAcceptanceSummary, listPlatformLegalDocuments,
+  archivePlatformLegalDocument, exportPlatformLegalAcceptances, getPlatformLegalAcceptanceSummary, listPlatformLegalDocuments,
   publishPlatformLegalDocument, savePlatformLegalDocument,
   type LegalDocument, type LegalSlug, type LegalAcceptanceSummary,
 } from "../services/legalService";
@@ -115,6 +115,16 @@ export function LegalCompliancePanel() {
     finally { setBusy(false); }
   };
 
+  const exportAll = async () => {
+    setBusy(true); setError("");
+    try {
+      const records = await exportPlatformLegalAcceptances();
+      csvDownload(records as unknown as Array<Record<string, unknown>>);
+      setNotice("Acceptance audit export generated (" + records.length + " records; maximum 10,000 per export).");
+    } catch (value) { setError(value instanceof Error ? value.message : "Acceptance audit export failed."); }
+    finally { setBusy(false); }
+  };
+
   const grouped = types.map(type => ({
     ...type,
     items: documents.filter(document => document.slug === type.slug).sort((a,b) => b.created_at.localeCompare(a.created_at)),
@@ -182,7 +192,7 @@ export function LegalCompliancePanel() {
     <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance evidence</h3></div><p className="mt-1 text-xs text-slate-500">Recent user and institution-level records. No student information is included.</p></div>
-        <button type="button" disabled={!summary.recent_acceptances.length} onClick={()=>csvDownload(summary.recent_acceptances as unknown as Array<Record<string,unknown>>)} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export recent CSV</button>
+        <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
       {summary.recent_acceptances.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
         <table className="w-full min-w-[850px] text-left text-xs">
