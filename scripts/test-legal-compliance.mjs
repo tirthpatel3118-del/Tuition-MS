@@ -78,5 +78,10 @@ assert.match(legalService, /platform_admin_legal_audit_logs/);
 assert.match(adminPanel, /Policy administration audit trail/);
 assert.match(adminPanel, /Administrator/);
 assert.match(legalPages, /I have reviewed this DPA/);
+assert.match(legalPages, /renderInlineMarkdown/);
+assert.match(legalPages, /font-semibold text-slate-900/);
+assert.match(legalPages, /sm:hidden/);
+assert.match(adminPanel, /md:hidden/);
+assert.match(adminPanel, /break-all rounded-lg bg-slate-50/);
 
 console.log("PASS: legal versioning, invitation signup acceptance, reacceptance gate, privacy preferences, DPA and audit export checks");
