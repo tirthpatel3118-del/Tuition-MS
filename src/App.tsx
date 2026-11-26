@@ -206,14 +206,14 @@ function AppEntry() {
   const refreshLegalStatus = () => {
     if (!userId) return;
     setLegalGate({ userId, loading: true, missing: [], error: '' });
-    void supabase.rpc('get_my_legal_status').then(({ data, error }) => {
+    void Promise.resolve(supabase.rpc('get_my_legal_status')).then(({ data, error }) => {
       setLegalGate({
         userId,
         loading: false,
         missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
         error: error?.message ?? '',
       });
-    }).catch(value => {
+    }).catch((value: unknown) => {
       setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
     });
   };
