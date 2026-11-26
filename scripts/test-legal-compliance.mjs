@@ -12,6 +12,7 @@ const dpaNoDocumentMigration = read("../supabase/migrations/20261126185200_requi
 const immediateLegalReacceptance = read("../supabase/migrations/20261126203000_expire_legal_transition_grace.sql");
 const acceptanceGroupingMigration = read("../supabase/migrations/20261126213000_super_admin_legal_acceptance_grouping.sql");
 const instituteFirstAcceptanceMigration = read("../supabase/migrations/20261126220000_institute_first_legal_acceptance_summary.sql");
+const safeLegalGatesMigration = read("../supabase/migrations/20261126165242_defer_legal_gates_until_complete_bundles.sql");
 const authPages = read("../src/pages/AuthPages.tsx");
 const authContext = read("../src/context/AuthContext.tsx");
 const legalPages = read("../src/pages/LegalPages.tsx");
@@ -21,7 +22,7 @@ const app = read("../src/App.tsx");
 const adminDashboard = read("../src/pages/SuperAdminDashboard.tsx");
 const settings = read("../src/pages/Settings.tsx");
 
-for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration], ["immediate legal reacceptance", immediateLegalReacceptance], ["acceptance grouping", acceptanceGroupingMigration], ["institute-first acceptance", instituteFirstAcceptanceMigration]]) {
+for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration], ["immediate legal reacceptance", immediateLegalReacceptance], ["acceptance grouping", acceptanceGroupingMigration], ["institute-first acceptance", instituteFirstAcceptanceMigration], ["safe legal gates", safeLegalGatesMigration]]) {
   assert.ok(migration.trim().length > 100, name + " migration should not be empty");
 }
 
@@ -65,6 +66,10 @@ assert.match(instituteFirstAcceptanceMigration, /action_group_key/);
 assert.match(instituteFirstAcceptanceMigration, /LIMIT 200/);
 assert.match(instituteFirstAcceptanceMigration, /ACCT-UNKNOWN/);
 assert.match(instituteFirstAcceptanceMigration, /private\.require_platform_admin\(\)/);
+assert.match(safeLegalGatesMigration, /count\(\*\) < 3/);
+assert.match(safeLegalGatesMigration, /missing_document_slugs', '\[\]'::jsonb/);
+assert.match(safeLegalGatesMigration, /< 4/);
+assert.match(safeLegalGatesMigration, /institute_bundle_ready/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
 assert.match(legalPages, /I have read and agree to the current ClassBandhu/);
