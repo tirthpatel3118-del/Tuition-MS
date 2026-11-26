@@ -2,17 +2,17 @@ import React from 'react';
 
 export function ClassBandhuMark({ className = '' }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
-      {/* Graduation cap */}
-      <path d="M5 19.5L32 7.5L59 19.5L32 31.5L5 19.5Z" fill="currentColor" />
-      <path d="M18 26.5C22.5 23.8 27.5 22.5 32 22.5C36.5 22.5 41.5 23.8 46 26.5V35C41.3 32.4 36.6 31.2 32 31.2C27.4 31.2 22.7 32.4 18 35V26.5Z" fill="currentColor" />
-      <path d="M58.5 20V35" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <circle cx="58.5" cy="38" r="2.2" fill="currentColor" />
-      {/* Open book */}
-      <path d="M6.5 40.5C15 35.8 23.6 36.2 31 41.2V56C22.6 50.5 14.5 50.2 6.5 55V40.5Z" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="2.6" strokeLinejoin="round" />
-      <path d="M57.5 40.5C49 35.8 40.4 36.2 33 41.2V56C41.4 50.5 49.5 50.2 57.5 55V40.5Z" fill="currentColor" fillOpacity=".12" stroke="currentColor" strokeWidth="2.6" strokeLinejoin="round" />
-      <path d="M32 41V56" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="M11 43.5C17 41 22.5 41.5 27.5 44.5M53 43.5C47 41 41.5 41.5 36.5 44.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <svg className={className} viewBox="0 0 100 100" role="img" aria-label="ClassBandhu logo" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="20" fill="#6B1F38" stroke="#D8B3C2" strokeOpacity=".35" strokeWidth="1" />
+      <g fill="none" stroke="#FFF9F3" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="50" cy="39" r="25" />
+        <path d="M50 14 C38 26 38 52 50 64 M50 14 C62 26 62 52 50 64" />
+        <path d="M27 30 C39 38 61 38 73 30 M25 47 C39 54 61 54 75 47" />
+        <path d="M11 50 C27 72 68 62 84 33" strokeWidth="5" />
+        <path d="M12 71 C26 66 39 69 50 77 C61 69 74 66 88 71 V88 C74 84 61 86 50 94 C39 86 26 84 12 88 Z" strokeWidth="3.2" />
+        <path d="M50 77 V94" strokeWidth="2.6" />
+      </g>
+      <circle cx="84" cy="32" r="4.5" fill="#FFF9F3" />
     </svg>
   );
 }
