@@ -199,7 +199,7 @@ export function SuperAdminDashboard() {
         accessStatus: draft.accessStatus,
         planCode: draft.planCode,
         subscriptionStatus: draft.subscriptionStatus,
-        startsAt: null,
+        startsAt: item.starts_at,
         expiresAt: draft.expiresAt ? new Date(draft.expiresAt + "T23:59:59+05:30").toISOString() : null,
         studentLimit: draft.studentLimit === "" ? null : Number(draft.studentLimit),
         teamLimit: draft.teamLimit === "" ? null : Number(draft.teamLimit),
