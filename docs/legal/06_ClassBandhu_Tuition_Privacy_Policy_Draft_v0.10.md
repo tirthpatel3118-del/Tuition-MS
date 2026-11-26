@@ -15,11 +15,11 @@ Prepared 25 November 2026; aligned with legal pack v0.4 on 26 November 2026. Thi
 2. Confirm provider/subprocessor list, provider contracts, hosting/backup/support locations and Netlify processing. Both Supabase project metadata records inspected (development and production) show Tokyo (`ap-northeast-1`); this is not a complete map of every processing location.
 3. Approve retention periods for each data category, including student/attendance/financial records, audit events, invitation records, migration anomaly data, and backups.
 4. Confirm Data Fiduciary/Data Processor allocation by processing purpose. The Institute Data Processing Agreement is mandatory for every Institute and is accepted through checkbox 1 (Terms §8.3).
-5. Define rights-request and grievance response workflow and a realistic service target.
+5. The development website now has a Privacy Requests page with email links for privacy questions/grievances, access/export requests and deletion requests. An internal request register, request verification/fulfilment workflow and realistic response service target remain to be approved and tested.
 6. Confirm the website enquiry form and actual data fields before including website enquiry data as an active collection practice.
 7. Complete technical review of the student `address` field, which the inspected development code currently populates with a generic placeholder rather than a user-provided address.
-8. Replace the legacy EduLedger legal pages and product naming (use ClassBandhu / ClassBandhu Tuition) and footer/contact references; no such change has yet been made to the application.
-9. Approve the transition period and notices for existing Institutes and owner changes (Spec §5.5).
+8. Re-audit any remaining legacy EduLedger references in emails, receipts, templates, notifications and invitation flows; the main public legal routes and website footer now use ClassBandhu naming.
+9. A 14-day transition period is configured for existing owners in the development environment only. Approve the final transition period, owner-change notices and enforcement date before production (Spec §5.5).
 10. Approve the final public wording for the ClassBandhu / ClassBandhu Tuition / ClassBandhu School names.
 
 ---
