@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const app = read('../src/App.tsx');
@@ -88,11 +88,12 @@ assert.ok(loader.includes('<ClassBandhuMark'));
 assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
 // Every UI surface and install identity uses the exact supplied image asset.
-const logoAsset = read('../public/classbandhu-mark-v1.0.3.png');
+const logoAssetPath = new URL('../public/classbandhu-mark-v1.0.3.png', import.meta.url);
+const logoAsset = readFileSync(logoAssetPath);
 assert.ok(mark.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(mark.includes('alt="ClassBandhu logo"'));
-assert.ok(logoAsset.includes(''));
-assert.ok(logoAsset.includes('<image x="0" y="0" width="384" height="384" href="/classbandhu-mark-v1.0.3.png"/>'));
+assert.ok(existsSync(logoAssetPath));
+assert.equal(logoAsset.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
 assert.ok(favicon.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(pwaIcon.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
