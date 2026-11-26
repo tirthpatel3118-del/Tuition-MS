@@ -75,8 +75,8 @@ assert.match(adminPanel, /Policy administration audit trail/);
 assert.match(adminPanel, /TEST ONLY/);
 assert.match(adminPanel, /No student information is included/);
 assert.match(legalService, /platform_admin_legal_audit_logs/);
-assert.match(adminPanel, /Policy administration history/);
-assert.match(adminPanel, /Performed by/);
+assert.match(adminPanel, /Policy administration audit trail/);
+assert.match(adminPanel, /Administrator/);
 assert.match(legalPages, /I have reviewed this DPA/);
 
 console.log("PASS: legal versioning, invitation signup acceptance, reacceptance gate, privacy preferences, DPA and audit export checks");
