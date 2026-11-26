@@ -5,9 +5,9 @@ import { ClassBandhuMark } from "../components/ClassBandhuMark";
 import { useAuth } from "../context/AuthContext";
 import {
   acceptCurrentLegalDocuments, acceptInstituteDpa, getInstituteDpaStatus,
-  getMyLegalStatus, getMyPrivacyConsents, getPublishedLegalDocument,
+  getMyPrivacyConsents, getPublishedLegalDocument,
   getPublishedRequiredLegalDocuments, listMyLegalAcceptances, setMyProductUpdateConsent,
-  type InstituteDpaStatus, type LegalSlug, type MyLegalStatus, type PrivacyConsent,
+  type InstituteDpaStatus, type LegalSlug, type PrivacyConsent,
   type RequiredLegalDocument, type UserLegalAcceptance,
 } from "../services/legalService";
 
