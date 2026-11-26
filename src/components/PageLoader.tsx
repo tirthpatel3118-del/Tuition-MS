@@ -14,5 +14,4 @@ export const PageLoader: React.FC = () => {
       <h3 className="mt-4 text-sm font-bold tracking-tight text-[#6B1F38]">Loading {settings?.instituteName || 'ClassBandhu'}</h3>
       <p className="mt-1 text-xs text-slate-500">Preparing your institute workspace...</p>
     </div>
-  </div>
 );
