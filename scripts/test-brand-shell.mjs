@@ -77,7 +77,7 @@ assert.ok(auth.includes('Empowering Every Classroom.'));
 assert.ok(!auth.includes('eduledger/'));
 assert.ok(superAdmin.includes('ClassBandhu control center'));
 assert.ok(platformInvitation.includes('ClassBandhu access'));
-assert.ok(receipts.includes("'Your Institute'"));
+assert.ok(receipts.includes("settings?.instituteName || 'ClassBandhu'"));
 assert.ok(attendance.includes('ClassBandhu · Attendance'));
 assert.ok(settings.includes('classbandhu_workspace_snapshot_'));
 assert.ok(settings.includes('classbandhu_students_export_'));
