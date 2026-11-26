@@ -194,12 +194,21 @@ export function LegalCompliancePanel() {
     <article className={card}>
       <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Policy administration audit trail</h3></div>
       <p className="mt-1 text-xs text-slate-500">Records who created, edited, published or archived each policy version.</p>
-      {adminAudit.length===0 ? <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No policy administration events yet.</p> : <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+      {adminAudit.length===0 ? <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No policy administration events yet.</p> : <>
+        <div className="mt-3 hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
         <table className="w-full min-w-[650px] text-left text-xs">
           <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Action</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Administrator</th><th className="p-3">Date (UTC)</th></tr></thead>
           <tbody>{adminAudit.map((event,index)=><tr key={event.action+event.created_at+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{event.action.replaceAll("_"," ")}</td><td className="p-3">{event.document_title ?? event.document_slug ?? "—"}</td><td className="p-3">{event.document_version ?? "—"}</td><td className="p-3">{event.actor_email ?? "Account unavailable"}</td><td className="p-3">{new Date(event.created_at).toLocaleString()}</td></tr>)}</tbody>
         </table>
-      </div>}
+        </div>
+        <div className="mt-3 space-y-2 md:hidden">
+          {adminAudit.map((event,index)=><div key={event.action+event.created_at+index} className="rounded-xl border border-slate-200 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[11px] font-bold uppercase text-[#6B1F38]">{event.action.replaceAll("_"," ")}</span><span className="text-[10px] text-slate-400">{new Date(event.created_at).toLocaleString()}</span></div>
+            <p className="mt-2 text-sm font-semibold text-slate-800">{event.document_title ?? event.document_slug ?? "Legal document"} {event.document_version ? "· v"+event.document_version : ""}</p>
+            <p className="mt-1 break-all text-xs text-slate-500">{event.actor_email ?? "Account unavailable"}</p>
+          </div>)}
+        </div>
+      </>}
     </article>
 
     <article className={card}>
@@ -207,12 +216,26 @@ export function LegalCompliancePanel() {
         <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance evidence</h3></div><p className="mt-1 text-xs text-slate-500">Recent user and institution-level records. No student information is included.</p></div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
-      {summary.recent_acceptances.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+      {summary.recent_acceptances.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
+        <div className="mt-4 hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
         <table className="w-full min-w-[850px] text-left text-xs">
           <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Account email</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Scope / method</th><th className="p-3">Accepted at (UTC)</th><th className="p-3">SHA-256</th></tr></thead>
           <tbody>{summary.recent_acceptances.map((record,index)=><tr key={record.user_email+record.document_slug+record.accepted_at+index} className="border-t border-slate-100"><td className="p-3 font-medium text-slate-800">{record.user_email}</td><td className="p-3">{record.document_title}</td><td className="p-3">{record.document_version}</td><td className="p-3">{record.acceptance_scope} · {record.acceptance_method}</td><td className="p-3">{new Date(record.accepted_at).toLocaleString()}</td><td className="max-w-40 truncate p-3 font-mono">{record.content_sha256}</td></tr>)}</tbody>
         </table>
-      </div>}
+        </div>
+        <div className="mt-4 space-y-2 md:hidden">
+          {summary.recent_acceptances.map((record,index)=><div key={record.user_email+record.document_slug+record.accepted_at+index} className="rounded-xl border border-slate-200 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-900">{record.document_title}</p><span className="text-xs text-slate-500">v{record.document_version}</span></div>
+            <p className="mt-1 break-all text-xs text-slate-700">{record.user_email}</p>
+            <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
+              <p><span className="font-semibold text-slate-600">Scope:</span> {record.acceptance_scope}</p>
+              <p><span className="font-semibold text-slate-600">Method:</span> {record.acceptance_method}</p>
+              <p className="col-span-2"><span className="font-semibold text-slate-600">Accepted:</span> {new Date(record.accepted_at).toLocaleString()}</p>
+            </div>
+            <p className="mt-2 break-all rounded-lg bg-slate-50 p-2 font-mono text-[10px] leading-4 text-slate-500"><span className="font-sans font-semibold">SHA-256:</span> {record.content_sha256}</p>
+          </div>)}
+        </div>
+      </>}
       <p className="mt-3 text-[11px] leading-5 text-slate-500">Published documents are archived—not overwritten—when a replacement is published. Earlier acceptance records remain linked to their original document ID and exact content hash.</p>
     </article>
   </section>;
