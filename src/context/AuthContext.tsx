@@ -40,12 +40,12 @@ interface AuthContextValue {
   activeMembership: InstituteMembership | null;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; productUpdates: boolean; userAgent?: string }) => Promise<boolean>;
+  signUp: (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; aupDocumentId: string; productUpdates: boolean; userAgent?: string }) => Promise<boolean>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   selectInstitute: (instituteId: string) => void;
-  createInstitute: (name: string, slug: string, dpaDocumentId: string) => Promise<void>;
+  createInstitute: (name: string, slug: string, documentIds: Record<string, string>, acceptAuthority: boolean, acceptDataAuthority: boolean) => Promise<void>;
   refreshMemberships: () => Promise<void>;
   acceptInvitation: (token: string) => Promise<void>;
   acceptPlatformInvitation: (token: string) => Promise<void>;
@@ -479,10 +479,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (signInError) throw signInError;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; productUpdates: boolean; userAgent?: string }) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; aupDocumentId: string; productUpdates: boolean; userAgent?: string }) => {
     setError(null);
     if (!invitationToken) throw new Error('A valid invitation is required to create a ClassBandhu account.');
-    if (!legalAcceptance?.termsDocumentId || !legalAcceptance?.privacyDocumentId) throw new Error('Both current legal documents must be accepted before signup.');
+    if (!legalAcceptance?.termsDocumentId || !legalAcceptance?.privacyDocumentId || !legalAcceptance?.aupDocumentId) throw new Error('The current Terms, AUP and Privacy Policy must be accepted before signup.');
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -491,8 +491,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: fullName.trim(),
           legal_terms_accepted: true,
           legal_privacy_acknowledged: true,
+          legal_aup_accepted: true,
           legal_terms_document_id: legalAcceptance.termsDocumentId,
           legal_privacy_document_id: legalAcceptance.privacyDocumentId,
+          legal_aup_document_id: legalAcceptance.aupDocumentId,
           legal_product_updates: legalAcceptance.productUpdates === true,
           legal_acceptance_user_agent: (legalAcceptance.userAgent ?? '').slice(0, 500),
         },
@@ -561,12 +563,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRequestInstituteId(instituteId);
   }, [activeInstituteId, memberships]);
 
-  const createInstitute = useCallback(async (name: string, slug: string, dpaDocumentId: string) => {
-    if (!dpaDocumentId) throw new Error('Review and accept the current Data Processing Agreement before creating the institute.');
-    const { data, error: createError } = await supabase.rpc('create_institute_with_dpa_acceptance', {
+  const createInstitute = useCallback(async (
+    name: string, slug: string, documentIds: Record<string, string>,
+    acceptAuthority: boolean, acceptDataAuthority: boolean,
+  ) => {
+    if (Object.keys(documentIds).length !== 4 || !acceptAuthority || !acceptDataAuthority) {
+      throw new Error('Review all four policies and complete all three Institute confirmations before creating the workspace.');
+    }
+    const { data, error: createError } = await supabase.rpc('create_institute_with_legal_bundle', {
       p_name: name.trim(),
       p_slug: slug.trim().toLowerCase(),
-      p_dpa_document_id: dpaDocumentId,
+      p_document_ids: documentIds,
+      p_accept_authority: acceptAuthority,
+      p_accept_data_authority: acceptDataAuthority,
       p_user_agent: typeof navigator === 'undefined' ? null : navigator.userAgent,
       p_currency_symbol: '₹',
       p_receipt_prefix: 'REC',
