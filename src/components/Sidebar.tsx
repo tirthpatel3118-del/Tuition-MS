@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { EduLedgerMark } from './EduLedgerMark';
+import { ClassBandhuMark } from './ClassBandhuMark';
 import {
   LayoutDashboard,
   UserPlus,
@@ -66,9 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex h-full flex-col select-none bg-[#6B1F38] text-[#FAF7F8]">
       <div className={`flex min-h-[76px] items-center justify-between border-b border-white/10 px-5 py-4 ${collapsed ? 'xl:justify-center xl:px-2' : ''}`}>
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
-            <EduLedgerMark className="h-9 w-9 text-[#6B1F38]" />
-          </div>
+          <ClassBandhuMark className="h-11 w-11 shrink-0" />
           <div className={`flex min-w-0 flex-col ${collapsed ? 'xl:hidden' : ''}`}>
             <span className="truncate text-base font-bold tracking-tight text-white">{settings.instituteName || 'Your Institute'}</span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#E8C9D4]">
@@ -118,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="space-y-3 border-t border-white/10 p-4">
         <div className={`flex min-w-0 items-center gap-3 rounded-lg bg-black/10 p-2.5 ${collapsed ? 'xl:justify-center xl:px-1' : ''}`}>
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F8E9ED] text-xs font-bold uppercase text-[#6B1F38]">
-            {(profileLabel.slice(0, 2) || 'ED').toUpperCase()}
+            {(profileLabel.slice(0, 2) || 'CB').toUpperCase()}
           </div>
           <div className={`flex min-w-0 flex-col ${collapsed ? 'xl:hidden' : ''}`}>
             <span className="truncate text-xs font-semibold text-white">{profileLabel}</span>
@@ -139,9 +137,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <div className={`flex items-center gap-3 border-t border-white/15 pt-4 ${collapsed ? 'xl:justify-center' : ''}`}>
-          <EduLedgerMark className="h-10 w-10 shrink-0 text-white" />
+          <ClassBandhuMark className="h-10 w-10 shrink-0" />
           <div className={`min-w-0 border-l border-white/25 pl-3 ${collapsed ? 'xl:hidden' : ''}`}>
-            <p className="text-base font-bold leading-tight text-white">EduLedger</p>
+            <p className="text-base font-bold leading-tight text-white">ClassBandhu</p>
             <p className="mt-1 text-[9px] font-medium uppercase tracking-[0.13em] text-[#E8C9D4]">Tuition Management System</p>
           </div>
         </div>

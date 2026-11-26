@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classbandhu-shell-v1.0.3';
+const CACHE_NAME = 'classbandhu-shell-v1.0.4';
 const LEGACY_CACHE_PREFIX = ['edu', 'ledger', '-shell-'].join('');
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/classbandhu-mark-v1.0.3.png'];
 

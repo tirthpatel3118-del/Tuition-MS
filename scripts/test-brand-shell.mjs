@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const app = read('../src/App.tsx');
@@ -7,35 +7,50 @@ const sidebar = read('../src/components/Sidebar.tsx');
 const css = read('../src/index.css');
 const admissions = read('../src/pages/Admissions.tsx');
 const auth = read('../src/pages/AuthPages.tsx');
+const superAdmin = read('../src/pages/SuperAdminDashboard.tsx');
+const platformInvitation = read('../src/pages/PlatformInvitationAcceptancePage.tsx');
+const receipts = read('../src/pages/Receipts.tsx');
+const attendance = read('../src/pages/Attendance.tsx');
+const settings = read('../src/pages/Settings.tsx');
+const authContext = read('../src/context/AuthContext.tsx');
+const pwaControls = read('../src/components/PWAControls.tsx');
 const loader = read('../src/components/PageLoader.tsx');
-const mark = read('../src/components/EduLedgerMark.tsx');
+const mark = read('../src/components/ClassBandhuMark.tsx');
 const brandLoader = read('../src/components/BrandLoading.tsx');
-const appVersion = read('../src/lib/appVersion.ts');
-const packageJson = JSON.parse(read('../package.json'));
 const favicon = read('../public/favicon.svg');
 const pwaIcon = read('../public/pwa-icon.svg');
 const pwaMaskable = read('../public/pwa-maskable.svg');
 const html = read('../index.html');
 const manifest = read('../public/manifest.webmanifest');
-const versionedFavicon = read('../public/favicon-v1.0.1.svg');
+const serviceWorker = read('../public/sw.js');
+const packageJson = JSON.parse(read('../package.json'));
+const appVersion = read('../src/lib/appVersion.ts');
+const versionedPwaIcon = read('../public/pwa-icon-v1.0.2.svg');
+const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.2.svg');
+const versionedFavicon = read('../public/favicon-v1.0.2.svg');
 
 // Footer content, contact links and version match the supplied reference.
-assert.ok(app.includes('EduLedger'));
-assert.ok(app.includes('Learning Made Organized'));
-assert.ok(app.includes('A complete Tuition Management System for Educational Institutes.'));
-assert.ok(app.includes('tirth.freelance31@gmail.com'));
-assert.ok(app.includes('mailto:tirth.freelance31@gmail.com'));
-assert.ok(app.includes('81607 33101'));
-assert.ok(app.includes('https://wa.me/918160733101'));
-assert.ok(app.includes('Empowering Education. Together.'));
-assert.ok(app.includes('Developed by Tirth Patel'));
-assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
+assert.ok(app.includes('ClassBandhu'));
+assert.ok(app.includes('Empowering Every Classroom.'));
+assert.ok(app.includes('Manage admissions, fees, attendance and institute records in one place.'));
+assert.ok(app.includes('info.classbandhu@gmail.com'));
+assert.ok(app.includes('mailto:info.classbandhu@gmail.com'));
+assert.ok(!app.includes('tirth.freelance31@gmail.com'));
+assert.ok(!app.includes('81607 33101'));
+assert.ok(!app.includes('wa.me/918160733101'));
+assert.ok(app.includes('ClassBandhu Tuition · Tuition Management Platform'));
+assert.ok(app.includes('© 2026 ClassBandhu. All rights reserved.'));
 assert.ok(app.includes('v{APP_VERSION}'));
 assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
 assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.1');
+assert.equal(packageJson.version, '1.0.4');
+
+const legacyProductName = ['Edu', 'Ledger'].join('');
+for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
+  assert.ok(!content.includes(legacyProductName), `${surface} still contains the retired product name`);
+}
 
 // Phone and tablet layouts use the drawer and bottom navigation until large desktop.
 assert.ok(app.includes('xl:hidden'));
@@ -51,25 +66,41 @@ assert.ok(app.includes('min-h-dvh'));
 assert.ok(admissions.includes('overflow-x-auto bg-white shadow-xs'));
 
 // Institute name stays in the sidebar beside the shared product mark.
-assert.ok(sidebar.includes('EduLedgerMark className='));
+assert.ok(sidebar.includes('ClassBandhuMark className='));
 assert.ok(sidebar.includes('settings.instituteName'));
 assert.ok(sidebar.includes('Institute workspace'));
 assert.ok(sidebar.includes("collapsed ? 'xl:hidden' : ''"));
 assert.ok(sidebar.includes("window.matchMedia('(min-width: 1280px)')"));
 assert.ok(auth.includes('<BrandLoading message={message} />'));
-assert.ok(loader.includes('<EduLedgerMark'));
-assert.ok(brandLoader.includes('Loading EduLedger'));
+assert.ok(auth.includes('ClassBandhu'));
+assert.ok(auth.includes('Empowering Every Classroom.'));
+assert.ok(!auth.includes('eduledger/'));
+assert.ok(superAdmin.includes('ClassBandhu control center'));
+assert.ok(platformInvitation.includes('ClassBandhu access'));
+assert.ok(receipts.includes("'Your Institute'"));
+assert.ok(attendance.includes('ClassBandhu · Attendance'));
+assert.ok(settings.includes('classbandhu_workspace_snapshot_'));
+assert.ok(settings.includes('classbandhu_students_export_'));
+assert.ok(authContext.includes('A valid invitation is required to create a ClassBandhu account.'));
+assert.ok(authContext.includes("'eduledger.activeInstituteId'")); // Preserve existing local workspace state.
+assert.ok(pwaControls.includes('deferredClassBandhuInstall'));
+assert.ok(loader.includes('<ClassBandhuMark'));
+assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
-// Shared mark and install icons consistently depict a graduation cap and open book.
-assert.ok(mark.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(mark.includes('Open book'));
-assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(html.includes('<title>EduLedger ERP</title>'));
-assert.ok(html.includes('/favicon-v1.0.1.svg'));
-assert.ok(versionedFavicon.includes('width="64" height="64"'));
-assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(manifest.includes('"short_name": "EduLedger"'));
+// Every UI surface and install identity uses the exact supplied image asset.
+const logoAssetPath = new URL('../public/classbandhu-mark-v1.0.3.png', import.meta.url);
+const logoAsset = readFileSync(logoAssetPath);
+assert.ok(mark.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(mark.includes('alt="ClassBandhu logo"'));
+assert.ok(existsSync(logoAssetPath));
+assert.equal(logoAsset.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+assert.ok(favicon.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(pwaIcon.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
+assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.png"'));
+assert.ok(html.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.4"));
+assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.png'));
 
-console.log('EduLedger responsive brand shell checks passed.');
+console.log('ClassBandhu responsive brand shell checks passed.');
