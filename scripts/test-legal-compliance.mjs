@@ -6,6 +6,7 @@ const schema = read("../supabase/migrations/20261126174500_legal_compliance_acce
 const seed = read("../supabase/migrations/20261126174600_seed_legal_document_drafts.sql");
 const capture = read("../supabase/migrations/20261126180000_legal_acceptance_capture_hardening.sql");
 const exportMigration = read("../supabase/migrations/20261126181000_legal_acceptance_export.sql");
+const auditMigration = read("../supabase/migrations/20261126182000_legal_locale_and_admin_audit.sql");
 const authPages = read("../src/pages/AuthPages.tsx");
 const authContext = read("../src/context/AuthContext.tsx");
 const legalPages = read("../src/pages/LegalPages.tsx");
@@ -14,7 +15,7 @@ const adminPanel = read("../src/components/LegalCompliancePanel.tsx");
 const app = read("../src/App.tsx");
 const adminDashboard = read("../src/pages/SuperAdminDashboard.tsx");
 
-for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration]]) {
+for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration]]) {
   assert.ok(migration.trim().length > 100, name + " migration should not be empty");
 }
 
@@ -61,6 +62,7 @@ assert.match(legalPages, /Export my records/);
 assert.match(legalService, /get_my_legal_status/);
 assert.match(legalService, /set_privacy_consent/);
 assert.match(legalService, /platform_admin_export_legal_acceptances/);
+assert.match(legalService, /platform_admin_legal_audit_logs/);
 
 assert.match(app, /get_my_legal_status/);
 assert.match(app, /LegalAcceptanceGate/);
@@ -69,6 +71,7 @@ assert.match(app, /location\.pathname === '\/dpa'/);
 assert.match(adminDashboard, /LegalCompliancePanel/);
 assert.match(legalService, /platform_admin_list_legal_documents/);
 assert.match(adminPanel, /Export audit CSV/);
+assert.match(adminPanel, /Policy administration audit trail/);
 assert.match(adminPanel, /TEST ONLY/);
 assert.match(adminPanel, /No student information is included/);
 
