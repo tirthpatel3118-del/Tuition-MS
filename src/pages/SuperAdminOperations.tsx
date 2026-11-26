@@ -94,6 +94,6 @@ export function SuperAdminOperations() {
       <article className={panel}><div className="flex items-center gap-2 text-slate-700"><ShieldCheck className="h-5 w-5"/><span className="font-semibold">Admin session</span></div><div className="mt-3">{status(health.auth)}</div><p className="mt-1 text-xs text-slate-500">Authenticated browser session</p></article>
       <article className={panel}><div className="flex items-center gap-2 text-slate-700"><Wifi className="h-5 w-5"/><span className="font-semibold">Database & RBAC</span></div><div className="mt-3">{status(health.database)}</div><p className="mt-1 text-xs text-slate-500">Super Admin authorization RPC</p></article>
     </div>
-    <p className="text-[11px] text-slate-500">Service checks run on demand or when the dashboard loads. No external AI or OAuth providers are used.</p>
+    <p className="text-[11px] text-slate-500">Service checks run on demand or when the dashboard loads. This dashboard does not use external AI integrations.</p>
   </section>;
 }
