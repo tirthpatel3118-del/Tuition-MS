@@ -1,9 +1,10 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ClassBandhuMark } from '../components/ClassBandhuMark';
 import { BrandLoading } from '../components/BrandLoading';
+import { getPublishedRequiredLegalDocuments, type RequiredLegalDocument } from '../services/legalService';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
@@ -47,6 +48,23 @@ export function AuthPage() {
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [legalDocuments, setLegalDocuments] = useState<RequiredLegalDocument[]>([]);
+  const [legalLoading, setLegalLoading] = useState(false);
+  const [legalLoadError, setLegalLoadError] = useState('');
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [productUpdates, setProductUpdates] = useState(false);
+
+  useEffect(() => {
+    if (mode !== 'sign-up') return;
+    let active = true;
+    setLegalLoading(true);
+    setLegalLoadError('');
+    void getPublishedRequiredLegalDocuments()
+      .then(documents => { if (active) setLegalDocuments(documents); })
+      .catch(error => { if (active) setLegalLoadError(error instanceof Error ? error.message : 'Legal documents could not be loaded.'); })
+      .finally(() => { if (active) setLegalLoading(false); });
+    return () => { active = false; };
+  }, [mode]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,7 +76,16 @@ export function AuthPage() {
         await signIn(email, password);
       } else {
         if (!invitationToken) throw new Error('A valid institute invitation link is required to create an account.');
-        const needsConfirmation = await signUp(email, password, fullName, invitationToken);
+        const terms = legalDocuments.find(document => document.slug === 'terms-of-service');
+        const privacy = legalDocuments.find(document => document.slug === 'privacy-policy');
+        if (!terms || !privacy) throw new Error('Account creation is unavailable until the current Terms of Service and Privacy Policy are published.');
+        if (!acceptedLegal) throw new Error('Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.');
+        const needsConfirmation = await signUp(email, password, fullName, invitationToken, {
+          termsDocumentId: terms.id,
+          privacyDocumentId: privacy.id,
+          productUpdates,
+          userAgent: navigator.userAgent,
+        });
         if (needsConfirmation) setMessage('Check your email to confirm your account, then reopen the original invitation link.');
       }
     } catch (submitError) {
@@ -90,9 +117,33 @@ export function AuthPage() {
           Password
           <div className="relative mt-1.5"><input required minLength={8} type={showPassword ? 'text' : 'password'} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 pr-12 font-normal outline-none focus:border-[#A03B5E] focus:ring-4 focus:ring-[#F8E9ED]" /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-xl text-slate-500 hover:text-[#6B1F38]">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div>
         </label>
+        {mode === 'sign-up' && (
+          <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div>
+              <p className="text-sm font-bold text-slate-900">Legal documents</p>
+              <p className="mt-1 text-xs leading-5 text-slate-600">Review the current versions before creating your account.</p>
+            </div>
+            {legalLoading && <p className="text-xs text-slate-500">Loading published policies…</p>}
+            {!legalLoading && legalDocuments.length < 2 && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Signup is temporarily unavailable until both required legal documents are published by the ClassBandhu administrator.</p>}
+            {legalLoadError && <p role="alert" className="text-xs text-red-700">{legalLoadError}</p>}
+            {legalDocuments.some(document => document.is_test_only) && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">Development test documents are active. This signup is for staging tests only, not production use.</p>}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold">
+              {legalDocuments.some(document => document.slug === 'terms-of-service') && <Link to="/terms" target="_blank" className="text-blue-700 underline">Read Terms of Service</Link>}
+              {legalDocuments.some(document => document.slug === 'privacy-policy') && <Link to="/privacy" target="_blank" className="text-blue-700 underline">Read Privacy Policy</Link>}
+            </div>
+            {legalDocuments.length >= 2 && <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
+              <input type="checkbox" checked={acceptedLegal} onChange={event => setAcceptedLegal(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
+              <span>I agree to the <strong>Terms of Service</strong> and acknowledge that I have read the <strong>Privacy Policy</strong>.</span>
+            </label>}
+            <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-600">
+              <input type="checkbox" checked={productUpdates} onChange={event => setProductUpdates(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
+              <span>Optional: Send me ClassBandhu product news and release updates by email. This is not required to use the service.</span>
+            </label>
+          </section>
+        )}
         {(formError || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{formError || authError}</p>}
         {message && <p role="status" className="rounded-xl bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800">{message}</p>}
-        <button disabled={busy} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-wait disabled:opacity-60">
+        <button disabled={busy || (mode === 'sign-up' && (legalLoading || legalDocuments.length < 2 || !acceptedLegal))} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-wait disabled:opacity-60">
           {busy ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </button>
       </form>
