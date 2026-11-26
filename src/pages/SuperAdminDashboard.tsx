@@ -14,6 +14,7 @@ import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformB
 import { buildSubscriptionReminderMessage, calculateSubscriptionDates, classifyBillingDueDate, daysOverdue, formatLocalDate, toWhatsAppPhone } from "../utils/platformBillingDates";
 import { SuperAdminOperations } from "./SuperAdminOperations";
 import { LegalCompliancePanel } from "../components/LegalCompliancePanel";
+import { PWAControls } from "../components/PWAControls";
 
 type SuperAdminSection = "overview" | "institutes" | "invitations" | "billing" | "compliance" | "operations";
 
@@ -35,8 +36,8 @@ const emptyOverview: PlatformOverview = {
   per_institute_storage_attribution: false, student_login_tracking_available: false,
 };
 
-const fieldClass = "mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#A03B5E] focus:ring-4 focus:ring-[#A03B5E]/10";
-const labelClass = "block text-xs font-semibold tracking-wide text-slate-600";
+const fieldClass = "box-border mt-1.5 block w-full min-w-0 max-w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[#A03B5E] focus:ring-4 focus:ring-[#A03B5E]/10";
+const labelClass = "block w-full min-w-0 text-xs font-semibold tracking-wide text-slate-600";
 
 function MetricCard({ label, value, note, icon: Icon, tone }: {
   label: string; value: string | number; note: string; icon: typeof Building2; tone: "rose" | "blue" | "violet" | "emerald" | "amber" | "slate";
@@ -373,7 +374,7 @@ export function SuperAdminDashboard() {
   ];
   const selectedNavigation = navigation.find(item => item.id === activeSection) ?? navigation[0];
 
-  return <main className="mx-auto w-full max-w-[1480px] space-y-5 px-3 pb-8 pt-3 sm:space-y-6 sm:px-5 sm:pb-10 sm:pt-5 lg:px-7">
+  return <main className="mx-auto min-w-0 w-full max-w-[1480px] space-y-5 overflow-x-clip px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 sm:space-y-6 sm:px-5 sm:pb-[calc(env(safe-area-inset-bottom)+2rem)] sm:pt-5 lg:px-7">
     <header className="relative isolate overflow-hidden rounded-[22px] bg-gradient-to-br from-[#32101F] via-[#57172D] to-[#7B2947] px-4 py-5 text-white sm:rounded-[26px] sm:px-7 sm:py-7 shadow-[0_16px_40px_rgba(77,20,43,0.18)] sm:px-7 sm:py-7">
       <div className="pointer-events-none absolute -right-12 -top-24 -z-10 h-72 w-72 rounded-full border-[34px] border-white/[0.06]" />
       <div className="pointer-events-none absolute bottom-[-90px] right-[22%] -z-10 h-56 w-56 rounded-full bg-white/[0.04] blur-2xl" />
@@ -389,7 +390,8 @@ export function SuperAdminDashboard() {
             <span className="max-w-full truncate rounded-full bg-white/10 px-3 py-1.5">{email ?? "Designated administrator"}</span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
+          <PWAControls />
           <button type="button" onClick={() => void refresh()} disabled={loading || busy} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20 disabled:opacity-50">
             <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />{loading ? "Refreshing" : "Refresh data"}
           </button>
@@ -408,7 +410,7 @@ export function SuperAdminDashboard() {
     {error && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><X className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
     {notice && <div role="status" className="flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><Check className="mt-0.5 h-4 w-4 shrink-0" />{notice}</div>}
 
-    <div className="grid gap-4 lg:grid-cols-[230px,minmax(0,1fr)]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[230px,minmax(0,1fr)]">
       <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-2 shadow-sm lg:sticky lg:top-4">
         <div className="hidden px-3 pb-3 pt-2 lg:block">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A03B5E]">Workspace</p>
@@ -548,10 +550,10 @@ export function SuperAdminDashboard() {
         <div className="receipt-actions mt-5 flex gap-2"><button type="button" onClick={()=>window.print()} className="flex-1 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white">Print / Save PDF</button><button type="button" onClick={()=>setReceipt(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Close</button></div>
       </div>
     </div>}
-    {activeSection === "institutes" && <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+    {activeSection === "institutes" && <section className="min-w-0 w-full max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <div className="flex min-w-0 flex-col gap-4 border-b border-slate-100 p-3 sm:p-5 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeading eyebrow="Workspaces" title={showArchived ? "Archived institutes" : "Institute management"} description={showArchived ? "Archived workspaces retain their records and can be restored." : "Review workspace health and manage subscription or access settings."} icon={Building2} />
-        <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row">
           <button type="button" onClick={() => setShowArchived(false)} className={`rounded-xl px-3 py-2 text-xs font-semibold ${!showArchived ? "bg-[#6B1F38] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>Active institutes</button>
           <button type="button" onClick={() => setShowArchived(true)} className={`rounded-xl px-3 py-2 text-xs font-semibold ${showArchived ? "bg-[#6B1F38] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>Archived ({institutes.filter(item => item.archived_at).length})</button>
         </div>
@@ -561,8 +563,8 @@ export function SuperAdminDashboard() {
       {loading ? <div className="p-8 text-center text-sm text-slate-500"><RefreshCw className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading institute summaries…</div> : visibleInstitutes.length === 0 ? <div className="px-5 py-12 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><Building2 className="h-6 w-6" /></span><p className="mt-3 font-semibold text-slate-800">{search ? "No matching institutes" : "Your institute list is empty"}</p><p className="mt-1 text-sm text-slate-500">{search ? "Try a different institute name or workspace slug." : "New workspaces will appear here after an owner creates an institute."}</p></div> : <div className="divide-y divide-slate-100">
         {visibleInstitutes.map(item => {
           const draft = drafts[item.institute_id];
-          return <article key={item.institute_id} className="p-5 transition hover:bg-slate-50/50">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          return <article key={item.institute_id} className="min-w-0 w-full max-w-full p-3 transition hover:bg-slate-50/50 sm:p-5">
+            <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-bold text-slate-900">{item.name}</h3><span className={item.access_status === "active" ? "rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold capitalize text-emerald-700" : "rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold capitalize text-rose-700"}>{item.access_status}</span>{item.archived_at && <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-700">Archived</span>}<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold capitalize text-slate-600">{item.subscription_status.replace("_"," ")}</span></div>
                 <p className="mt-1.5 text-xs text-slate-500">{item.slug} · Created {new Date(item.created_at).toLocaleDateString()}{item.archived_at ? " · Archived " + new Date(item.archived_at).toLocaleDateString() : ""}</p>
@@ -574,18 +576,18 @@ export function SuperAdminDashboard() {
                 <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">DB estimate</p><p className="mt-1 text-xl font-bold text-slate-900">{formatBytes(item.estimated_database_row_bytes)}</p><p className="text-[10px] text-slate-500">Row payload only</p></div>
               </div>
             </div>
-            <details className="group/manage mt-4 rounded-xl border border-slate-200 bg-white">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38]" />Manage subscription and access</span><ChevronDown className="h-4 w-4 text-slate-400 transition group-open/manage:rotate-180" /></summary>
-              {draft && <div className="grid gap-3 border-t border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-2 xl:grid-cols-3">
+            <details className="group/manage mt-4 min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <summary className="flex min-w-0 w-full max-w-full cursor-pointer list-none flex-wrap items-center justify-between gap-2 rounded-xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:px-4"><span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 break-words"><ShieldCheck className="h-4 w-4 shrink-0 text-[#6B1F38]" />Manage subscription and access</span><ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition group-open/manage:rotate-180" /></summary>
+              {draft && <div className="grid min-w-0 w-full max-w-full grid-cols-1 gap-3 border-t border-slate-100 bg-slate-50/60 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-3">
                 <label className={labelClass}>Access<select value={draft.accessStatus} onChange={event => updateDraft(item.institute_id,{accessStatus:event.target.value as InstituteDraft["accessStatus"]})} className={fieldClass}><option value="active">Active</option><option value="suspended">Suspended</option></select></label>
                 <label className={labelClass}>Plan<select value={draft.planCode} onChange={event => updateDraft(item.institute_id,{planCode:event.target.value})} className={fieldClass}><option value="trial">Trial</option><option value="starter">Starter</option><option value="standard">Standard</option><option value="custom">Custom</option></select></label>
                 <label className={labelClass}>Subscription<select value={draft.subscriptionStatus} onChange={event => updateDraft(item.institute_id,{subscriptionStatus:event.target.value as InstituteDraft["subscriptionStatus"]})} className={fieldClass}>{["trial","active","past_due","expired","cancelled"].map(value => <option key={value} value={value}>{value.replace("_"," ")}</option>)}</select></label>
                 <label className={labelClass}>Expiry date<input type="date" value={draft.expiresAt} onChange={event => updateDraft(item.institute_id,{expiresAt:event.target.value})} className={fieldClass} /></label>
                 <label className={labelClass}>Student limit<input type="number" min="0" value={draft.studentLimit} onChange={event => updateDraft(item.institute_id,{studentLimit:event.target.value})} className={fieldClass} /></label>
                 <label className={labelClass}>Team limit<input type="number" min="0" value={draft.teamLimit} onChange={event => updateDraft(item.institute_id,{teamLimit:event.target.value})} className={fieldClass} /></label>
-                <div className="flex flex-col justify-end gap-2 sm:col-span-2 xl:col-span-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] leading-5 text-slate-500">Limits are recorded for management but are not enforced in this release.</p><button type="button" disabled={busy} onClick={() => void saveInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#6B1F38] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:opacity-50">Save changes</button>
-                  {!item.archived_at && item.access_status === "suspended" && <button type="button" disabled={busy} onClick={() => void archiveInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Archive institute</button>}
-                  {item.archived_at && <button type="button" disabled={busy} onClick={() => void restoreInstitute(item)} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50">Restore institute</button>}</div>
+                <div className="flex min-w-0 flex-col justify-end gap-2 sm:col-span-2 xl:col-span-3 md:flex-row md:flex-wrap md:items-center md:justify-between"><p className="w-full min-w-0 text-[11px] leading-5 text-slate-500 md:flex-1">Limits are recorded for management but are not enforced in this release.</p><button type="button" disabled={busy} onClick={() => void saveInstitute(item)} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#6B1F38] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:opacity-50 md:w-auto">Save changes</button>
+                  {!item.archived_at && item.access_status === "suspended" && <button type="button" disabled={busy} onClick={() => void archiveInstitute(item)} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50 md:w-auto">Archive institute</button>}
+                  {item.archived_at && <button type="button" disabled={busy} onClick={() => void restoreInstitute(item)} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50 md:w-auto">Restore institute</button>}</div>
               </div>}
             </details>
           </article>;
