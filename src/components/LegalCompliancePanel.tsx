@@ -167,6 +167,15 @@ export function LegalCompliancePanel() {
       <article className={card}><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Published documents</p><p className="mt-2 text-2xl font-bold tabular-nums text-slate-950">{documents.filter(item => item.status === "published").length}</p><p className="mt-1 text-xs text-slate-500">Draft and archived versions remain listed</p></article>
     </div>
 
+    <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm" role="tablist" aria-label="Legal administration views">
+      {[
+        { id: "documents", label: "Document management" },
+        { id: "acceptance", label: "Acceptance history" },
+        { id: "audit", label: "Policy admin audit" },
+      ].map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
+        className={"min-h-10 rounded-lg px-3 py-2 text-xs font-semibold transition " + (activeTab === tab.id ? "bg-[#6B1F38] text-white" : "text-slate-600 hover:bg-slate-50")}>{tab.label}</button>)}
+    </div>
+    {activeTab === "documents" && <>
     <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
       <article className={card}>
         <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-2"><FileText className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">{selectedId ? "Edit legal draft" : "Create legal draft"}</h3></div><button type="button" onClick={resetEditor} className="inline-flex items-center gap-1 text-xs font-semibold text-[#6B1F38]"><Plus className="h-4 w-4"/>New</button></div>
@@ -212,7 +221,8 @@ export function LegalCompliancePanel() {
       </article>
     </div>
 
-    <article className={card}>
+    </>}
+    {activeTab === "audit" && <article className={card}>
       <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Policy administration audit trail</h3></div>
       <p className="mt-1 text-xs text-slate-500">Records who created, edited, published or archived each policy version.</p>
       {adminAudit.length===0 ? <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No policy administration events yet.</p> : <>
@@ -230,11 +240,10 @@ export function LegalCompliancePanel() {
           </div>)}
         </div>
       </>}
-    </article>
-
-    <article className={card}>
+    </article>}
+    {activeTab === "acceptance" && <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance evidence</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy acceptance events. Account email addresses and browser identifiers are not displayed.</p></div>
+        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance history by account</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy acceptance events. Account email addresses and browser identifiers are not displayed.</p></div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
       {summary.recent_acceptances.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
