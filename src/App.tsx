@@ -159,19 +159,19 @@ function AppContent() {
           <div className="mx-auto w-full max-w-7xl">
             <div className="grid min-w-0 grid-cols-1 items-center gap-5 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-[minmax(17rem,1fr)_minmax(20rem,1.15fr)_minmax(19rem,1fr)]">
               <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start xl:pr-4">
-                <ClassBandhuMark className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
+                <ClassBandhuMark className="h-14 w-14 shrink-0 text-[#790D3D] sm:h-16 sm:w-16" />
                 <div className="min-w-0 border-l border-[#D8CDD2] pl-3 sm:pl-4">
                   <p className="text-xl font-bold tracking-tight text-[#790D3D] sm:text-2xl">ClassBandhu</p>
-                  <p className="mt-1 text-[10px] font-semibold text-[#790D3D] sm:text-xs">Empowering Every Classroom.</p>
+                  <p className="mt-1 text-[10px] font-semibold text-[#790D3D] sm:text-xs">Tuition Management System</p>
                 </div>
               </div>
               <p className="min-w-0 border-y border-[#D8CDD2] px-3 py-4 text-center text-sm leading-relaxed sm:col-span-2 sm:row-start-2 sm:text-base 2xl:col-span-1 2xl:row-start-1 2xl:border-y-0 2xl:border-x 2xl:px-5">
-                A complete Tuition Management System for Educational Institutes.
+                Empowering Every Classroom.
               </p>
               <div className="flex min-w-0 flex-col items-center gap-3 sm:items-start sm:justify-self-end sm:pr-1 2xl:justify-self-start 2xl:pl-5">
-                <a href="mailto:tirth.freelance31@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
+                <a href="mailto:info.classbandhu@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
                   <Mail className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />
-                  <span className="break-all">tirth.freelance31@gmail.com</span>
+                  <span className="break-all">info.classbandhu@gmail.com</span>
                 </a>
                 <a href="https://wa.me/918160733101" target="_blank" rel="noreferrer" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
                   <MessageCircle className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />

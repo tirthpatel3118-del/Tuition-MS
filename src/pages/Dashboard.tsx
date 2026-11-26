@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { 
   DollarSign, 
@@ -10,19 +10,11 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PageLoader } from '../components/PageLoader';
 import { getFeeDueStatus } from '../utils/feeDueStatus';
 
 export const Dashboard: React.FC = () => {
   const { students, payments, courses, installments, installmentPaidTotals, settings } = useData();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
   // 1. Calculate Summary Metrics
   const activeStudents = students.filter(s => s.status === 'Active');
   
@@ -163,10 +155,6 @@ export const Dashboard: React.FC = () => {
     .filter(s => s.feesDue > 0 && s.status === 'Active')
     .sort((a, b) => b.feesDue - a.feesDue)
     .slice(0, 4);
-
-  if (isLoading) {
-    return <PageLoader />;
-  }
 
   return (
     <div className="space-y-7">

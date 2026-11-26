@@ -40,6 +40,8 @@ export interface PlatformInstitute {
   expires_at: string | null;
   student_limit: number | null;
   team_limit: number | null;
+  archived_at: string | null;
+  archived_by: string | null;
 }
 
 export interface PlatformInvitation {
@@ -75,6 +77,12 @@ export async function createPlatformInvitation(input: {
   if (!data?.action_link) throw new Error(data?.error ?? "Invitation link was not returned.");
   return data as { invitation_id: string; action_link: string; expires_at: string; requires_password_setup: boolean };
 }
+
+export const archivePlatformInstitute = (instituteId: string, confirmedName: string, reason: string) =>
+  rpc<void>("platform_admin_archive_institute", { p_institute_id: instituteId, p_confirm_name: confirmedName, p_reason: reason });
+
+export const restorePlatformInstitute = (instituteId: string) =>
+  rpc<void>("platform_admin_restore_institute", { p_institute_id: instituteId });
 
 export const revokePlatformInvitation = (invitationId: string) =>
   rpc<void>("platform_admin_revoke_invitation", { p_invitation_id: invitationId });

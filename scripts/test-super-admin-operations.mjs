@@ -17,3 +17,18 @@ assert.doesNotMatch(auth, /signInWithOAuth|Continue with Google|PLATFORM ADMIN O
 assert.doesNotMatch(app, /Google sign-in is restricted|app_metadata\?\.provider === 'google'/);
 assert.doesNotMatch(settings, /Team Access|TeamSettings|setActiveSection\('team'\)/);
 console.log("Super Admin operations, provider removal and owner invitation-tab checks passed.");
+
+const service = read("../src/services/platformAdminService.ts");
+const archiveMigration = read("../supabase/migrations/20261120200000_platform_admin_institute_archive.sql");
+assert.match(service, /platform_admin_archive_institute/);
+assert.match(service, /platform_admin_restore_institute/);
+assert.match(dashboard, /item\.access_status === "suspended" && <button[\s\S]*?Archive institute/);
+assert.match(dashboard, /Type the exact institute name to continue/);
+assert.match(dashboard, /Archived \(/);
+assert.match(dashboard, /Restore institute/);
+assert.match(archiveMigration, /Only suspended institutes can be archived/);
+assert.match(archiveMigration, /records_retained', true/);
+assert.match(archiveMigration, /INSTITUTE_RESTORED/);
+assert.match(archiveMigration, /Restore the archived institute before changing its access status/);
+assert.doesNotMatch(archiveMigration, /delete from public\./i);
+console.log("Reversible suspended-institute archive checks passed.");
