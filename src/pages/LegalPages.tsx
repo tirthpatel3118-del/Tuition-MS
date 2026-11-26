@@ -332,12 +332,21 @@ export function PrivacyPreferencesPage() {
         <div><h2 className="font-bold text-slate-900">Your acceptance history</h2><p className="mt-1 text-xs text-slate-500">Historical events are read-only and include the accepted version and content hash.</p></div>
         <button type="button" disabled={!acceptances.length} onClick={() => downloadCsv(acceptances as unknown as Record<string, string | number | null>[], "classbandhu-my-legal-acceptances.csv")} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export my records</button>
       </div>
-      {acceptances.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events are recorded for this account yet.</p> : <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-        <table className="w-full min-w-[620px] text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Method</th><th className="p-3">Accepted at</th><th className="p-3">SHA-256</th></tr></thead>
-          <tbody>{acceptances.map((item,index)=><tr key={item.document_slug+item.document_version+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{item.document_title}</td><td className="p-3">{item.document_version}</td><td className="p-3">{item.acceptance_method}</td><td className="p-3">{new Date(item.accepted_at).toLocaleString()}</td><td className="max-w-44 truncate p-3 font-mono">{item.content_sha256}</td></tr>)}</tbody>
-        </table>
-      </div>}
+      {acceptances.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events are recorded for this account yet.</p> : <>
+        <div className="mt-4 hidden overflow-x-auto rounded-xl border border-slate-200 sm:block">
+          <table className="w-full min-w-[620px] text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Method</th><th className="p-3">Accepted at</th><th className="p-3">SHA-256</th></tr></thead>
+            <tbody>{acceptances.map((item,index)=><tr key={item.document_slug+item.document_version+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{item.document_title}</td><td className="p-3">{item.document_version}</td><td className="p-3">{item.acceptance_method}</td><td className="p-3">{new Date(item.accepted_at).toLocaleString()}</td><td className="max-w-44 truncate p-3 font-mono">{item.content_sha256}</td></tr>)}</tbody>
+          </table>
+        </div>
+        <div className="mt-4 space-y-2 sm:hidden">
+          {acceptances.map((item,index)=><article key={item.document_slug+item.document_version+index} className="rounded-xl border border-slate-200 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold text-slate-900">{item.document_title}</h3><span className="text-xs text-slate-500">v{item.document_version}</span></div>
+            <p className="mt-1 text-xs text-slate-600">{item.acceptance_method} · {new Date(item.accepted_at).toLocaleString()}</p>
+            <p className="mt-2 break-all rounded-lg bg-slate-50 p-2 font-mono text-[10px] leading-4 text-slate-500">{item.content_sha256}</p>
+          </article>)}
+        </div>
+      </>}
     </section>
     <div className="mt-6 rounded-xl bg-slate-50 p-4 text-xs leading-5 text-slate-600"><ShieldCheck className="mr-1 inline h-4 w-4"/> Acceptance history is append-only. Withdrawal of optional consent creates a new event; it does not delete the original event.</div>
   </LegalShell>;
