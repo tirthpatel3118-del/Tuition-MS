@@ -45,6 +45,7 @@ export function LegalCompliancePanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [activeTab, setActiveTab] = useState<"documents" | "acceptance" | "audit">("documents");
 
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
@@ -132,6 +133,25 @@ export function LegalCompliancePanel() {
     ...type,
     items: documents.filter(document => document.slug === type.slug).sort((a,b) => b.created_at.localeCompare(a.created_at)),
   }));
+
+  const acceptanceGroups = Object.values(summary.recent_acceptances.reduce<Record<string, {
+    actor_ref: string;
+    actor_role: string | null;
+    records: LegalAcceptanceSummary["recent_acceptances"];
+  }>>((groups, record) => {
+    const group = groups[record.actor_ref] ?? {
+      actor_ref: record.actor_ref,
+      actor_role: record.actor_role,
+      records: [],
+    };
+    group.records.push(record);
+    groups[record.actor_ref] = group;
+    return groups;
+  }, {})).map(group => ({
+    ...group,
+    records: [...group.records].sort((a, b) => b.accepted_at.localeCompare(a.accepted_at)),
+    lastAcceptedAt: group.records.reduce((latest, record) => record.accepted_at > latest ? record.accepted_at : latest, ""),
+  })).sort((a, b) => b.lastAcceptedAt.localeCompare(a.lastAcceptedAt));
 
   return <section id="legal-compliance" className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
