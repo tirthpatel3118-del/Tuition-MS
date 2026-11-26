@@ -56,7 +56,7 @@ assert.match(immediateLegalReacceptance, /activated_at\s*=\s*now\(\)\s*-\s*make_
 assert.match(immediateLegalReacceptance, /UPDATE private\.legal_transition_config/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
-assert.match(authPages, /I have read and agree to the/);
+assert.match(legalPages, /I have read and agree to the current ClassBandhu/);
 assert.match(authPages, /Optional: Send me ClassBandhu product news/);
 assert.match(authPages, /legalDocuments.length < 3/);
 assert.match(authContext, /legal_terms_accepted: true/);
@@ -65,7 +65,7 @@ assert.match(authContext, /legal_privacy_document_id: legalAcceptance\.privacyDo
 assert.match(authContext, /create_institute_with_legal_bundle/);
 assert.match(authContext, /p_document_ids: documentIds/);
 assert.match(authPages, /Confirm three declarations & Create institute/);
-assert.match(authPages, /Terms & Conditions/);
+assert.match(legalPages, /Terms &amp; Conditions/);
 assert.match(authPages, /createInstitute\(name, slug, documentIds, authorityAccepted, dataAuthorityAccepted\)/);
 
 assert.match(legalPages, /LegalAcceptanceGate/);
