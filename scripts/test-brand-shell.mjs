@@ -74,6 +74,7 @@ assert.ok(sidebar.includes("window.matchMedia('(min-width: 1280px)')"));
 assert.ok(auth.includes('<BrandLoading message={message} />'));
 assert.ok(auth.includes('ClassBandhu'));
 assert.ok(auth.includes('Empowering Every Classroom.'));
+assert.ok(!auth.includes('eduledger/'));
 assert.ok(superAdmin.includes('ClassBandhu control center'));
 assert.ok(platformInvitation.includes('ClassBandhu access'));
 assert.ok(receipts.includes("'Your Institute'"));

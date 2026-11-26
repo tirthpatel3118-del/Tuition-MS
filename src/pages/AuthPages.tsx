@@ -220,7 +220,7 @@ export function CreateInstitutePage() {
         <label className="block text-sm font-semibold text-slate-700">
           Workspace address
           <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 focus-within:border-[#A03B5E] focus-within:ring-4 focus-within:ring-[#F8E9ED]">
-            <span className="pl-3.5 text-sm text-slate-400">eduledger/</span>
+            <span className="pl-3.5 text-sm text-slate-400">classbandhu/</span>
             <input required pattern="[a-z0-9]+(-[a-z0-9]+)*" value={slug} onChange={event => { setSlugEdited(true); setSlug(event.target.value.toLowerCase()); }} className="min-w-0 flex-1 rounded-r-xl px-2 py-3 font-normal outline-none" />
           </div>
           <span className="mt-1 block text-xs font-normal text-slate-400">Lowercase letters, numbers, and hyphens.</span>
