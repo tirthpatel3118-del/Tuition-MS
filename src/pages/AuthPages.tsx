@@ -311,7 +311,7 @@ export function CreateInstitutePage() {
 
         <section className="space-y-4 rounded-xl border border-slate-200 p-4">
           <div>
-            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38}"/><h2 className="text-sm font-bold text-slate-900">1. Platform policies and mandatory Institute DPA</h2></div>
+            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38]"/><h2 className="text-sm font-bold text-slate-900">1. Platform policies and mandatory Institute DPA</h2></div>
             <p className="mt-1 text-xs leading-5 text-slate-500">One checkbox covers Terms, AUP, Privacy Policy acknowledgement and the mandatory Institute DPA. The DPA is not a fourth checkbox.</p>
           </div>
           {loading && <p className="text-xs text-slate-500">Loading the current legal bundle…</p>}
@@ -333,7 +333,7 @@ export function CreateInstitutePage() {
         <section className="space-y-3 rounded-xl border border-slate-200 p-4">
           <h2 className="text-sm font-bold text-slate-900">2. Authority to create/manage the Institute</h2>
           <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
-            <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38}"/>
+            <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
             <span>I confirm that I am authorised to create and manage this institution's account and to provide the institution's information to ClassBandhu for the ERP service.</span>
           </label>
         </section>
@@ -341,7 +341,7 @@ export function CreateInstitutePage() {
         <section className="space-y-3 rounded-xl border border-slate-200 p-4">
           <h2 className="text-sm font-bold text-slate-900">3. Authority to provide student/parent data</h2>
           <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
-            <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38}"/>
+            <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
             <span>I confirm that, wherever required by applicable law, the institution has obtained the necessary consent or other lawful authorisation from parents or legal guardians for collecting and sharing student personal information with ClassBandhu to provide the ERP service.</span>
           </label>
           <p className="text-[11px] leading-5 text-slate-500">This is an Institute Owner attestation. It is not itself a student's or parent's consent and does not prove that a particular parent/guardian consent was obtained.</p>
