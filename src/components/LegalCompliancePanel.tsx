@@ -199,14 +199,14 @@ export function LegalCompliancePanel() {
         <div className="mt-3 hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
         <table className="w-full min-w-[650px] text-left text-xs">
           <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Action</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Actor</th><th className="p-3">Date (UTC)</th></tr></thead>
-          <tbody>{adminAudit.map((event,index)=><tr key={event.action+event.created_at+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{event.action.replaceAll("_"," ")}</td><td className="p-3">{event.document_title ?? event.document_slug ?? "—"}</td><td className="p-3">{event.document_version ?? "—"}</td><td className="p-3">"Platform administrator"</td><td className="p-3">{new Date(event.created_at).toLocaleString()}</td></tr>)}</tbody>
+          <tbody>{adminAudit.map((event,index)=><tr key={event.action+event.created_at+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{event.action.replaceAll("_"," ")}</td><td className="p-3">{event.document_title ?? event.document_slug ?? "—"}</td><td className="p-3">{event.document_version ?? "—"}</td><td className="p-3">Platform administrator</td><td className="p-3">{new Date(event.created_at).toLocaleString()}</td></tr>)}</tbody>
         </table>
         </div>
         <div className="mt-3 space-y-2 md:hidden">
           {adminAudit.map((event,index)=><div key={event.action+event.created_at+index} className="rounded-xl border border-slate-200 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[11px] font-bold uppercase text-[#6B1F38]">{event.action.replaceAll("_"," ")}</span><span className="text-[10px] text-slate-400">{new Date(event.created_at).toLocaleString()}</span></div>
             <p className="mt-2 text-sm font-semibold text-slate-800">{event.document_title ?? event.document_slug ?? "Legal document"} {event.document_version ? "· v"+event.document_version : ""}</p>
-            <p className="mt-1 break-all text-xs text-slate-500">"Platform administrator"</p>
+            <p className="mt-1 break-all text-xs text-slate-500">Platform administrator</p>
           </div>)}
         </div>
       </>}
