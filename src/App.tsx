@@ -10,7 +10,7 @@ import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, C
 import { resetToDefault } from './data/mockData';
 import { isDemoMode, supabase } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, SelectInstitutePage } from './pages/AuthPages';
-import { LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, TermsPage } from './pages/LegalPages';
+import { LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -201,6 +201,7 @@ function AppEntry() {
 
   if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
   if (location.pathname === '/terms') return <TermsPage />;
+  if (location.pathname === '/dpa') return <PublicLegalDocumentPage slug="data-processing-agreement" />;
 
   if (!auth.configured) {
     if (import.meta.env.PROD && !isDemoMode) {
