@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,8 +8,9 @@ import { APP_VERSION } from './lib/appVersion';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, MessageCircle } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
-import { isDemoMode } from './lib/supabase';
-import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
+import { isDemoMode, supabase } from './lib/supabase';
+import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, SelectInstitutePage } from './pages/AuthPages';
+import { LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, TermsPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -181,6 +182,7 @@ function AppContent() {
             </div>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
               <span>© 2026 ClassBandhu. All rights reserved.</span>
+              <NavLink to="/privacy-preferences" className="font-medium text-[#6B1F38] hover:underline">Privacy preferences</NavLink>
               <span className="font-medium text-[#5B2941]">Developed by Tirth Patel</span>
               <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
               <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v{APP_VERSION}</span>
@@ -239,6 +241,34 @@ function AppEntry() {
     );
   }
 
+  if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
+
+  if (legalGate.userId !== userId || legalGate.loading) return <AuthLoading message="Checking current legal agreements..." />;
+  if (legalGate.error) {
+    return <main className="min-h-screen bg-[#FAF7F8] px-4 py-10"><section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+      <h1 className="text-lg font-bold text-slate-900">Legal status could not be verified</h1>
+      <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{legalGate.error}</p>
+      <button type="button" onClick={() => {
+        setLegalGate({ userId, loading: true, missing: [], error: '' });
+        void supabase.rpc('get_my_legal_status').then(({ data, error }) => setLegalGate({
+          userId, loading: false, missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+          error: error?.message ?? '',
+        }));
+      }} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
+      <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
+    </section></main>;
+  }
+  if (legalGate.missing.length > 0) {
+    return <LegalAcceptanceGate onAccepted={() => {
+      setLegalGate({ userId, loading: true, missing: [], error: '' });
+      void supabase.rpc('get_my_legal_status').then(({ data, error }) => setLegalGate({
+        userId, loading: false, missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+        error: error?.message ?? '',
+      }));
+    }} />;
+  }
+
+  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
   if (isInvitationRoute) return <InvitationAcceptancePage />;
   if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
   if (location.pathname === '/super-admin') return <SuperAdminDashboard />;
