@@ -176,6 +176,28 @@ export const getMyPrivacyConsents = () => rpc<PrivacyConsent>("get_my_privacy_co
 export const setMyProductUpdateConsent = (granted: boolean) =>
   rpc<PrivacyConsent>("set_privacy_consent", { p_purpose: "product_updates", p_granted: granted });
 
+export interface MyDpaRequirements {
+  document: {
+    id: string;
+    title: string;
+    version: string;
+    locale: string;
+    content_sha256: string;
+    published_at: string;
+    is_test_only: boolean;
+  } | null;
+  institutes: Array<{
+    institute_id: string;
+    institute_name: string;
+    accepted: boolean;
+    accepted_by: string | null;
+    accepted_at: string | null;
+  }>;
+  missing_institute_ids: string[];
+}
+
+export const getMyDpaRequirements = () => rpc<MyDpaRequirements>("get_my_dpa_requirements");
+
 export interface InstituteDpaStatus {
   document: { id: string; title: string; version: string; content_sha256: string; published_at: string } | null;
   accepted: boolean;
