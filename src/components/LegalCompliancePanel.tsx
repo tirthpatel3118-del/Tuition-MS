@@ -3,7 +3,7 @@ import { Archive, Download, FileCheck2, FileText, Plus, RefreshCw, Save, ShieldC
 import {
   archivePlatformLegalDocument, exportPlatformLegalAcceptances, getPlatformLegalAcceptanceSummary, listPlatformLegalAdminAudit, listPlatformLegalDocuments,
   publishPlatformLegalDocument, savePlatformLegalDocument,
-  type LegalDocument, type LegalSlug, type LegalAcceptanceSummary, type LegalAdminAuditEvent, type LegalAdminAuditEvent,
+  type LegalDocument, type LegalSlug, type LegalAcceptanceSummary, type LegalAdminAuditEvent,
 } from "../services/legalService";
 
 const card = "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5";
@@ -31,7 +31,6 @@ function csvDownload(rows: Array<Record<string, unknown>>) {
 export function LegalCompliancePanel() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [summary, setSummary] = useState<LegalAcceptanceSummary>(emptySummary);
-  const [adminAudit, setAdminAudit] = useState<LegalAdminAuditEvent[]>([]);
   const [adminAudit, setAdminAudit] = useState<LegalAdminAuditEvent[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [slug, setSlug] = useState<LegalSlug>("privacy-policy");
