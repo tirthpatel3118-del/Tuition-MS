@@ -185,6 +185,7 @@ export interface MyDpaRequirements {
     content_sha256: string;
     published_at: string;
     is_test_only: boolean;
+    body_markdown?: string;
   } | null;
   institutes: Array<{
     institute_id: string;
@@ -196,7 +197,18 @@ export interface MyDpaRequirements {
   missing_institute_ids: string[];
 }
 
-export const getMyDpaRequirements = () => rpc<MyDpaRequirements>("get_my_dpa_requirements");
+export const getMyDpaRequirements = async (): Promise<MyDpaRequirements> => {
+  const requirements = await rpc<MyDpaRequirements>("get_my_dpa_requirements");
+  if (!requirements.document) return requirements;
+  const currentDocument = await getPublishedLegalDocument("data-processing-agreement");
+  return {
+    ...requirements,
+    document: {
+      ...requirements.document,
+      body_markdown: currentDocument?.body_markdown ?? "",
+    },
+  };
+};
 
 export interface InstituteDpaStatus {
   document: { id: string; title: string; version: string; content_sha256: string; published_at: string } | null;
