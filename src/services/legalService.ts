@@ -105,6 +105,24 @@ export async function listPlatformLegalDocuments(): Promise<LegalDocument[]> {
 export const getPlatformLegalAcceptanceSummary = () =>
   rpc<LegalAcceptanceSummary>("platform_admin_legal_acceptance_summary");
 
+export interface PlatformLegalAcceptanceRecord {
+  id: string;
+  user_email: string;
+  document_slug: string;
+  document_title: string;
+  document_version: string;
+  document_locale: string;
+  content_sha256: string;
+  acceptance_scope: "user" | "institute";
+  institute_id: string | null;
+  acceptance_method: string;
+  user_agent: string | null;
+  accepted_at: string;
+}
+
+export const exportPlatformLegalAcceptances = (limit = 10000) =>
+  rpc<PlatformLegalAcceptanceRecord[]>("platform_admin_export_legal_acceptances", { p_limit: limit });
+
 export const savePlatformLegalDocument = (input: {
   id?: string | null;
   slug: LegalSlug;
