@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Archive, Download, FileCheck2, FileText, Plus, RefreshCw, Save, ShieldCheck } from "lucide-react";
+import { Archive, Building2, Download, FileCheck2, FileText, Plus, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import {
   archivePlatformLegalDocument, exportPlatformLegalAcceptances, getPlatformLegalAcceptanceSummary, listPlatformLegalAdminAudit, listPlatformLegalDocuments,
   publishPlatformLegalDocument, savePlatformLegalDocument,
