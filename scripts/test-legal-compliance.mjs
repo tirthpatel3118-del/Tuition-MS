@@ -53,7 +53,7 @@ assert.match(dpaRequiredMigration, /p_dpa_document_id/);
 assert.match(dpaNoDocumentMigration, /missing_institute_ids/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
-assert.match(authPages, /I agree to the/);
+assert.match(authPages, /I have read and agree to the/);
 assert.match(authPages, /Optional: Send me ClassBandhu product news/);
 assert.match(authPages, /legalDocuments.length < 3/);
 assert.match(authContext, /legal_terms_accepted: true/);
