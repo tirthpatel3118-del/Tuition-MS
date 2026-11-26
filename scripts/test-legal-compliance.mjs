@@ -129,6 +129,6 @@ assert.match(legalPages, /renderInlineMarkdown/);
 assert.match(legalPages, /font-semibold text-slate-900/);
 assert.match(legalPages, /sm:hidden/);
 assert.match(adminPanel, /md:hidden/);
-assert.match(adminPanel, /break-all rounded-lg bg-slate-50/);
+assert.match(adminPanel, /break-all font-mono text-\[10px\]/);
 
 console.log("PASS: legal versioning, invitation signup acceptance, reacceptance gate, privacy preferences, DPA and audit export checks");
