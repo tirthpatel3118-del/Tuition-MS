@@ -1,2 +1,2 @@
-// Keep the displayed app version aligned with package.json.
-export const APP_VERSION = '1.0.1';
+// Keep this value aligned with package.json.
+export const APP_VERSION = '1.0.3';
