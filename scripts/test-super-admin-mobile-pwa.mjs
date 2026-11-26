@@ -60,10 +60,10 @@ assert.match(pwaControls, /removeEventListener\('online'/);
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/rest\/'\)/);
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/auth\/'\)/);
 assert.match(serviceWorker, /url\.pathname\.startsWith\('\/storage\/'\)/);
-assert.match(serviceWorker, /classbandhu-shell-v1\.0\.6/);
+assert.match(serviceWorker, /classbandhu-shell-v1\.0\.7/);
 
 // Keep every user-visible version in sync so installed clients can detect the update.
 assert.equal(packageJson.version, "1.0.7");
-assert.match(appVersion, /APP_VERSION = '1\.0\.6'/);
+assert.match(appVersion, /APP_VERSION = '1\.0\.7'/);
 
 console.log("Super Admin mobile layout and PWA regression checks passed.");
