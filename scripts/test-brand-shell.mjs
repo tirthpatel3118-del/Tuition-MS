@@ -88,18 +88,18 @@ assert.ok(loader.includes('<ClassBandhuMark'));
 assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
 // Every UI surface and install identity uses the exact supplied image asset.
-const logoAsset = read('../public/classbandhu-mark-v1.0.3.svg');
-assert.ok(mark.includes('/classbandhu-mark-v1.0.3.svg'));
+const logoAsset = read('../public/classbandhu-mark-v1.0.3.png');
+assert.ok(mark.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(mark.includes('alt="ClassBandhu logo"'));
-assert.ok(logoAsset.includes('image/webp;base64,'));
-assert.ok(logoAsset.includes('viewBox="0 0 1536 1536"'));
-assert.ok(favicon.includes('/classbandhu-mark-v1.0.3.svg'));
-assert.ok(pwaIcon.includes('/classbandhu-mark-v1.0.3.svg'));
-assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(logoAsset.includes(''));
+assert.ok(logoAsset.includes('<image x="0" y="0" width="384" height="384" href="/classbandhu-mark-v1.0.3.png"/>'));
+assert.ok(favicon.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(pwaIcon.includes('/classbandhu-mark-v1.0.3.png'));
+assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
-assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.svg"'));
-assert.ok(html.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.png"'));
+assert.ok(html.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.3"));
-assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.svg'));
+assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.png'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');
