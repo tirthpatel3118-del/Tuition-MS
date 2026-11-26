@@ -40,7 +40,7 @@ interface AuthContextValue {
   activeMembership: InstituteMembership | null;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, invitationToken?: string) => Promise<boolean>;
+  signUp: (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; productUpdates: boolean; userAgent?: string }) => Promise<boolean>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -479,14 +479,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (signInError) throw signInError;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken?: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken: string | undefined, legalAcceptance: { termsDocumentId: string; privacyDocumentId: string; productUpdates: boolean; userAgent?: string }) => {
     setError(null);
     if (!invitationToken) throw new Error('A valid invitation is required to create a ClassBandhu account.');
+    if (!legalAcceptance?.termsDocumentId || !legalAcceptance?.privacyDocumentId) throw new Error('Both current legal documents must be accepted before signup.');
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
-        data: { full_name: fullName.trim() },
+        data: {
+          full_name: fullName.trim(),
+          legal_terms_accepted: true,
+          legal_privacy_acknowledged: true,
+          legal_terms_document_id: legalAcceptance.termsDocumentId,
+          legal_privacy_document_id: legalAcceptance.privacyDocumentId,
+          legal_product_updates: legalAcceptance.productUpdates === true,
+          legal_acceptance_user_agent: (legalAcceptance.userAgent ?? '').slice(0, 500),
+        },
         emailRedirectTo: window.location.origin + '/accept-invitation#token=' + encodeURIComponent(invitationToken),
       },
     });
