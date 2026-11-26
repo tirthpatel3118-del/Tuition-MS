@@ -101,7 +101,7 @@ assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
 assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.png"'));
 assert.ok(html.includes('/classbandhu-mark-v1.0.3.png'));
-assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.4"));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.5"));
 assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.png'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');
