@@ -45,7 +45,7 @@ assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
 assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.3');
+assert.equal(packageJson.version, '1.0.4');
 
 const legacyProductName = ['Edu', 'Ledger'].join('');
 for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
@@ -100,7 +100,7 @@ assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
 assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.png"'));
 assert.ok(html.includes('/classbandhu-mark-v1.0.3.png'));
-assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.3"));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.4"));
 assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.png'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');
