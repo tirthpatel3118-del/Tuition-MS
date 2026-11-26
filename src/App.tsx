@@ -10,7 +10,7 @@ import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, C
 import { resetToDefault } from './data/mockData';
 import { isDemoMode, supabase } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, SelectInstitutePage } from './pages/AuthPages';
-import { InstituteDpaAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage } from './pages/LegalPages';
+import { InstituteLegalAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage, AcceptableUsePolicyPage, PrivacyRequestPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -25,7 +25,7 @@ const Settings = lazy(() => import('./pages/Settings').then(module => ({ default
 const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({ default: module.AttendancePage })));
 
-function AppContent() {
+function AppContent({ legalNotice, onReviewLegal }: { legalNotice?: string; onReviewLegal?: () => void }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { confirmAction } = useData();
@@ -43,6 +43,10 @@ function AppContent() {
 
       {/* Main App Container */}
       <div className="flex-1 flex flex-col min-w-0">
+        {legalNotice && <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-950 sm:flex sm:items-center sm:justify-between sm:gap-4">
+          <span>{legalNotice}</span>
+          <button type="button" onClick={onReviewLegal} className="mt-2 shrink-0 font-bold text-[#6B1F38] underline sm:mt-0">Review the Institute legal bundle</button>
+        </div>}
         {isDemoMode && (
           <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
             Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
@@ -203,9 +207,10 @@ function AppEntry() {
     userId: null, loading: false, missing: [], error: '',
   });
   const hasOwnerMemberships = auth.memberships.some(membership => membership.role === 'owner');
-  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
-    userId: null, loading: false, missing: [], error: '',
+  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string; transitionDeadlineAt: string | null }>({
+    userId: null, loading: false, missing: [], error: '', transitionDeadlineAt: null,
   });
+  const [showInstituteLegalGate, setShowInstituteLegalGate] = useState(false);
 
   const refreshDpaStatus = () => {
     if (!userId || !hasOwnerMemberships) return;
@@ -216,9 +221,10 @@ function AppEntry() {
         loading: false,
         missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
         error: error?.message ?? '',
+        transitionDeadlineAt: data?.transition_deadline_at ?? null,
       });
     }).catch((value: unknown) => {
-      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution DPA status could not be verified.' });
+      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.', transitionDeadlineAt: null });
     });
   };
 
@@ -260,7 +266,7 @@ function AppEntry() {
   }, [auth.configured, auth.status, userId]);
   useEffect(() => {
     if (!auth.configured || auth.status !== 'ready' || !userId || !hasOwnerMemberships) {
-      setDpaGate({ userId: null, loading: false, missing: [], error: '' });
+      setDpaGate({ userId: null, loading: false, missing: [], error: '', transitionDeadlineAt: null });
       return;
     }
     let active = true;
@@ -272,6 +278,7 @@ function AppEntry() {
         loading: false,
         missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
         error: error?.message ?? '',
+        transitionDeadlineAt: data?.transition_deadline_at ?? null,
       });
     }).catch((value: unknown) => {
       if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution DPA status could not be verified.' });
@@ -283,6 +290,8 @@ function AppEntry() {
   if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
   if (location.pathname === '/terms') return <TermsPage />;
   if (location.pathname === '/dpa') return <PublicLegalDocumentPage slug="data-processing-agreement" />;
+  if (location.pathname === '/acceptable-use') return <AcceptableUsePolicyPage />;
+  if (location.pathname === '/privacy-request') return <PrivacyRequestPage />;
 
   if (!auth.configured) {
     if (import.meta.env.PROD && !isDemoMode) {
@@ -358,8 +367,11 @@ function AppEntry() {
       </main>
     );
   }
-  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0) {
-    return <InstituteDpaAcceptanceGate onAccepted={refreshDpaStatus} />;
+  const transitionDeadline = dpaGate.transitionDeadlineAt ? Date.parse(dpaGate.transitionDeadlineAt) : Number.NaN;
+  const instituteLegalTransitionActive = Number.isFinite(transitionDeadline) && Date.now() < transitionDeadline;
+  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0 &&
+      (showInstituteLegalGate || !instituteLegalTransitionActive)) {
+    return <InstituteLegalAcceptanceGate onAccepted={refreshDpaStatus} />;
   }
 
   if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
@@ -400,7 +412,14 @@ function AppEntry() {
     return <Suspense fallback={<AuthLoading />}><TeacherWorkspace /></Suspense>;
   }
 
-  return <DataProvider key={auth.activeMembership.instituteId}><AppContent /></DataProvider>;
+  return <DataProvider key={auth.activeMembership.instituteId}>
+    <AppContent
+      legalNotice={auth.session && hasOwnerMemberships && dpaGate.missing.length > 0 && instituteLegalTransitionActive
+        ? `Please review the updated Institute legal bundle by ${new Date(transitionDeadline).toLocaleString()}. Staff access continues during this development transition period.`
+        : undefined}
+      onReviewLegal={() => setShowInstituteLegalGate(true)}
+    />
+  </DataProvider>;
 }
 
 function App() {
