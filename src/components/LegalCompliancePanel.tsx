@@ -12,8 +12,9 @@ const emptySummary: LegalAcceptanceSummary = { total_acceptance_events: 0, users
 
 const types: Array<{ slug: LegalSlug; title: string; required: boolean }> = [
   { slug: "privacy-policy", title: "Privacy Policy", required: true },
-  { slug: "terms-of-service", title: "Terms of Service", required: true },
-  { slug: "data-processing-agreement", title: "Data Processing Agreement", required: false },
+  { slug: "terms-of-service", title: "Terms & Conditions", required: true },
+  { slug: "acceptable-use-policy", title: "Acceptable Use Policy", required: true },
+  { slug: "data-processing-agreement", title: "Institute Data Processing Agreement", required: false },
   { slug: "cookie-policy", title: "Cookie Policy", required: false },
 ];
 
