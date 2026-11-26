@@ -246,28 +246,40 @@ export function LegalCompliancePanel() {
         <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance history by account</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy acceptance events. Account email addresses and browser identifiers are not displayed.</p></div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
-      {summary.recent_acceptances.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
-        <div className="mt-4 hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
-        <table className="w-full min-w-[850px] text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Record</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Scope / method</th><th className="p-3">Accepted at (UTC)</th><th className="p-3">SHA-256</th></tr></thead>
-          <tbody>{summary.recent_acceptances.map((record,index)=><tr key={record.document_slug+record.document_version+record.accepted_at+index} className="border-t border-slate-100"><td className="p-3 font-medium text-slate-800">Acceptance event</td><td className="p-3">{record.document_title}</td><td className="p-3">{record.document_version}</td><td className="p-3">{record.acceptance_scope} · {record.acceptance_method} · {record.acceptance_source ?? "—"}</td><td className="p-3">{new Date(record.accepted_at).toLocaleString()}</td><td className="max-w-40 truncate p-3 font-mono">{record.content_sha256}</td></tr>)}</tbody>
-        </table>
-        </div>
-        <div className="mt-4 space-y-2 md:hidden">
-          {summary.recent_acceptances.map((record,index)=><div key={record.document_slug+record.document_version+record.accepted_at+index} className="rounded-xl border border-slate-200 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-900">{record.document_title}</p><span className="text-xs text-slate-500">v{record.document_version}</span></div>
-            <p className="mt-1 text-xs text-slate-600">Acceptance event · {record.acceptance_context}</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
-              <p><span className="font-semibold text-slate-600">Scope:</span> {record.acceptance_scope}</p>
-              <p><span className="font-semibold text-slate-600">Source:</span> {record.acceptance_source ?? "—"}</p>
-              <p><span className="font-semibold text-slate-600">Method:</span> {record.acceptance_method}</p>
-              <p className="col-span-2"><span className="font-semibold text-slate-600">Accepted:</span> {new Date(record.accepted_at).toLocaleString()}</p>
+      {acceptanceGroups.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
+        <div className="mt-4 space-y-3">
+          {acceptanceGroups.map(group => <article key={group.actor_ref} className="overflow-hidden rounded-xl border border-slate-200">
+            <header className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900">{group.actor_ref}</p>
+                <p className="mt-0.5 text-[11px] capitalize text-slate-500">{group.actor_role ? group.actor_role + " account" : "ClassBandhu account"} · {group.records.length} acceptance event(s)</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Last recorded</p>
+                <p className="text-xs font-semibold text-slate-700">{group.lastAcceptedAt ? new Date(group.lastAcceptedAt).toLocaleString() : "—"}</p>
+              </div>
+            </header>
+            <div className="divide-y divide-slate-100">
+              {group.records.map((record,index) => <div key={record.action_id ?? record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-900">{record.document_title}</p>
+                    <span className="text-xs text-slate-500">v{record.document_version}</span>
+                    <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " + (record.is_current_version ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800")}>{record.is_current_version ? "Current version" : "Previous version"}</span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-500">{record.acceptance_context === "institute" ? "Institute DPA" : "Account policy"} · {record.institute_name ? record.institute_name : record.acceptance_scope} · {record.acceptance_method.replaceAll("_"," ")}</p>
+                  <p className="mt-1 break-all font-mono text-[10px] text-slate-400">SHA-256: {record.content_sha256}</p>
+                </div>
+                <div className="shrink-0 text-left sm:text-right">
+                  <p className="text-[11px] font-semibold text-slate-700">{new Date(record.accepted_at).toLocaleString()}</p>
+                  <p className="mt-0.5 text-[10px] text-slate-400">{record.acceptance_source ?? "Acceptance recorded"}</p>
+                </div>
+              </div>)}
             </div>
-            <p className="mt-2 break-all rounded-lg bg-slate-50 p-2 font-mono text-[10px] leading-4 text-slate-500"><span className="font-sans font-semibold">SHA-256:</span> {record.content_sha256}</p>
-          </div>)}
+          </article>)}
         </div>
       </>}
-      <p className="mt-3 text-[11px] leading-5 text-slate-500">Published documents are archived—not overwritten—when a replacement is published. Earlier acceptance records remain linked to their original document ID and exact content hash.</p>
-    </article>
+      <p className="mt-3 text-[11px] leading-5 text-slate-500">Showing the latest 200 events, grouped by account reference. The reference is used only to group the same account's events; it does not reveal the person's email or raw account ID. Archived policy versions and their original evidence remain preserved. Export the CSV for the retained record set (up to 10,000 rows per export).</p>
+    </article>}
   </section>;
 }
