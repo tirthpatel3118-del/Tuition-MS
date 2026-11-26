@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase";
 
-export type LegalSlug = "privacy-policy" | "terms-of-service" | "data-processing-agreement" | "cookie-policy";
+export type LegalSlug = "privacy-policy" | "terms-of-service" | "acceptable-use-policy" | "data-processing-agreement" | "cookie-policy";
 export type LegalStatus = "draft" | "published" | "archived";
 
 export interface LegalDocument {
@@ -68,7 +68,7 @@ export async function getPublishedRequiredLegalDocuments(includeBody = false): P
     .select(columns)
     .eq("status", "published")
     .eq("locale", "en-IN")
-    .in("slug", ["privacy-policy", "terms-of-service"])
+    .in("slug", ["privacy-policy", "terms-of-service", "acceptable-use-policy"])
     .eq("is_required", true)
     .order("slug", { ascending: true });
   if (error) throw error;
@@ -177,38 +177,41 @@ export const setMyProductUpdateConsent = (granted: boolean) =>
   rpc<PrivacyConsent>("set_privacy_consent", { p_purpose: "product_updates", p_granted: granted });
 
 export interface MyDpaRequirements {
-  document: {
-    id: string;
-    title: string;
-    version: string;
-    locale: string;
-    content_sha256: string;
-    published_at: string;
-    is_test_only: boolean;
-    body_markdown?: string;
-  } | null;
-  institutes: Array<{
-    institute_id: string;
-    institute_name: string;
-    accepted: boolean;
-    accepted_by: string | null;
-    accepted_at: string | null;
-  }>;
+  document: { id: string; title: string; version: string; locale: string; content_sha256: string; published_at: string; is_test_only: boolean; body_markdown?: string } | null;
+  documents: RequiredLegalDocument[];
+  institutes: Array<{ institute_id: string; institute_name: string; accepted: boolean; accepted_by: string | null; accepted_at: string | null }>;
   missing_institute_ids: string[];
+  transition_deadline_at: string | null;
+  transition_days: number;
 }
-
+const instituteLegalSlugs: LegalSlug[] = ["terms-of-service", "acceptable-use-policy", "privacy-policy", "data-processing-agreement"];
 export const getMyDpaRequirements = async (): Promise<MyDpaRequirements> => {
   const requirements = await rpc<MyDpaRequirements>("get_my_dpa_requirements");
-  if (!requirements.document) return requirements;
-  const currentDocument = await getPublishedLegalDocument("data-processing-agreement");
+  const documents = (await Promise.all(instituteLegalSlugs.map(slug => getPublishedLegalDocument(slug))))
+    .filter((item): item is RequiredLegalDocument => Boolean(item));
+  const dpa = documents.find(document => document.slug === "data-processing-agreement");
   return {
     ...requirements,
-    document: {
-      ...requirements.document,
-      body_markdown: currentDocument?.body_markdown ?? "",
-    },
+    documents,
+    document: dpa ? {
+      id: dpa.id, title: dpa.title, version: dpa.version, locale: dpa.locale,
+      content_sha256: dpa.content_sha256, published_at: "", is_test_only: dpa.is_test_only,
+      body_markdown: dpa.body_markdown ?? "",
+    } : requirements.document,
   };
 };
+export const acceptInstituteLegalBundle = (
+  instituteId: string,
+  documentIds: Record<string, string>,
+  acceptAuthority: boolean,
+  acceptDataAuthority: boolean,
+) => rpc<MyDpaRequirements>("accept_current_institute_legal_bundle", {
+  p_institute_id: instituteId,
+  p_document_ids: documentIds,
+  p_accept_authority: acceptAuthority,
+  p_accept_data_authority: acceptDataAuthority,
+  p_user_agent: typeof navigator === "undefined" ? null : navigator.userAgent,
+});
 
 export interface InstituteDpaStatus {
   document: { id: string; title: string; version: string; content_sha256: string; published_at: string } | null;
