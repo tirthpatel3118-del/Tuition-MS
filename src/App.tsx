@@ -198,6 +198,46 @@ function AppEntry() {
   const auth = useAuth();
   const location = useLocation();
   const isInvitationRoute = location.pathname === '/accept-invitation';
+  const userId = auth.session?.user.id ?? null;
+  const [legalGate, setLegalGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
+    userId: null, loading: false, missing: [], error: '',
+  });
+
+  const refreshLegalStatus = () => {
+    if (!userId) return;
+    setLegalGate({ userId, loading: true, missing: [], error: '' });
+    void supabase.rpc('get_my_legal_status').then(({ data, error }) => {
+      setLegalGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+        error: error?.message ?? '',
+      });
+    }).catch(value => {
+      setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
+    });
+  };
+
+  useEffect(() => {
+    if (!auth.configured || auth.status !== 'ready' || !userId) {
+      setLegalGate({ userId: null, loading: false, missing: [], error: '' });
+      return;
+    }
+    let active = true;
+    setLegalGate({ userId, loading: true, missing: [], error: '' });
+    void supabase.rpc('get_my_legal_status').then(({ data, error }) => {
+      if (!active) return;
+      setLegalGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+        error: error?.message ?? '',
+      });
+    }).catch(value => {
+      if (active) setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
+    });
+    return () => { active = false; };
+  }, [auth.configured, auth.status, userId]);
 
   if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
   if (location.pathname === '/terms') return <TermsPage />;
@@ -225,9 +265,10 @@ function AppEntry() {
 
   if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
   if (location.pathname === '/reset-password') return <PasswordResetPage />;
-  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
 
-  if (auth.status === 'signed-out') return <AuthPage />;
+  if (auth.status === 'signed-out') {
+    return location.pathname === '/accept-platform-invitation' ? <PlatformInvitationAcceptancePage /> : <AuthPage />;
+  }
 
   if (auth.status === 'error') {
     return (
@@ -244,29 +285,23 @@ function AppEntry() {
 
   if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
 
-  if (legalGate.userId !== userId || legalGate.loading) return <AuthLoading message="Checking current legal agreements..." />;
-  if (legalGate.error) {
-    return <main className="min-h-screen bg-[#FAF7F8] px-4 py-10"><section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
-      <h1 className="text-lg font-bold text-slate-900">Legal status could not be verified</h1>
-      <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{legalGate.error}</p>
-      <button type="button" onClick={() => {
-        setLegalGate({ userId, loading: true, missing: [], error: '' });
-        void supabase.rpc('get_my_legal_status').then(({ data, error }) => setLegalGate({
-          userId, loading: false, missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
-          error: error?.message ?? '',
-        }));
-      }} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
-      <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
-    </section></main>;
+  if (auth.session && (legalGate.userId !== userId || legalGate.loading)) {
+    return <AuthLoading message="Checking current legal agreements..." />;
   }
-  if (legalGate.missing.length > 0) {
-    return <LegalAcceptanceGate onAccepted={() => {
-      setLegalGate({ userId, loading: true, missing: [], error: '' });
-      void supabase.rpc('get_my_legal_status').then(({ data, error }) => setLegalGate({
-        userId, loading: false, missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
-        error: error?.message ?? '',
-      }));
-    }} />;
+  if (auth.session && legalGate.error) {
+    return (
+      <main className="min-h-screen bg-[#FAF7F8] px-4 py-10">
+        <section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+          <h1 className="text-lg font-bold text-slate-900">Legal status could not be verified</h1>
+          <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{legalGate.error}</p>
+          <button type="button" onClick={refreshLegalStatus} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
+          <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+  if (auth.session && legalGate.missing.length > 0) {
+    return <LegalAcceptanceGate onAccepted={refreshLegalStatus} />;
   }
 
   if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
