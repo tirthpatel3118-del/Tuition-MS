@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Archive, Download, FileCheck2, FileText, Plus, RefreshCw, Save, ShieldCheck } from "lucide-react";
 import {
-  archivePlatformLegalDocument, exportPlatformLegalAcceptances, getPlatformLegalAcceptanceSummary, listPlatformLegalDocuments,
+  archivePlatformLegalDocument, exportPlatformLegalAcceptances, getPlatformLegalAcceptanceSummary, listPlatformLegalAdminAudit, listPlatformLegalDocuments,
   publishPlatformLegalDocument, savePlatformLegalDocument,
-  type LegalDocument, type LegalSlug, type LegalAcceptanceSummary,
+  type LegalDocument, type LegalSlug, type LegalAcceptanceSummary, type LegalAdminAuditEvent,
 } from "../services/legalService";
 
 const card = "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5";
@@ -31,6 +31,7 @@ function csvDownload(rows: Array<Record<string, unknown>>) {
 export function LegalCompliancePanel() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [summary, setSummary] = useState<LegalAcceptanceSummary>(emptySummary);
+  const [adminAudit, setAdminAudit] = useState<LegalAdminAuditEvent[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [slug, setSlug] = useState<LegalSlug>("privacy-policy");
   const [title, setTitle] = useState("Privacy Policy");
@@ -47,11 +48,12 @@ export function LegalCompliancePanel() {
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const [nextDocuments, nextSummary] = await Promise.all([
-        listPlatformLegalDocuments(), getPlatformLegalAcceptanceSummary(),
+      const [nextDocuments, nextSummary, nextAudit] = await Promise.all([
+        listPlatformLegalDocuments(), getPlatformLegalAcceptanceSummary(), listPlatformLegalAdminAudit(),
       ]);
       setDocuments(nextDocuments);
       setSummary(nextSummary);
+      setAdminAudit(nextAudit);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Legal compliance records could not be loaded.");
     } finally { setLoading(false); }
@@ -188,6 +190,17 @@ export function LegalCompliancePanel() {
         </div>}
       </article>
     </div>
+
+    <article className={card}>
+      <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Policy administration audit trail</h3></div>
+      <p className="mt-1 text-xs text-slate-500">Records who created, edited, published or archived each policy version.</p>
+      {adminAudit.length===0 ? <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No policy administration events yet.</p> : <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+        <table className="w-full min-w-[650px] text-left text-xs">
+          <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Action</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Administrator</th><th className="p-3">Date (UTC)</th></tr></thead>
+          <tbody>{adminAudit.map((event,index)=><tr key={event.action+event.created_at+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{event.action.replaceAll("_"," ")}</td><td className="p-3">{event.document_title ?? event.document_slug ?? "—"}</td><td className="p-3">{event.document_version ?? "—"}</td><td className="p-3">{event.actor_email ?? "Account unavailable"}</td><td className="p-3">{new Date(event.created_at).toLocaleString()}</td></tr>)}</tbody>
+        </table>
+      </div>}
+    </article>
 
     <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
