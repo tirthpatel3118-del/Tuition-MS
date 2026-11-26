@@ -9,6 +9,7 @@ const exportMigration = read("../supabase/migrations/20261126181000_legal_accept
 const auditMigration = read("../supabase/migrations/20261126182000_legal_locale_and_admin_audit.sql");
 const dpaRequiredMigration = read("../supabase/migrations/20261126184500_dpa_required_for_institute_onboarding.sql");
 const dpaNoDocumentMigration = read("../supabase/migrations/20261126185200_require_dpa_when_no_current_document.sql");
+const immediateLegalReacceptance = read("../supabase/migrations/20261126203000_expire_legal_transition_grace.sql");
 const authPages = read("../src/pages/AuthPages.tsx");
 const authContext = read("../src/context/AuthContext.tsx");
 const legalPages = read("../src/pages/LegalPages.tsx");
@@ -18,7 +19,7 @@ const app = read("../src/App.tsx");
 const adminDashboard = read("../src/pages/SuperAdminDashboard.tsx");
 const settings = read("../src/pages/Settings.tsx");
 
-for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration]]) {
+for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration], ["immediate legal reacceptance", immediateLegalReacceptance]]) {
   assert.ok(migration.trim().length > 100, name + " migration should not be empty");
 }
 
@@ -51,6 +52,8 @@ assert.match(dpaRequiredMigration, /private\.record_legal_acceptance/);
 assert.match(dpaRequiredMigration, /REVOKE ALL ON FUNCTION public\.create_institute_atomic/);
 assert.match(dpaRequiredMigration, /p_dpa_document_id/);
 assert.match(dpaNoDocumentMigration, /missing_institute_ids/);
+assert.match(immediateLegalReacceptance, /activated_at\s*=\s*now\(\)\s*-\s*make_interval\(days\s*=>\s*grace_days\)/);
+assert.match(immediateLegalReacceptance, /UPDATE private\.legal_transition_config/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
 assert.match(authPages, /I have read and agree to the/);
@@ -66,6 +69,10 @@ assert.match(authPages, /Terms & Conditions/);
 assert.match(authPages, /createInstitute\(name, slug, documentIds, authorityAccepted, dataAuthorityAccepted\)/);
 
 assert.match(legalPages, /LegalAcceptanceGate/);
+assert.match(legalPages, /LegalPolicyConsentText/);
+assert.match(legalPages, /h-6 w-6/);
+assert.match(authPages, /LegalPolicyConsentText/);
+assert.match(authPages, /info\.classbandhu@gmail\.com/);
 assert.match(legalPages, /acceptCurrentLegalDocuments/);
 assert.match(legalPages, /DEVELOPMENT TEST COPY/);
 assert.match(legalPages, /setMyProductUpdateConsent/);
@@ -79,7 +86,8 @@ assert.match(legalService, /platform_admin_legal_audit_logs/);
 
 assert.match(app, /get_my_legal_status/);
 assert.match(app, /get_my_dpa_requirements/);
-assert.match(app, /transitionDeadlineAt/);
+assert.match(app, /dpaGate\.missing\.length > 0/);
+assert.doesNotMatch(app, /transitionDeadlineAt|instituteLegalTransitionActive/);
 assert.match(app, /acceptable-use/);
 assert.match(app, /privacy-request/);
 assert.match(app, /InstituteLegalAcceptanceGate/);

@@ -25,7 +25,7 @@ const Settings = lazy(() => import('./pages/Settings').then(module => ({ default
 const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({ default: module.AttendancePage })));
 
-function AppContent({ legalNotice, onReviewLegal }: { legalNotice?: string; onReviewLegal?: () => void }) {
+function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { confirmAction } = useData();
@@ -43,10 +43,6 @@ function AppContent({ legalNotice, onReviewLegal }: { legalNotice?: string; onRe
 
       {/* Main App Container */}
       <div className="flex-1 flex flex-col min-w-0">
-        {legalNotice && <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-950 sm:flex sm:items-center sm:justify-between sm:gap-4">
-          <span>{legalNotice}</span>
-          <button type="button" onClick={onReviewLegal} className="mt-2 shrink-0 font-bold text-[#6B1F38] underline sm:mt-0">Review the Institute legal bundle</button>
-        </div>}
         {isDemoMode && (
           <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
             Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
@@ -214,24 +210,22 @@ function AppEntry() {
     userId: null, loading: false, missing: [], error: '',
   });
   const hasOwnerMemberships = auth.memberships.some(membership => membership.role === 'owner');
-  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string; transitionDeadlineAt: string | null }>({
-    userId: null, loading: false, missing: [], error: '', transitionDeadlineAt: null,
+  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
+    userId: null, loading: false, missing: [], error: '',
   });
-  const [showInstituteLegalGate, setShowInstituteLegalGate] = useState(false);
 
   const refreshDpaStatus = () => {
     if (!userId || !hasOwnerMemberships) return;
-    setDpaGate({ userId, loading: true, missing: [], error: '', transitionDeadlineAt: null });
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
     void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
       setDpaGate({
         userId,
         loading: false,
         missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
         error: error?.message ?? '',
-        transitionDeadlineAt: data?.transition_deadline_at ?? null,
       });
     }).catch((value: unknown) => {
-      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.', transitionDeadlineAt: null });
+      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.' });
     });
   };
 
@@ -273,11 +267,11 @@ function AppEntry() {
   }, [auth.configured, auth.status, userId]);
   useEffect(() => {
     if (!auth.configured || auth.status !== 'ready' || !userId || !hasOwnerMemberships) {
-      setDpaGate({ userId: null, loading: false, missing: [], error: '', transitionDeadlineAt: null });
+      setDpaGate({ userId: null, loading: false, missing: [], error: '' });
       return;
     }
     let active = true;
-    setDpaGate({ userId, loading: true, missing: [], error: '', transitionDeadlineAt: null });
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
     void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
       if (!active) return;
       setDpaGate({
@@ -285,10 +279,9 @@ function AppEntry() {
         loading: false,
         missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
         error: error?.message ?? '',
-        transitionDeadlineAt: data?.transition_deadline_at ?? null,
       });
     }).catch((value: unknown) => {
-      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.', transitionDeadlineAt: null });
+      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.' });
     });
     return () => { active = false; };
   }, [auth.configured, auth.status, userId, hasOwnerMemberships, auth.memberships]);
@@ -374,10 +367,7 @@ function AppEntry() {
       </main>
     );
   }
-  const transitionDeadline = dpaGate.transitionDeadlineAt ? Date.parse(dpaGate.transitionDeadlineAt) : Number.NaN;
-  const instituteLegalTransitionActive = Number.isFinite(transitionDeadline) && Date.now() < transitionDeadline;
-  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0 &&
-      (showInstituteLegalGate || !instituteLegalTransitionActive)) {
+  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0) {
     return <InstituteLegalAcceptanceGate onAccepted={refreshDpaStatus} />;
   }
 
@@ -423,12 +413,7 @@ function AppEntry() {
   }
 
   return <DataProvider key={auth.activeMembership.instituteId}>
-    <AppContent
-      legalNotice={auth.session && hasOwnerMemberships && dpaGate.missing.length > 0 && instituteLegalTransitionActive
-        ? `Please review the updated Institute legal bundle by ${new Date(transitionDeadline).toLocaleString()}. Staff access continues during this development transition period.`
-        : undefined}
-      onReviewLegal={() => setShowInstituteLegalGate(true)}
-    />
+    <AppContent />
   </DataProvider>;
 }
 

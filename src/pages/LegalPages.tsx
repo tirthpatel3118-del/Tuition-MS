@@ -34,6 +34,21 @@ function LegalShell({ children, title = "ClassBandhu" }: { children: ReactNode; 
   </main>;
 }
 
+export function LegalPolicyConsentText({ includeDpa = false }: { includeDpa?: boolean }) {
+  const linkClass = "font-semibold text-[#6B1F38] underline underline-offset-2 hover:text-[#A03B5E]";
+  return <>
+    I have read and agree to the current ClassBandhu{" "}
+    <Link to="/terms" target="_blank" rel="noreferrer" className={linkClass}>Terms &amp; Conditions</Link>
+    {" "}and{" "}
+    <Link to="/acceptable-use" target="_blank" rel="noreferrer" className={linkClass}>Acceptable Use Policy</Link>
+    {includeDpa && <> and the{" "}
+      <Link to="/dpa" target="_blank" rel="noreferrer" className={linkClass}>Institute Data Processing Agreement (DPA)</Link>
+    </>}
+    , and acknowledge the ClassBandhu{" "}
+    <Link to="/privacy" target="_blank" rel="noreferrer" className={linkClass}>Privacy Policy</Link>.
+  </>;
+}
+
 function renderInlineMarkdown(value: string): ReactNode[] {
   const pattern = /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\x60[^\x60]+\x60|\[[^\]]+\]\(https?:\/\/[^)\s]+\)|https?:\/\/[^\s]+)/g;
   return value.split(pattern).filter(Boolean).map((token, index) => {
@@ -203,7 +218,7 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
 
   useEffect(() => {
     let active = true;
-    void getPublishedRequiredLegalDocuments(true)
+    void getPublishedRequiredLegalDocuments()
       .then(value => { if (active) setDocuments(value); })
       .catch(value => { if (active) setError(value instanceof Error ? value.message : "Required legal documents could not be loaded."); })
       .finally(() => { if (active) setLoading(false); });
@@ -226,7 +241,7 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
   const bothPresent = ["privacy-policy", "terms-of-service", "acceptable-use-policy"].every(slug => documents.some(doc => doc.slug === slug));
   const testOnly = documents.some(doc => doc.is_test_only);
   return <LegalShell title="Review updated legal documents">
-    <p className="mt-2 text-sm leading-6 text-slate-600">The current Terms & Conditions and Acceptable Use Policy must be accepted, and the Privacy Policy acknowledged, before you can continue to your workspace. The exact document versions and server timestamps are recorded.</p>
+    <p className="mt-2 text-sm leading-6 text-slate-600">Review the linked current documents and tick the checkbox to continue. Your acceptance is recorded against each document version. Until then, your institute workspace remains locked.</p>
     {testOnly && <div role="alert" className="mt-4 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
       These are development test copies, not approved production policies. Use this flow only for staging tests.
     </div>}
@@ -234,21 +249,9 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
     {!loading && !bothPresent && <div role="alert" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-950">
       The current Terms, Acceptable Use Policy and Privacy Policy must all be published before acceptance can continue.
     </div>}
-    <div className="mt-5 space-y-3">
-      {documents.map(doc => <article key={doc.id} className="rounded-xl border border-slate-200 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-bold text-slate-900">{doc.title}</h2>
-          <span className="text-xs text-slate-500">v{doc.version}</span>
-        </div>
-        <div className="mt-3 max-h-56 overflow-y-auto rounded-lg bg-slate-50 p-3">
-          <LegalMarkdownBody value={doc.body_markdown ?? ""} />
-        </div>
-        {doc.is_test_only && <p className="mt-2 text-xs font-semibold text-rose-700">Development test only — not approved legal content.</p>}
-      </article>)}
-    </div>
-    {!loading && bothPresent && <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
-      <input type="checkbox" checked={accepted} onChange={event => setAccepted(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
-      <span>I have read and agree to the current ClassBandhu Terms & Conditions and Acceptable Use Policy, and acknowledge the ClassBandhu Privacy Policy.</span>
+    {!loading && bothPresent && <label className="mt-5 flex cursor-pointer items-start gap-4 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
+      <input type="checkbox" checked={accepted} onChange={event => setAccepted(event.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 accent-[#6B1F38] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6B1F38]" />
+      <span><LegalPolicyConsentText /></span>
     </label>}
     {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     <button type="button" disabled={!accepted || !bothPresent || loading || busy} onClick={() => void submit()} className="mt-5 w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">
@@ -351,27 +354,23 @@ export function InstituteLegalAcceptanceGate({ onAccepted }: { onAccepted: () =>
     </section>}
     <section className="mt-5 space-y-3 rounded-xl border border-slate-200 p-4">
       <div><h2 className="text-sm font-bold text-slate-900">1. Platform policies and mandatory Institute DPA</h2><p className="mt-1 text-xs leading-5 text-slate-500">One checkbox covers the three account policies and the mandatory Institute DPA. Each document receives its own acceptance evidence linked to the same action and Institute.</p></div>
-      {documents.map(document => <details key={document.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <summary className="cursor-pointer text-xs font-bold text-slate-800">{document.title} · v{document.version}</summary>
-        <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: {document.content_sha256}</p>
-        <div className="mt-2 max-h-60 overflow-y-auto rounded-lg bg-white p-3"><LegalMarkdownBody value={document.body_markdown ?? ""}/></div>
-      </details>)}
-      {documents.length === 4 && <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-xs leading-5 text-slate-700">
-        <input type="checkbox" checked={bundleAccepted} onChange={event => setBundleAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
-        <span>I have read and agree to the current ClassBandhu Terms & Conditions, Acceptable Use Policy and Institute Data Processing Agreement (DPA), and acknowledge the ClassBandhu Privacy Policy.</span>
+      <p className="text-xs leading-5 text-slate-500">Open the linked documents below in a new tab to review them, then return here to confirm for each Institute.</p>
+      {documents.length === 4 && <label className="flex cursor-pointer items-start gap-4 rounded-lg border border-slate-200 p-4 text-sm leading-6 text-slate-700">
+        <input type="checkbox" checked={bundleAccepted} onChange={event => setBundleAccepted(event.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 accent-[#6B1F38] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6B1F38]"/>
+        <span><LegalPolicyConsentText includeDpa /></span>
       </label>}
     </section>
     <section className="mt-4 space-y-3 rounded-xl border border-slate-200 p-4">
       <h2 className="text-sm font-bold text-slate-900">2. Authority to create/manage the Institute</h2>
-      <label className="flex cursor-pointer items-start gap-3 text-xs leading-5 text-slate-700">
-        <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+      <label className="flex cursor-pointer items-start gap-4 text-sm leading-6 text-slate-700">
+        <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 accent-[#6B1F38] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6B1F38]"/>
         <span>I confirm that I am authorised to create and manage this institution's account and to provide the institution's information to ClassBandhu for the ERP service.</span>
       </label>
     </section>
     <section className="mt-4 space-y-3 rounded-xl border border-slate-200 p-4">
       <h2 className="text-sm font-bold text-slate-900">3. Authority to provide student/parent data</h2>
-      <label className="flex cursor-pointer items-start gap-3 text-xs leading-5 text-slate-700">
-        <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+      <label className="flex cursor-pointer items-start gap-4 text-sm leading-6 text-slate-700">
+        <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-0.5 h-6 w-6 shrink-0 accent-[#6B1F38] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6B1F38]"/>
         <span>I confirm that, wherever required by applicable law, the institution has obtained the necessary consent or other lawful authorisation from parents or legal guardians for collecting and sharing student personal information with ClassBandhu to provide the ERP service.</span>
       </label>
       <p className="text-[11px] leading-5 text-slate-500">This is an Institute Owner attestation. It is not itself a student's or parent's consent and does not prove that a particular parent/guardian consent was obtained.</p>
