@@ -39,7 +39,7 @@ export interface LegalAcceptanceSummary {
 
 export interface RequiredLegalDocument {
   id: string;
-  slug: "privacy-policy" | "terms-of-service";
+  slug: LegalSlug;
   title: string;
   version: string;
   locale: string;
@@ -104,6 +104,19 @@ export async function listPlatformLegalDocuments(): Promise<LegalDocument[]> {
 
 export const getPlatformLegalAcceptanceSummary = () =>
   rpc<LegalAcceptanceSummary>("platform_admin_legal_acceptance_summary");
+
+export interface LegalAdminAuditEvent {
+  action: "DRAFT_CREATED" | "DRAFT_UPDATED" | "DOCUMENT_PUBLISHED" | "DOCUMENT_ARCHIVED";
+  details: Record<string, unknown>;
+  created_at: string;
+  actor_email: string | null;
+  document_slug: LegalSlug | null;
+  document_title: string | null;
+  document_version: string | null;
+}
+
+export const listPlatformLegalAdminAudit = (limit = 100) =>
+  rpc<LegalAdminAuditEvent[]>("platform_admin_legal_audit_logs", { p_limit: limit });
 
 export interface PlatformLegalAcceptanceRecord {
   id: string;
