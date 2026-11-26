@@ -225,7 +225,7 @@ function AppEntry() {
     }
     let active = true;
     setLegalGate({ userId, loading: true, missing: [], error: '' });
-    void supabase.rpc('get_my_legal_status').then(({ data, error }) => {
+    void Promise.resolve(supabase.rpc('get_my_legal_status')).then(({ data, error }) => {
       if (!active) return;
       setLegalGate({
         userId,
