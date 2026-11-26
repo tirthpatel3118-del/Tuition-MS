@@ -78,11 +78,13 @@ export function AuthPage() {
       } else {
         if (!invitationToken) throw new Error('A valid institute invitation link is required to create an account.');
         const terms = legalDocuments.find(document => document.slug === 'terms-of-service');
+        const aup = legalDocuments.find(document => document.slug === 'acceptable-use-policy');
         const privacy = legalDocuments.find(document => document.slug === 'privacy-policy');
-        if (!terms || !privacy) throw new Error('Account creation is unavailable until the current Terms of Service and Privacy Policy are published.');
-        if (!acceptedLegal) throw new Error('Please agree to the Terms of Service and acknowledge the Privacy Policy to continue.');
+        if (!terms || !aup || !privacy) throw new Error('Account creation is unavailable until the current Terms, Acceptable Use Policy and Privacy Policy are published.');
+        if (!acceptedLegal) throw new Error('Please agree to the Terms and AUP, and acknowledge the Privacy Policy, to continue.');
         const needsConfirmation = await signUp(email, password, fullName, invitationToken, {
           termsDocumentId: terms.id,
+          aupDocumentId: aup.id,
           privacyDocumentId: privacy.id,
           productUpdates,
           userAgent: navigator.userAgent,
@@ -125,16 +127,17 @@ export function AuthPage() {
               <p className="mt-1 text-xs leading-5 text-slate-600">Review the current versions before creating your account.</p>
             </div>
             {legalLoading && <p className="text-xs text-slate-500">Loading published policies…</p>}
-            {!legalLoading && legalDocuments.length < 2 && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Signup is temporarily unavailable until both required legal documents are published by the ClassBandhu administrator.</p>}
+            {!legalLoading && legalDocuments.length < 3 && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Signup is temporarily unavailable until the current Terms, AUP and Privacy Policy are published by the ClassBandhu administrator.</p>}
             {legalLoadError && <p role="alert" className="text-xs text-red-700">{legalLoadError}</p>}
             {legalDocuments.some(document => document.is_test_only) && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">Development test documents are active. This signup is for staging tests only, not production use.</p>}
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold">
-              {legalDocuments.some(document => document.slug === 'terms-of-service') && <Link to="/terms" target="_blank" className="text-blue-700 underline">Read Terms of Service</Link>}
+              {legalDocuments.some(document => document.slug === 'terms-of-service') && <Link to="/terms" target="_blank" className="text-blue-700 underline">Read Terms & Conditions</Link>}
+              {legalDocuments.some(document => document.slug === 'acceptable-use-policy') && <Link to="/acceptable-use" target="_blank" className="text-blue-700 underline">Read Acceptable Use Policy</Link>}
               {legalDocuments.some(document => document.slug === 'privacy-policy') && <Link to="/privacy" target="_blank" className="text-blue-700 underline">Read Privacy Policy</Link>}
             </div>
-            {legalDocuments.length >= 2 && <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
+            {legalDocuments.length >= 3 && <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
               <input type="checkbox" checked={acceptedLegal} onChange={event => setAcceptedLegal(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
-              <span>I agree to the <strong>Terms of Service</strong> and acknowledge that I have read the <strong>Privacy Policy</strong>.</span>
+              <span>I have read and agree to the <strong>Terms & Conditions</strong> and <strong>Acceptable Use Policy</strong>, and acknowledge the <strong>Privacy Policy</strong>.</span>
             </label>}
             <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-600">
               <input type="checkbox" checked={productUpdates} onChange={event => setProductUpdates(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
@@ -144,7 +147,7 @@ export function AuthPage() {
         )}
         {(formError || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{formError || authError}</p>}
         {message && <p role="status" className="rounded-xl bg-emerald-50 px-3.5 py-3 text-sm text-emerald-800">{message}</p>}
-        <button disabled={busy || (mode === 'sign-up' && (legalLoading || legalDocuments.length < 2 || !acceptedLegal))} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-wait disabled:opacity-60">
+        <button disabled={busy || (mode === 'sign-up' && (legalLoading || legalDocuments.length < 3 || !acceptedLegal))} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#57172D] disabled:cursor-wait disabled:opacity-60">
           {busy ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
         </button>
       </form>
@@ -241,20 +244,28 @@ export function CreateInstitutePage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
-  const [dpaDocument, setDpaDocument] = useState<RequiredLegalDocument | null>(null);
-  const [dpaLoading, setDpaLoading] = useState(true);
-  const [dpaReviewed, setDpaReviewed] = useState(false);
-  const [dpaLoadError, setDpaLoadError] = useState('');
+  const [documents, setDocuments] = useState<RequiredLegalDocument[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bundleAccepted, setBundleAccepted] = useState(false);
+  const [authorityAccepted, setAuthorityAccepted] = useState(false);
+  const [dataAuthorityAccepted, setDataAuthorityAccepted] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const legalSlugs = ['terms-of-service', 'acceptable-use-policy', 'privacy-policy', 'data-processing-agreement'] as const;
 
   useEffect(() => {
     let active = true;
-    setDpaLoading(true);
-    void getPublishedLegalDocument('data-processing-agreement')
-      .then(document => { if (active) setDpaDocument(document); })
-      .catch(value => { if (active) setDpaLoadError(value instanceof Error ? value.message : 'The current DPA could not be loaded.'); })
-      .finally(() => { if (active) setDpaLoading(false); });
+    setLoading(true);
+    void Promise.all(legalSlugs.map(item => getPublishedLegalDocument(item)))
+      .then(items => {
+        if (!active) return;
+        const found = items.filter((item): item is RequiredLegalDocument => Boolean(item));
+        setDocuments(found);
+        if (found.length !== 4) setLoadError('The complete current Institute legal document bundle is not published. Workspace creation is unavailable.');
+      })
+      .catch(value => { if (active) setLoadError(value instanceof Error ? value.message : 'The current Institute legal documents could not be loaded.'); })
+      .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
@@ -265,23 +276,25 @@ export function CreateInstitutePage() {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!dpaDocument || !dpaReviewed) {
-      setError('Review and accept the current Data Processing Agreement before creating your institute.');
+    if (documents.length !== 4 || !bundleAccepted || !authorityAccepted || !dataAuthorityAccepted) {
+      setError('Review all current documents and complete exactly the three required Institute confirmations.');
       return;
     }
     setBusy(true);
     setError('');
     try {
-      await createInstitute(name, slug, dpaDocument.id);
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Could not create the institute.');
+      const documentIds = Object.fromEntries(documents.map(document => [document.slug, document.id]));
+      await createInstitute(name, slug, documentIds, authorityAccepted, dataAuthorityAccepted);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : 'Could not create the institute.');
     } finally {
       setBusy(false);
     }
   };
 
+  const testOnly = documents.some(document => document.is_test_only);
   return (
-    <AuthFrame title="Set up your institute" description={`Signed in as ${email ?? 'your account'}. Add your institute details and review the required Data Processing Agreement to continue.`}>
+    <AuthFrame title="Set up your institute" description={`Signed in as ${email ?? 'your account'}. Review the legal bundle and complete the three Institute confirmations.`}>
       <form className="space-y-4" onSubmit={submit}>
         <label className="block text-sm font-semibold text-slate-700">
           Institute name
@@ -296,29 +309,47 @@ export function CreateInstitutePage() {
           <span className="mt-1 block text-xs font-normal text-slate-400">Lowercase letters, numbers, and hyphens.</span>
         </label>
 
-        <section className="rounded-xl border border-slate-200 p-4">
-          <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38]"/><h2 className="text-sm font-bold text-slate-900">Data Processing Agreement</h2></div>
-          <p className="mt-1 text-xs leading-5 text-slate-500">The institute owner must review and accept this agreement for the new institute. Acceptance is recorded with the institute ID and exact document version during creation.</p>
-          {dpaLoading && <p className="mt-3 text-xs text-slate-500">Loading current DPA…</p>}
-          {dpaLoadError && <p role="alert" className="mt-3 text-xs text-rose-700">{dpaLoadError}</p>}
-          {!dpaLoading && !dpaDocument && <p role="alert" className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">A current DPA has not been published. Institute creation is unavailable until the administrator publishes one.</p>}
-          {dpaDocument && <>
-            {dpaDocument.is_test_only && <div role="alert" className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">DEVELOPMENT TEST COPY — For staging tests only. This DPA is not an approved production agreement.</div>}
-            <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-xs font-bold text-slate-900">{dpaDocument.title}</h3><span className="text-[10px] text-slate-500">v{dpaDocument.version}</span></div>
-              <LegalMarkdownBody value={dpaDocument.body_markdown ?? ""}/>
-            </div>
-            <p className="mt-2 break-all text-[10px] text-slate-400">SHA-256: {dpaDocument.content_sha256}</p>
-            <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
-              <input type="checkbox" checked={dpaReviewed} onChange={event => setDpaReviewed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
-              <span>I have reviewed this DPA and confirm that I am authorised to accept it on behalf of this institute.</span>
-            </label>
-          </>}
+        <section className="space-y-4 rounded-xl border border-slate-200 p-4">
+          <div>
+            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38}"/><h2 className="text-sm font-bold text-slate-900">1. Platform policies and mandatory Institute DPA</h2></div>
+            <p className="mt-1 text-xs leading-5 text-slate-500">One checkbox covers Terms, AUP, Privacy Policy acknowledgement and the mandatory Institute DPA. The DPA is not a fourth checkbox.</p>
+          </div>
+          {loading && <p className="text-xs text-slate-500">Loading the current legal bundle…</p>}
+          {loadError && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">{loadError}</p>}
+          {testOnly && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">DEVELOPMENT TEST COPY — these documents are internal drafts for staging review only. They are not approved legal agreements or production policies.</p>}
+          <div className="space-y-2">
+            {documents.map(document => <details key={document.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <summary className="cursor-pointer text-xs font-bold text-slate-800">{document.title} · v{document.version}</summary>
+              <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: {document.content_sha256}</p>
+              <div className="mt-2 max-h-64 overflow-y-auto rounded-lg bg-white p-3"><LegalMarkdownBody value={document.body_markdown ?? ''}/></div>
+            </details>)}
+          </div>
+          {documents.length === 4 && <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-200 p-3 text-xs leading-5 text-slate-700">
+            <input type="checkbox" checked={bundleAccepted} onChange={event => setBundleAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+            <span>I have read and agree to the current ClassBandhu Terms & Conditions, Acceptable Use Policy and Institute Data Processing Agreement (DPA), and acknowledge the ClassBandhu Privacy Policy.</span>
+          </label>}
+        </section>
+
+        <section className="space-y-3 rounded-xl border border-slate-200 p-4">
+          <h2 className="text-sm font-bold text-slate-900">2. Authority to create/manage the Institute</h2>
+          <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
+            <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38}"/>
+            <span>I confirm that I am authorised to create and manage this institution's account and to provide the institution's information to ClassBandhu for the ERP service.</span>
+          </label>
+        </section>
+
+        <section className="space-y-3 rounded-xl border border-slate-200 p-4">
+          <h2 className="text-sm font-bold text-slate-900">3. Authority to provide student/parent data</h2>
+          <label className="flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
+            <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38}"/>
+            <span>I confirm that, wherever required by applicable law, the institution has obtained the necessary consent or other lawful authorisation from parents or legal guardians for collecting and sharing student personal information with ClassBandhu to provide the ERP service.</span>
+          </label>
+          <p className="text-[11px] leading-5 text-slate-500">This is an Institute Owner attestation. It is not itself a student's or parent's consent and does not prove that a particular parent/guardian consent was obtained.</p>
         </section>
 
         {(error || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error || authError}</p>}
-        <button disabled={busy || dpaLoading || !dpaDocument || !dpaReviewed} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white hover:bg-[#57172D] disabled:cursor-not-allowed disabled:opacity-60">
-          {busy ? 'Creating workspace and recording acceptance…' : 'Accept DPA & Create institute'}
+        <button disabled={busy || loading || documents.length !== 4 || !bundleAccepted || !authorityAccepted || !dataAuthorityAccepted} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white hover:bg-[#57172D] disabled:cursor-not-allowed disabled:opacity-60">
+          {busy ? 'Creating workspace and recording legal declarations…' : 'Confirm three declarations & Create institute'}
         </button>
       </form>
       <button onClick={() => void signOut()} className="mt-5 w-full py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">Sign out</button>
