@@ -600,7 +600,7 @@ INSERT INTO public.legal_documents(
 VALUES
 (
   'privacy-policy','Privacy Policy','0.1-dev','en-IN',
-  $privacy$
+  $function$
 # Privacy Policy — ClassBandhu
 
 > DEVELOPMENT DRAFT — NOT A LEGAL NOTICE OR APPROVED PRODUCTION POLICY. This template must be completed and reviewed by an Indian privacy lawyer before publication. Replace every bracketed item with verified facts.
@@ -669,13 +669,13 @@ Published versions are versioned. Material changes may require a fresh notice or
 **Escalation or statutory complaint route:** [INSERT VERIFIED PROCESS AFTER LEGAL REVIEW]
 
 This draft is a checklist for product and legal review, not a representation that all listed processes are currently configured.
-$privacy$,
-  encode(extensions.digest(concat_ws(E'\n','privacy-policy','0.1-dev','en-IN','Privacy Policy',$privacy$),'sha256'),'hex'),
+$function$,
+  encode(extensions.digest(concat_ws(E'\n','privacy-policy','0.1-dev','en-IN','Privacy Policy',$function$),'sha256'),'hex'),
   'draft',true,true
 ),
 (
   'terms-of-service','Terms of Service','0.1-dev','en-IN',
-  $terms$
+  $function$
 # ClassBandhu — Terms of Service
 
 > DEVELOPMENT DRAFT — NOT A LEGALLY APPROVED CONTRACT. Complete every bracketed item and obtain legal review before publication or real customer use.
@@ -748,13 +748,13 @@ These Terms are governed by [CONFIRM APPLICABLE LAW]. Courts or dispute-resoluti
 **Legal / grievance contact:** [VERIFIED CONTACT]
 
 This development draft contains unresolved legal and operational placeholders and must not be published as an approved contract.
-$terms$,
-  encode(extensions.digest(concat_ws(E'\n','terms-of-service','0.1-dev','en-IN','Terms of Service',$terms$),'sha256'),'hex'),
+$function$,
+  encode(extensions.digest(concat_ws(E'\n','terms-of-service','0.1-dev','en-IN','Terms of Service',$function$),'sha256'),'hex'),
   'draft',true,true
 ),
 (
   'data-processing-agreement','Data Processing Agreement','0.1-dev','en-IN',
-  $dpa$
+  $function$
 # ClassBandhu — Data Processing Agreement
 
 > DEVELOPMENT DRAFT — NOT AN EXECUTED DATA PROCESSING AGREEMENT. Legal counsel must confirm the parties, roles, instructions, security measures, subprocessors, transfer terms and required schedules before publication or acceptance.
@@ -813,8 +813,8 @@ This DPA takes effect only when the final version is published and accepted by a
 **Effective date:** [INSERT AFTER APPROVAL]
 
 This document is only a development template and is not a substitute for legal review or a signed agreement.
-$dpa$,
-  encode(extensions.digest(concat_ws(E'\n','data-processing-agreement','0.1-dev','en-IN','Data Processing Agreement',$dpa$),'sha256'),'hex'),
+$function$,
+  encode(extensions.digest(concat_ws(E'\n','data-processing-agreement','0.1-dev','en-IN','Data Processing Agreement',$function$),'sha256'),'hex'),
   'draft',false,true
 )
 ON CONFLICT (slug,version,locale) DO NOTHING;
