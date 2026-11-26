@@ -117,7 +117,7 @@ assert.match(adminPanel, /instituteAcceptanceGroups\.map/);
 assert.match(adminPanel, /accountAcceptanceGroups\.map/);
 assert.match(adminPanel, /groupAcceptanceActions/);
 assert.match(adminPanel, /Institute legal bundle/);
-assert.match(adminPanel, /accepted by/);
+assert.match(adminPanel, /Accepted by/);
 assert.match(adminPanel, /Current version/);
 assert.match(adminPanel, /Document management/);
 assert.match(adminPanel, /Policy admin audit/);
