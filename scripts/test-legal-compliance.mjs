@@ -11,6 +11,7 @@ const dpaRequiredMigration = read("../supabase/migrations/20261126184500_dpa_req
 const dpaNoDocumentMigration = read("../supabase/migrations/20261126185200_require_dpa_when_no_current_document.sql");
 const immediateLegalReacceptance = read("../supabase/migrations/20261126203000_expire_legal_transition_grace.sql");
 const acceptanceGroupingMigration = read("../supabase/migrations/20261126213000_super_admin_legal_acceptance_grouping.sql");
+const instituteFirstAcceptanceMigration = read("../supabase/migrations/20261126220000_institute_first_legal_acceptance_summary.sql");
 const authPages = read("../src/pages/AuthPages.tsx");
 const authContext = read("../src/context/AuthContext.tsx");
 const legalPages = read("../src/pages/LegalPages.tsx");
@@ -20,7 +21,7 @@ const app = read("../src/App.tsx");
 const adminDashboard = read("../src/pages/SuperAdminDashboard.tsx");
 const settings = read("../src/pages/Settings.tsx");
 
-for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration], ["immediate legal reacceptance", immediateLegalReacceptance], ["acceptance grouping", acceptanceGroupingMigration]]) {
+for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration], ["immediate legal reacceptance", immediateLegalReacceptance], ["acceptance grouping", acceptanceGroupingMigration], ["institute-first acceptance", instituteFirstAcceptanceMigration]]) {
   assert.ok(migration.trim().length > 100, name + " migration should not be empty");
 }
 
@@ -59,6 +60,11 @@ assert.match(acceptanceGroupingMigration, /platform_admin_legal_acceptance_summa
 assert.match(acceptanceGroupingMigration, /md5\(a\.user_id::text\)/);
 assert.match(acceptanceGroupingMigration, /LIMIT 200/);
 assert.match(acceptanceGroupingMigration, /private\.require_platform_admin\(\)/);
+assert.match(instituteFirstAcceptanceMigration, /acceptance_scope = 'institute' AND a\.institute_id IS NOT NULL/);
+assert.match(instituteFirstAcceptanceMigration, /action_group_key/);
+assert.match(instituteFirstAcceptanceMigration, /LIMIT 200/);
+assert.match(instituteFirstAcceptanceMigration, /ACCT-UNKNOWN/);
+assert.match(instituteFirstAcceptanceMigration, /private\.require_platform_admin\(\)/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
 assert.match(legalPages, /I have read and agree to the current ClassBandhu/);
@@ -105,8 +111,13 @@ assert.match(adminPanel, /Export audit CSV/);
 assert.match(adminPanel, /Policy administration audit trail/);
 assert.match(adminPanel, /TEST ONLY/);
 assert.match(adminPanel, /Email addresses and raw account IDs are not exposed/);
-assert.match(adminPanel, /Acceptance history by account/);
-assert.match(adminPanel, /acceptanceGroups\.map/);
+assert.match(adminPanel, /Institute acceptance register/);
+assert.match(adminPanel, /Account-level acceptance history/);
+assert.match(adminPanel, /instituteAcceptanceGroups\.map/);
+assert.match(adminPanel, /accountAcceptanceGroups\.map/);
+assert.match(adminPanel, /groupAcceptanceActions/);
+assert.match(adminPanel, /Institute legal bundle/);
+assert.match(adminPanel, /accepted by/);
 assert.match(adminPanel, /Current version/);
 assert.match(adminPanel, /Document management/);
 assert.match(adminPanel, /Policy admin audit/);
