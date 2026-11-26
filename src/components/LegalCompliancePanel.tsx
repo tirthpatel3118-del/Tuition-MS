@@ -18,6 +18,57 @@ const types: Array<{ slug: LegalSlug; title: string; required: boolean }> = [
   { slug: "cookie-policy", title: "Cookie Policy", required: false },
 ];
 
+type AcceptanceRecord = LegalAcceptanceSummary["recent_acceptances"][number];
+
+type AcceptanceActionGroup = {
+  key: string;
+  actor_ref: string;
+  actor_role: string | null;
+  records: AcceptanceRecord[];
+  acceptedAt: string;
+};
+
+function groupAcceptanceActions(records: AcceptanceRecord[]): AcceptanceActionGroup[] {
+  const groups = new Map<string, AcceptanceActionGroup>();
+  records.forEach((record, index) => {
+    const key = record.action_id
+      ? record.actor_ref + ":" + record.action_id
+      : record.actor_ref + ":" + record.accepted_at + ":" + record.document_slug + ":" + index;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.records.push(record);
+      if (record.accepted_at > existing.acceptedAt) existing.acceptedAt = record.accepted_at;
+    } else {
+      groups.set(key, {
+        key,
+        actor_ref: record.actor_ref,
+        actor_role: record.actor_role,
+        records: [record],
+        acceptedAt: record.accepted_at,
+      });
+    }
+  });
+  return [...groups.values()].map(group => ({
+    ...group,
+    records: [...group.records].sort((a, b) => {
+      const order: Record<string, number> = {
+        "terms-of-service": 1,
+        "acceptable-use-policy": 2,
+        "privacy-policy": 3,
+        "data-processing-agreement": 4,
+      };
+      return (order[a.document_slug] ?? 99) - (order[b.document_slug] ?? 99);
+    }),
+  })).sort((a, b) => b.acceptedAt.localeCompare(a.acceptedAt));
+}
+
+function acceptanceMethodLabel(method: string): string {
+  if (method === "institute_legal_bundle") return "Institute legal bundle";
+  if (method === "institute_dpa") return "Legacy Institute DPA acceptance";
+  if (method === "required_reacceptance") return "Required account policy re-acceptance";
+  return method.replaceAll("_", " ");
+}
+
 function csvDownload(rows: Array<Record<string, unknown>>) {
   if (!rows.length) return;
   const headers = Object.keys(rows[0]);
@@ -45,7 +96,7 @@ export function LegalCompliancePanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [activeTab, setActiveTab] = useState<"documents" | "acceptance" | "audit">("documents");
+  const [activeTab, setActiveTab] = useState<"documents" | "institute_acceptance" | "account_acceptance" | "audit">("documents");
 
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
@@ -134,24 +185,42 @@ export function LegalCompliancePanel() {
     items: documents.filter(document => document.slug === type.slug).sort((a,b) => b.created_at.localeCompare(a.created_at)),
   }));
 
-  const acceptanceGroups = Object.values(summary.recent_acceptances.reduce<Record<string, {
-    actor_ref: string;
-    actor_role: string | null;
-    records: LegalAcceptanceSummary["recent_acceptances"];
-  }>>((groups, record) => {
-    const group = groups[record.actor_ref] ?? {
-      actor_ref: record.actor_ref,
-      actor_role: record.actor_role,
-      records: [],
-    };
-    group.records.push(record);
-    groups[record.actor_ref] = group;
-    return groups;
-  }, {})).map(group => ({
-    ...group,
-    records: [...group.records].sort((a, b) => b.accepted_at.localeCompare(a.accepted_at)),
-    lastAcceptedAt: group.records.reduce((latest, record) => record.accepted_at > latest ? record.accepted_at : latest, ""),
+  const instituteRecords = summary.recent_acceptances.filter(
+    record => record.acceptance_scope === "institute" && Boolean(record.institute_id),
+  );
+  const instituteRecordMap = new Map<string, AcceptanceRecord[]>();
+  instituteRecords.forEach(record => {
+    const key = record.institute_id as string;
+    const existing = instituteRecordMap.get(key) ?? [];
+    existing.push(record);
+    instituteRecordMap.set(key, existing);
+  });
+  const instituteAcceptanceGroups = [...instituteRecordMap.entries()].map(([instituteId, records]) => ({
+    instituteId,
+    instituteName: records[0]?.institute_name ?? "Institute name unavailable",
+    records,
+    actions: groupAcceptanceActions(records),
+    lastAcceptedAt: records.reduce((latest, record) => record.accepted_at > latest ? record.accepted_at : latest, ""),
   })).sort((a, b) => b.lastAcceptedAt.localeCompare(a.lastAcceptedAt));
+
+  const accountRecords = summary.recent_acceptances.filter(record => record.acceptance_scope === "user");
+  const accountRecordMap = new Map<string, AcceptanceRecord[]>();
+  accountRecords.forEach(record => {
+    const existing = accountRecordMap.get(record.actor_ref) ?? [];
+    existing.push(record);
+    accountRecordMap.set(record.actor_ref, existing);
+  });
+  const accountAcceptanceGroups = [...accountRecordMap.entries()].map(([actorRef, records]) => ({
+    actorRef,
+    actorRole: records.find(record => record.actor_role)?.actor_role ?? null,
+    records,
+    actions: groupAcceptanceActions(records),
+    lastAcceptedAt: records.reduce((latest, record) => record.accepted_at > latest ? record.accepted_at : latest, ""),
+  })).sort((a, b) => b.lastAcceptedAt.localeCompare(a.lastAcceptedAt));
+
+  const unlinkedInstituteRecords = summary.recent_acceptances.filter(
+    record => record.acceptance_scope === "institute" && !record.institute_id,
+  );
 
   return <section id="legal-compliance" className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -170,7 +239,8 @@ export function LegalCompliancePanel() {
     <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm" role="tablist" aria-label="Legal administration views">
       {[
         { id: "documents", label: "Document management" },
-        { id: "acceptance", label: "Acceptance history" },
+        { id: "institute_acceptance", label: "Institute acceptances" },
+        { id: "account_acceptance", label: "Account acceptances" },
         { id: "audit", label: "Policy admin audit" },
       ].map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
         className={"min-h-10 rounded-lg px-3 py-2 text-xs font-semibold transition " + (activeTab === tab.id ? "bg-[#6B1F38] text-white" : "text-slate-600 hover:bg-slate-50")}>{tab.label}</button>)}
@@ -241,45 +311,116 @@ export function LegalCompliancePanel() {
         </div>
       </>}
     </article>}
-    {activeTab === "acceptance" && <article className={card}>
+    {activeTab === "institute_acceptance" && <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance history by account</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy events are grouped by account. Email addresses and raw account IDs are not exposed.</p></div>
+        <div>
+          <div className="flex items-center gap-2"><Building2 className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Institute acceptance register</h3></div>
+          <p className="mt-1 text-xs text-slate-500">Each institute has its own legal record. The accepting owner and each document version are shown together.</p>
+        </div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
-      {acceptanceGroups.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
-        <div className="mt-4 space-y-3">
-          {acceptanceGroups.map(group => <article key={group.actor_ref} className="overflow-hidden rounded-xl border border-slate-200">
+      {instituteAcceptanceGroups.length===0 && unlinkedInstituteRecords.length===0
+        ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No institute legal-bundle acceptances have been recorded in the latest activity.</p>
+        : <div className="mt-4 space-y-3">
+          {instituteAcceptanceGroups.map(institute => <article key={institute.instituteId} className="overflow-hidden rounded-xl border border-slate-200">
+            <header className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900">{institute.instituteName}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{institute.actions.length} owner acceptance record(s) · {institute.records.length} document event(s)</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Latest institute activity</p>
+                <p className="text-xs font-semibold text-slate-700">{new Date(institute.lastAcceptedAt).toLocaleString()}</p>
+              </div>
+            </header>
+            <div className="space-y-3 p-3 sm:p-4">
+              {institute.actions.map(action => {
+                const isBundle = action.records.some(record => record.acceptance_method === "institute_legal_bundle");
+                return <section key={action.key} className="overflow-hidden rounded-xl border border-slate-200">
+                  <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-3 py-3 sm:px-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">Accepted by {action.actor_role ? action.actor_role.replaceAll("_"," ") : "account role not recorded"}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500">{action.actor_ref} · {isBundle ? "Institute legal bundle" : "Earlier institute agreement record"}</p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">{action.records.length} document record(s)</span>
+                  </header>
+                  <div className="divide-y divide-slate-100">
+                    {action.records.map((record,index) => <div key={record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-900">{record.document_title}</p>
+                          <span className="text-xs text-slate-500">v{record.document_version}</span>
+                          <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " + (record.is_current_version ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800")}>{record.is_current_version ? "Current version" : "Previous version"}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-500">{record.acceptance_type?.replaceAll("_"," ") ?? acceptanceMethodLabel(record.acceptance_method)} · {record.acceptance_scope} scope</p>
+                        <p className="mt-1 break-all font-mono text-[10px] text-slate-400">SHA-256: {record.content_sha256}</p>
+                      </div>
+                      <div className="shrink-0 text-left sm:text-right">
+                        <p className="text-[11px] font-semibold text-slate-700">{new Date(record.accepted_at).toLocaleString()}</p>
+                        <p className="mt-0.5 text-[10px] text-slate-400">{record.acceptance_source ?? "Acceptance recorded"}</p>
+                      </div>
+                    </div>)}
+                  </div>
+                </section>;
+              })}
+            </div>
+          </article>)}
+          {unlinkedInstituteRecords.length>0 && <article className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+            <p className="text-sm font-semibold text-amber-950">Institute records without an institute link</p>
+            <p className="mt-1 text-xs text-amber-900">These older records are retained for audit, but cannot safely be assigned to a named institute.</p>
+            <div className="mt-3 space-y-2">
+              {unlinkedInstituteRecords.map((record,index)=><div key={record.document_slug + record.accepted_at + index} className="rounded-lg border border-amber-200 bg-white p-3">
+                <p className="text-sm font-semibold text-slate-800">{record.document_title} · v{record.document_version}</p>
+                <p className="mt-1 text-xs text-slate-500">{record.actor_ref} · {acceptanceMethodLabel(record.acceptance_method)} · {new Date(record.accepted_at).toLocaleString()}</p>
+              </div>)}
+            </div>
+          </article>}
+        </div>}
+      <p className="mt-3 text-[11px] leading-5 text-slate-500">Institute acceptance records are grouped by institute first and then by the individual owner's acceptance action. If an institute changes owners, each owner's separate acceptance remains visible. Email addresses and raw account IDs are not exposed. The latest 200 acceptance actions are shown; export retains the existing full audit workflow.</p>
+    </article>}
+
+    {activeTab === "account_acceptance" && <article className={card}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Account-level acceptance history</h3></div>
+          <p className="mt-1 text-xs text-slate-500">Signup and required account-policy re-acceptances, kept separate from institute agreements.</p>
+        </div>
+        <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
+      </div>
+      {accountAcceptanceGroups.length===0
+        ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No account-level policy acceptances have been recorded in the latest activity.</p>
+        : <div className="mt-4 space-y-3">
+          {accountAcceptanceGroups.map(account => <article key={account.actorRef} className="overflow-hidden rounded-xl border border-slate-200">
             <header className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-4 py-3">
               <div>
-                <p className="text-sm font-bold text-slate-900">{group.actor_ref}</p>
-                <p className="mt-0.5 text-[11px] capitalize text-slate-500">{group.actor_role ? group.actor_role + " account" : "ClassBandhu account"} · {group.records.length} acceptance event(s)</p>
+                <p className="text-sm font-bold text-slate-900">{account.actorRef}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{account.actorRole ? account.actorRole + " account" : "Account-level acceptance"} · {account.actions.length} acceptance action(s)</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Last recorded</p>
-                <p className="text-xs font-semibold text-slate-700">{group.lastAcceptedAt ? new Date(group.lastAcceptedAt).toLocaleString() : "—"}</p>
+                <p className="text-xs font-semibold text-slate-700">{new Date(account.lastAcceptedAt).toLocaleString()}</p>
               </div>
             </header>
             <div className="divide-y divide-slate-100">
-              {group.records.map((record,index) => <div key={record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-semibold text-slate-900">{record.document_title}</p>
-                    <span className="text-xs text-slate-500">v{record.document_version}</span>
+              {account.actions.map(action => <section key={action.key} className="px-3 py-3 sm:px-4">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-slate-700">{acceptanceMethodLabel(action.records[0]?.acceptance_method ?? "account_acceptance")}</p>
+                  <p className="text-[11px] text-slate-500">{new Date(action.acceptedAt).toLocaleString()}</p>
+                </div>
+                <div className="space-y-2">
+                  {action.records.map((record,index)=><div key={record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{record.document_title} <span className="text-xs font-normal text-slate-500">v{record.document_version}</span></p>
+                      <p className="text-[10px] text-slate-500">{record.acceptance_type?.replaceAll("_"," ") ?? "Policy acceptance"} · {record.acceptance_source ?? "Acceptance recorded"}</p>
+                    </div>
                     <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " + (record.is_current_version ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800")}>{record.is_current_version ? "Current version" : "Previous version"}</span>
-                  </div>
-                  <p className="mt-1 text-[11px] text-slate-500">{record.acceptance_context === "institute" ? "Institute DPA" : "Account policy"} · {record.institute_name ? record.institute_name : record.acceptance_scope} · {record.acceptance_method.replaceAll("_"," ")}</p>
-                  <p className="mt-1 break-all font-mono text-[10px] text-slate-400">SHA-256: {record.content_sha256}</p>
+                  </div>)}
                 </div>
-                <div className="shrink-0 text-left sm:text-right">
-                  <p className="text-[11px] font-semibold text-slate-700">{new Date(record.accepted_at).toLocaleString()}</p>
-                  <p className="mt-0.5 text-[10px] text-slate-400">{record.acceptance_source ?? "Acceptance recorded"}</p>
-                </div>
-              </div>)}
+              </section>)}
             </div>
           </article>)}
-        </div>
-      </>}
-      <p className="mt-3 text-[11px] leading-5 text-slate-500">Showing the latest 200 events, grouped by account reference. The reference is used only to group the same account's events; it does not reveal the person's email or raw account ID. Archived policy versions and their original evidence remain preserved. Export the CSV for the retained record set (up to 10,000 rows per export).</p>
+        </div>}
+      <p className="mt-3 text-[11px] leading-5 text-slate-500">Account-level terms, acceptable-use and privacy records do not represent an institute DPA acceptance. The account reference is pseudonymous; email addresses and raw user IDs are not shown. The latest 200 acceptance actions are included.</p>
     </article>}
   </section>;
 }
