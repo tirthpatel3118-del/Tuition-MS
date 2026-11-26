@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom';
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,8 +8,9 @@ import { APP_VERSION } from './lib/appVersion';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, MessageCircle } from 'lucide-react';
 import { resetToDefault } from './data/mockData';
-import { isDemoMode } from './lib/supabase';
-import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, PrivacyPolicyPage, SelectInstitutePage, TermsPage } from './pages/AuthPages';
+import { isDemoMode, supabase } from './lib/supabase';
+import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, SelectInstitutePage } from './pages/AuthPages';
+import { InstituteLegalAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage, AcceptableUsePolicyPage, PrivacyRequestPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -179,8 +180,16 @@ function AppContent() {
                 </a>
               </div>
             </div>
+            <nav aria-label="Legal and privacy links" className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-[#D8CDD2] pt-4 text-xs font-medium text-[#6B1F38]">
+              <NavLink to="/terms" className="hover:underline">Terms & Conditions</NavLink>
+              <NavLink to="/acceptable-use" className="hover:underline">Acceptable Use Policy</NavLink>
+              <NavLink to="/privacy" className="hover:underline">Privacy Policy</NavLink>
+              <NavLink to="/dpa" className="hover:underline">Institute DPA</NavLink>
+              <NavLink to="/privacy-request" className="hover:underline">Privacy requests</NavLink>
+            </nav>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
               <span>© 2026 ClassBandhu. All rights reserved.</span>
+              <NavLink to="/privacy-preferences" className="font-medium text-[#6B1F38] hover:underline">Privacy preferences</NavLink>
               <span className="font-medium text-[#5B2941]">Developed by Tirth Patel</span>
               <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
               <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v{APP_VERSION}</span>
@@ -196,9 +205,93 @@ function AppEntry() {
   const auth = useAuth();
   const location = useLocation();
   const isInvitationRoute = location.pathname === '/accept-invitation';
+  const userId = auth.session?.user.id ?? null;
+  const [legalGate, setLegalGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
+    userId: null, loading: false, missing: [], error: '',
+  });
+  const hasOwnerMemberships = auth.memberships.some(membership => membership.role === 'owner');
+  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
+    userId: null, loading: false, missing: [], error: '',
+  });
+
+  const refreshDpaStatus = () => {
+    if (!userId || !hasOwnerMemberships) return;
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
+      setDpaGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.' });
+    });
+  };
+
+
+  const refreshLegalStatus = () => {
+    if (!userId) return;
+    setLegalGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_legal_status')).then(({ data, error }) => {
+      setLegalGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
+    });
+  };
+
+  useEffect(() => {
+    if (!auth.configured || auth.status !== 'ready' || !userId) {
+      setLegalGate({ userId: null, loading: false, missing: [], error: '' });
+      return;
+    }
+    let active = true;
+    setLegalGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_legal_status')).then(({ data, error }) => {
+      if (!active) return;
+      setLegalGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      if (active) setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
+    });
+    return () => { active = false; };
+  }, [auth.configured, auth.status, userId]);
+  useEffect(() => {
+    if (!auth.configured || auth.status !== 'ready' || !userId || !hasOwnerMemberships) {
+      setDpaGate({ userId: null, loading: false, missing: [], error: '' });
+      return;
+    }
+    let active = true;
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
+      if (!active) return;
+      setDpaGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.' });
+    });
+    return () => { active = false; };
+  }, [auth.configured, auth.status, userId, hasOwnerMemberships, auth.memberships]);
+
 
   if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
   if (location.pathname === '/terms') return <TermsPage />;
+  if (location.pathname === '/dpa') return <PublicLegalDocumentPage slug="data-processing-agreement" />;
+  if (location.pathname === '/acceptable-use') return <AcceptableUsePolicyPage />;
+  if (location.pathname === '/privacy-request') return <PrivacyRequestPage />;
 
   if (!auth.configured) {
     if (import.meta.env.PROD && !isDemoMode) {
@@ -222,9 +315,10 @@ function AppEntry() {
 
   if (location.pathname === '/forgot-password') return <ForgotPasswordPage />;
   if (location.pathname === '/reset-password') return <PasswordResetPage />;
-  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
 
-  if (auth.status === 'signed-out') return <AuthPage />;
+  if (auth.status === 'signed-out') {
+    return location.pathname === '/accept-platform-invitation' ? <PlatformInvitationAcceptancePage /> : <AuthPage />;
+  }
 
   if (auth.status === 'error') {
     return (
@@ -239,6 +333,47 @@ function AppEntry() {
     );
   }
 
+  if (auth.session && (legalGate.userId !== userId || legalGate.loading)) {
+    return <AuthLoading message="Checking current legal agreements..." />;
+  }
+  if (auth.session && legalGate.error) {
+    return (
+      <main className="min-h-screen bg-[#FAF7F8] px-4 py-10">
+        <section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+          <h1 className="text-lg font-bold text-slate-900">Legal status could not be verified</h1>
+          <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{legalGate.error}</p>
+          <button type="button" onClick={refreshLegalStatus} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
+          <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+  if (auth.session && legalGate.missing.length > 0) {
+    return <LegalAcceptanceGate onAccepted={refreshLegalStatus} />;
+  }
+
+  if (auth.session && hasOwnerMemberships && (dpaGate.userId !== userId || dpaGate.loading)) {
+    return <AuthLoading message="Checking institution agreement..." />;
+  }
+  if (auth.session && hasOwnerMemberships && dpaGate.error) {
+    return (
+      <main className="min-h-screen bg-[#FAF7F8] px-4 py-10">
+        <section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+          <h1 className="text-lg font-bold text-slate-900">Institution agreement could not be verified</h1>
+          <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{dpaGate.error}</p>
+          <button type="button" onClick={refreshDpaStatus} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
+          <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0) {
+    return <InstituteLegalAcceptanceGate onAccepted={refreshDpaStatus} />;
+  }
+
+  if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
+
+  if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
   if (isInvitationRoute) return <InvitationAcceptancePage />;
   if (location.pathname === '/sign-in' || location.pathname === '/sign-up') return <Navigate to="/" replace />;
   if (location.pathname === '/super-admin') return <SuperAdminDashboard />;
@@ -257,6 +392,9 @@ function AppEntry() {
           <p className="mt-2 text-sm leading-6 text-slate-600">
             This institute subscription is {auth.activeMembership.accessStatus}. Contact ClassBandhu administration or your institute owner to restore access.
           </p>
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+            Need to request a copy or deletion of your personal data, or raise a privacy concern? Use the <NavLink to="/privacy-request" className="font-semibold text-[#6B1F38] underline">privacy request channel</NavLink>.
+          </div>
           {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').length > 0 && (
             <div className="mt-5 space-y-2">
               <p className="text-xs font-semibold text-slate-500">Other available workspaces</p>
@@ -274,7 +412,9 @@ function AppEntry() {
     return <Suspense fallback={<AuthLoading />}><TeacherWorkspace /></Suspense>;
   }
 
-  return <DataProvider key={auth.activeMembership.instituteId}><AppContent /></DataProvider>;
+  return <DataProvider key={auth.activeMembership.instituteId}>
+    <AppContent />
+  </DataProvider>;
 }
 
 function App() {

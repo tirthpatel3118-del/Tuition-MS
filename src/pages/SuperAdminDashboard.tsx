@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity, ArrowDownRight, Building2, Check, ChevronDown, Clock3, Copy, Database, CircleDollarSign, ReceiptText, CreditCard, AlertCircle, MessageCircle,
-  GraduationCap, HardDrive, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles,
+  GraduationCap, HardDrive, LayoutDashboard, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles,
   UserPlus, Users, X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,9 @@ import {
 import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformBilling, recordPlatformBillingPayment, updatePlatformBillingContact, voidPlatformBillingInvoice, type BillingOverview, type PlatformBillingInvoice } from "../services/platformBillingService";
 import { buildSubscriptionReminderMessage, calculateSubscriptionDates, classifyBillingDueDate, daysOverdue, formatLocalDate, toWhatsAppPhone } from "../utils/platformBillingDates";
 import { SuperAdminOperations } from "./SuperAdminOperations";
+import { LegalCompliancePanel } from "../components/LegalCompliancePanel";
+
+type SuperAdminSection = "overview" | "institutes" | "invitations" | "billing" | "compliance" | "operations";
 
 type InstituteDraft = {
   accessStatus: "active" | "suspended";
@@ -114,6 +117,7 @@ export function SuperAdminDashboard() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [activeSection, setActiveSection] = useState<SuperAdminSection>("overview");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -359,6 +363,15 @@ export function SuperAdminDashboard() {
   }
 
   const pendingInvitations = invitations.filter(item => item.status === "Pending").length;
+  const navigation: Array<{ id: SuperAdminSection; label: string; description: string; icon: typeof Building2 }> = [
+    { id: "overview", label: "Overview", description: "Platform metrics and resource usage", icon: LayoutDashboard },
+    { id: "institutes", label: "Institutes", description: "Workspace status, plans and access", icon: Building2 },
+    { id: "invitations", label: "Invitations", description: "Invite owners and institute teams", icon: UserPlus },
+    { id: "billing", label: "Subscription billing", description: "Invoices, payments and receipts", icon: CircleDollarSign },
+    { id: "compliance", label: "Legal & privacy", description: "Policies and acceptance evidence", icon: ShieldCheck },
+    { id: "operations", label: "Operations", description: "Health checks and platform analytics", icon: Activity },
+  ];
+  const selectedNavigation = navigation.find(item => item.id === activeSection) ?? navigation[0];
 
   return <main className="mx-auto w-full max-w-[1480px] space-y-5 px-3 pb-8 pt-3 sm:space-y-6 sm:px-5 sm:pb-10 sm:pt-5 lg:px-7">
     <header className="relative isolate overflow-hidden rounded-[22px] bg-gradient-to-br from-[#32101F] via-[#57172D] to-[#7B2947] px-4 py-5 text-white sm:rounded-[26px] sm:px-7 sm:py-7 shadow-[0_16px_40px_rgba(77,20,43,0.18)] sm:px-7 sm:py-7">
@@ -395,8 +408,41 @@ export function SuperAdminDashboard() {
     {error && <div role="alert" className="flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><X className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
     {notice && <div role="status" className="flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><Check className="mt-0.5 h-4 w-4 shrink-0" />{notice}</div>}
 
-    <SuperAdminOperations />
+    <div className="grid gap-4 lg:grid-cols-[230px,minmax(0,1fr)]">
+      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-2 shadow-sm lg:sticky lg:top-4">
+        <div className="hidden px-3 pb-3 pt-2 lg:block">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A03B5E]">Workspace</p>
+          <p className="mt-1 text-sm font-bold text-slate-900">Administration</p>
+        </div>
+        <nav aria-label="Super Admin sections" className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+          {navigation.map(item => {
+            const Icon = item.icon;
+            const count = item.id === "invitations" ? pendingInvitations : item.id === "billing" ? pendingBillingInvoices.length : 0;
+            const active = activeSection === item.id;
+            return <button key={item.id} type="button" aria-current={active ? "page" : undefined} onClick={() => setActiveSection(item.id)}
+              className={"flex min-h-11 shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition lg:w-full " + (active ? "bg-[#F8E9ED] text-[#6B1F38]" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")}>
+              <Icon className="h-4 w-4 shrink-0"/>
+              <span className="min-w-0 flex-1 whitespace-nowrap text-xs font-semibold lg:whitespace-normal">{item.label}</span>
+              {count > 0 && <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums " + (active ? "bg-white text-[#6B1F38]" : "bg-slate-100 text-slate-600")}>{count}</span>}
+            </button>;
+          })}
+        </nav>
+        <div className="mt-3 hidden border-t border-slate-100 px-3 pt-3 text-[11px] leading-5 text-slate-400 lg:block">
+          Select a section to focus on one part of the platform at a time.
+        </div>
+      </aside>
 
+      <section className="min-w-0 space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A03B5E]">Platform administration</p>
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">{selectedNavigation.label}</h2>
+            <p className="mt-1 text-sm text-slate-500">{selectedNavigation.description}</p>
+          </div>
+          <span className="text-[11px] text-slate-400">{loading ? "Updating data…" : "Data refreshed on demand"}</span>
+        </div>
+
+        {activeSection === "overview" && <>
     <section>
       <div className="mb-3 flex items-end justify-between gap-3">
         <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#A03B5E]">Platform snapshot</p><h2 className="text-lg font-bold text-slate-900">Key numbers</h2></div>
@@ -424,8 +470,12 @@ export function SuperAdminDashboard() {
         <p className="mt-2 text-xs leading-5 text-slate-500">{overview.storage_objects_project_wide.toLocaleString()} files across the project. Institute-level attribution is not available yet.</p>
       </article>
     </section>
+        </>}
 
-    <section id="subscription-billing" className="space-y-4">
+        {activeSection === "operations" && <SuperAdminOperations />}
+        {activeSection === "compliance" && <LegalCompliancePanel />}
+
+        {activeSection === "billing" && <section id="subscription-billing" className="space-y-4">
       <SectionHeading eyebrow="Revenue operations" title="Subscription billing" description="Track due dates, send manual WhatsApp reminders and record verified payments." icon={CircleDollarSign}/>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <MetricCard label="Collected this month" value={"₹"+Number(billingOverview.paid_this_month).toLocaleString("en-IN")} note={billingOverview.paid_institutes_this_month+" institutions paid"} icon={CircleDollarSign} tone="emerald"/>
@@ -476,9 +526,9 @@ export function SuperAdminDashboard() {
         </article>
       </div>
       <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] leading-5 text-amber-900">UPI/bank transfers are manually verified by you; ClassBandhu does not query bank accounts. Receipts are payment acknowledgements, not GST tax invoices. Paid entries are immutable; an audited reversal workflow is not included yet.</p>
-    </section>
+    </section>}
 
-    {paymentInvoice&&<div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4"><form onSubmit={submitPayment} className="max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-2xl">
+    {activeSection === "billing" && paymentInvoice&&<div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4"><form onSubmit={submitPayment} className="max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-2xl">
       <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Payment verification</p><h3 className="mt-1 text-lg font-bold text-slate-900">Record received payment</h3><p className="text-xs text-slate-500">{paymentInvoice.invoice_number} · {paymentInvoice.institute_name} · ₹{Number(paymentInvoice.amount_inr).toLocaleString("en-IN")}</p></div><button type="button" onClick={()=>setPaymentInvoice(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5"/></button></div>
       <label className={labelClass}>Payment method<select value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value as typeof paymentMethod)} className={fieldClass}><option value="upi">UPI</option><option value="bank_transfer">Bank transfer</option><option value="cash">Cash</option><option value="other">Other</option></select></label>
       <label className={labelClass}>UTR / transaction reference<input value={paymentReference} onChange={e=>setPaymentReference(e.target.value)} className={fieldClass} placeholder="Required for UPI / bank transfer"/></label>
@@ -488,7 +538,7 @@ export function SuperAdminDashboard() {
       <button type="submit" disabled={busy} className="min-h-11 w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{busy?"Saving payment…":"Confirm payment & issue receipt"}</button>
     </form></div>}
 
-    {receipt&&<div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6"><style>{'@page { size: A4; margin: 12mm; } @media print { html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; } body * { visibility: hidden !important; } #classbandhu-billing-receipt, #classbandhu-billing-receipt * { visibility: visible !important; } #classbandhu-billing-receipt { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid !important; page-break-inside: avoid !important; } .receipt-actions { display: none !important; } }'}</style>
+    {activeSection === "billing" && receipt&&<div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6"><style>{'@page { size: A4; margin: 12mm; } @media print { html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; } body * { visibility: hidden !important; } #classbandhu-billing-receipt, #classbandhu-billing-receipt * { visibility: visible !important; } #classbandhu-billing-receipt { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid !important; page-break-inside: avoid !important; } .receipt-actions { display: none !important; } }'}</style>
       <div id="classbandhu-billing-receipt" className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-3 border-b border-dashed border-slate-300 pb-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8A3452]">ClassBandhu</p><h3 className="mt-1 text-2xl font-bold text-slate-900">Payment receipt</h3><p className="mt-1 text-xs text-slate-500">Subscription payment acknowledgement</p></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">PAID</span></div>
         <div className="mt-5 grid grid-cols-2 gap-4 text-sm"><div><p className="text-xs text-slate-500">Receipt number</p><p className="font-bold text-slate-900">{receipt.receipt_number}</p></div><div><p className="text-xs text-slate-500">Payment date</p><p className="font-semibold text-slate-900">{receipt.paid_at}</p></div><div><p className="text-xs text-slate-500">Received from</p><p className="font-semibold text-slate-900">{receipt.institute_name}</p></div><div><p className="text-xs text-slate-500">Invoice number</p><p className="font-semibold text-slate-900">{receipt.invoice_number}</p></div><div><p className="text-xs text-slate-500">Billing period</p><p className="font-semibold text-slate-900">{receipt.period_start} to {receipt.period_end}</p></div><div><p className="text-xs text-slate-500">Payment method</p><p className="font-semibold capitalize text-slate-900">{receipt.payment_method?.replace("_"," ")}</p></div></div>
@@ -498,7 +548,7 @@ export function SuperAdminDashboard() {
         <div className="receipt-actions mt-5 flex gap-2"><button type="button" onClick={()=>window.print()} className="flex-1 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white">Print / Save PDF</button><button type="button" onClick={()=>setReceipt(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Close</button></div>
       </div>
     </div>}
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+    {activeSection === "institutes" && <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeading eyebrow="Workspaces" title={showArchived ? "Archived institutes" : "Institute management"} description={showArchived ? "Archived workspaces retain their records and can be restored." : "Review workspace health and manage subscription or access settings."} icon={Building2} />
         <div className="flex items-center gap-2">
@@ -541,9 +591,9 @@ export function SuperAdminDashboard() {
           </article>;
         })}
       </div>}
-    </section>
+    </section>}
 
-    <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+    {activeSection === "invitations" && <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
       <article className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="border-b border-slate-100 bg-gradient-to-r from-[#FFF7F9] to-white p-5"><SectionHeading eyebrow="Grow your platform" title="Create an invitation" description="Invite an owner, teacher or accountant with a secure one-time link." icon={UserPlus} /></div>
         <div className="p-5">
@@ -574,9 +624,9 @@ export function SuperAdminDashboard() {
           </div>)}
         </div>
       </article>
-    </section>
+    </section>}
 
-    <details className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
+    {activeSection === "operations" && <details className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-amber-950"><span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4" />Usage definitions & privacy safeguards</span><ChevronDown className="h-4 w-4 transition group-open:rotate-180" /></summary>
       <ul className="mt-3 grid gap-2 border-t border-amber-200/70 pt-3 text-xs leading-5 text-amber-950/80 sm:grid-cols-2">
         <li>Database usage is the whole-project Supabase total. Institute estimates sum tagged row payloads and exclude indexes, TOAST and shared overhead.</li>
@@ -585,7 +635,12 @@ export function SuperAdminDashboard() {
         <li>Student login tracking is unavailable because students do not currently have ClassBandhu login accounts.</li>
         <li>Institute summaries show aggregate student and team counts only. Personal student, guardian and member information is not exposed.</li>
       </ul>
-    </details>
-    <p className="pb-2 text-center text-[11px] text-slate-400">ClassBandhu Platform · Secure administration · Privacy-first by design</p>
+    </details>}
+        {activeSection === "overview" && <div className="rounded-xl border border-slate-100 bg-white px-4 py-3 text-[11px] leading-5 text-slate-500">
+          <span className="font-semibold text-slate-700">Privacy-first platform view:</span> institute reporting is limited to aggregate usage and workspace configuration. Student, guardian and institute member records are not displayed here.
+        </div>}
+        <p className="pb-2 text-center text-[11px] text-slate-400">ClassBandhu Platform · Secure administration · Privacy-first by design</p>
+      </section>
+    </div>
   </main>;
 }

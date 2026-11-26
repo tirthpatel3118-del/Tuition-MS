@@ -32,20 +32,20 @@ const versionedFavicon = read('../public/favicon-v1.0.2.svg');
 // Footer content, contact links and version match the supplied reference.
 assert.ok(app.includes('ClassBandhu'));
 assert.ok(app.includes('Empowering Every Classroom.'));
-assert.ok(app.includes('Manage admissions, fees, attendance and institute records in one place.'));
+assert.ok(manifest.includes('Tuition institute workspace for admissions, fees, attendance and academic records.'));
 assert.ok(app.includes('info.classbandhu@gmail.com'));
 assert.ok(app.includes('mailto:info.classbandhu@gmail.com'));
 assert.ok(!app.includes('tirth.freelance31@gmail.com'));
-assert.ok(!app.includes('81607 33101'));
-assert.ok(!app.includes('wa.me/918160733101'));
-assert.ok(app.includes('ClassBandhu Tuition · Tuition Management Platform'));
+assert.ok(app.includes('+91 81607 33101'));
+assert.ok(app.includes('wa.me/918160733101'));
+assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
 assert.ok(app.includes('© 2026 ClassBandhu. All rights reserved.'));
 assert.ok(app.includes('v{APP_VERSION}'));
 assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
 assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.4');
+assert.equal(packageJson.version, '1.0.5');
 
 const legacyProductName = ['Edu', 'Ledger'].join('');
 for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
@@ -77,7 +77,8 @@ assert.ok(auth.includes('Empowering Every Classroom.'));
 assert.ok(!auth.includes('eduledger/'));
 assert.ok(superAdmin.includes('ClassBandhu control center'));
 assert.ok(platformInvitation.includes('ClassBandhu access'));
-assert.ok(receipts.includes("'Your Institute'"));
+assert.ok(receipts.includes("settings?.instituteName || 'ClassBandhu'"));
+assert.ok(receipts.includes('Official Fee Receipt'));
 assert.ok(attendance.includes('ClassBandhu · Attendance'));
 assert.ok(settings.includes('classbandhu_workspace_snapshot_'));
 assert.ok(settings.includes('classbandhu_students_export_'));
@@ -100,7 +101,7 @@ assert.ok(pwaMaskable.includes('/classbandhu-mark-v1.0.3.png'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
 assert.ok(manifest.includes('"/classbandhu-mark-v1.0.3.png"'));
 assert.ok(html.includes('/classbandhu-mark-v1.0.3.png'));
-assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.4"));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.5"));
 assert.ok(serviceWorker.includes('/classbandhu-mark-v1.0.3.png'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');
