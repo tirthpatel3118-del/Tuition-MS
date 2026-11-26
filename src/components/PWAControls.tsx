@@ -8,7 +8,7 @@ interface InstallPromptEvent extends Event {
 
 declare global {
   interface Window {
-    deferredEduLedgerInstall?: InstallPromptEvent;
+    deferredClassBandhuInstall?: InstallPromptEvent;
   }
 }
 
@@ -21,7 +21,7 @@ export function PWAControls() {
     const onBeforeInstall = (event: Event) => {
       event.preventDefault();
       const promptEvent = event as InstallPromptEvent;
-      window.deferredEduLedgerInstall = promptEvent;
+      window.deferredClassBandhuInstall = promptEvent;
       setInstallPrompt(promptEvent);
     };
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
@@ -53,7 +53,7 @@ export function PWAControls() {
           window.addEventListener('focus', checkForUpdates);
           window.addEventListener('online', checkForUpdates);
         })
-        .catch(error => console.error('EduLedger service worker registration failed:', error));
+        .catch(error => console.error('ClassBandhu service worker registration failed:', error));
     }
 
     return () => {
@@ -68,7 +68,7 @@ export function PWAControls() {
     await installPrompt.prompt();
     const choice = await installPrompt.userChoice;
     if (choice.outcome === 'accepted') setInstallPrompt(null);
-    window.deferredEduLedgerInstall = undefined;
+    window.deferredClassBandhuInstall = undefined;
     setInstalling(false);
   };
 
@@ -79,7 +79,7 @@ export function PWAControls() {
   };
 
   if (updateReady) {
-    return <button type="button" onClick={applyUpdate} className="ui-button-secondary" aria-label="Refresh EduLedger to apply the latest update">
+    return <button type="button" onClick={applyUpdate} className="ui-button-secondary" aria-label="Refresh ClassBandhu to apply the latest update">
       <RefreshCw className="h-4 w-4" /> Update ready
     </button>;
   }
