@@ -35,11 +35,20 @@ assert.match(css, /main \{\s*min-width: 0;\s*max-width: 100%;\s*overflow-x: clip
 
 // Installed mobile clients get safe viewport insets and can rotate naturally.
 assert.match(html, /viewport-fit=cover/);
+assert.match(html, /rel="apple-touch-icon"/);
+assert.ok(manifest.icons.some(icon => icon.sizes === "192x192"));
+assert.ok(manifest.icons.some(icon => icon.sizes === "512x512" && icon.purpose === "any"));
+assert.ok(manifest.icons.some(icon => icon.sizes === "512x512" && icon.purpose === "maskable"));
 assert.equal(manifest.display, "standalone");
 assert.equal("orientation" in manifest, false);
 
 // Installation prompts, iOS home-screen guidance and service-worker updates.
 assert.match(pwaControls, /beforeinstallprompt/);
+assert.match(pwaControls, /appinstalled/);
+assert.match(pwaControls, /navigator\.onLine/);
+assert.match(pwaControls, /How to install/);
+assert.match(dashboard, /<PWAControls\s*\/>/);
+assert.match(css, /pb-\[calc\(env\(safe-area-inset-bottom\)\+1rem\)\]/);
 assert.match(pwaControls, /navigator\.serviceWorker\.register/);
 assert.match(pwaControls, /Add to Home Screen/);
 assert.match(pwaControls, /display-mode: standalone/);
@@ -54,7 +63,7 @@ assert.match(serviceWorker, /url\.pathname\.startsWith\('\/storage\/'\)/);
 assert.match(serviceWorker, /classbandhu-shell-v1\.0\.6/);
 
 // Keep every user-visible version in sync so installed clients can detect the update.
-assert.equal(packageJson.version, "1.0.6");
+assert.equal(packageJson.version, "1.0.7");
 assert.match(appVersion, /APP_VERSION = '1\.0\.6'/);
 
 console.log("Super Admin mobile layout and PWA regression checks passed.");
