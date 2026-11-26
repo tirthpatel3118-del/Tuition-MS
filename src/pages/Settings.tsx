@@ -260,7 +260,6 @@ export const Settings: React.FC = () => {
             <span>Workspace Export</span>
           </button>
 
-}
         </div>
 
         {/* Content Container */}
