@@ -214,7 +214,7 @@ function AppEntry() {
 
   const refreshDpaStatus = () => {
     if (!userId || !hasOwnerMemberships) return;
-    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    setDpaGate({ userId, loading: true, missing: [], error: '', transitionDeadlineAt: null });
     void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
       setDpaGate({
         userId,
@@ -270,7 +270,7 @@ function AppEntry() {
       return;
     }
     let active = true;
-    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    setDpaGate({ userId, loading: true, missing: [], error: '', transitionDeadlineAt: null });
     void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
       if (!active) return;
       setDpaGate({
@@ -281,7 +281,7 @@ function AppEntry() {
         transitionDeadlineAt: data?.transition_deadline_at ?? null,
       });
     }).catch((value: unknown) => {
-      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution DPA status could not be verified.' });
+      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution legal status could not be verified.', transitionDeadlineAt: null });
     });
     return () => { active = false; };
   }, [auth.configured, auth.status, userId, hasOwnerMemberships, auth.memberships]);
