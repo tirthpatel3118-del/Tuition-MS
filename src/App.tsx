@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, NavLink 
 import { DataProvider, useData } from './context/DataContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
-import { EduLedgerMark } from './components/EduLedgerMark';
+import { ClassBandhuMark } from './components/ClassBandhuMark';
 import { APP_VERSION } from './lib/appVersion';
 import { PWAControls } from './components/PWAControls';
 import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, ClipboardCheck, BookOpen, ShieldCheck, Mail, MessageCircle } from 'lucide-react';
@@ -154,19 +154,19 @@ function AppContent() {
           })}
         </nav>
 
-        {/* EduLedger product footer — fluid layout from phones to wide desktop */}
+        {/* ClassBandhu product footer — fluid layout from phones to wide desktop */}
         <footer className="mt-auto w-full min-w-0 border-t border-[#D8CDD2] bg-white px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-6 text-xs text-[#51404A] no-print sm:px-6 xl:pb-5">
           <div className="mx-auto w-full max-w-7xl">
             <div className="grid min-w-0 grid-cols-1 items-center gap-5 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-[minmax(17rem,1fr)_minmax(20rem,1.15fr)_minmax(19rem,1fr)]">
               <div className="flex min-w-0 items-center justify-center gap-3 sm:justify-start xl:pr-4">
-                <EduLedgerMark className="h-14 w-14 shrink-0 text-[#790D3D] sm:h-16 sm:w-16" />
+                <ClassBandhuMark className="h-14 w-14 shrink-0 text-[#790D3D] sm:h-16 sm:w-16" />
                 <div className="min-w-0 border-l border-[#D8CDD2] pl-3 sm:pl-4">
-                  <p className="text-xl font-bold tracking-tight text-[#790D3D] sm:text-2xl">EduLedger</p>
-                  <p className="mt-1 text-[10px] font-semibold text-[#790D3D] sm:text-xs">— Learning Made Organized —</p>
+                  <p className="text-xl font-bold tracking-tight text-[#790D3D] sm:text-2xl">ClassBandhu</p>
+                  <p className="mt-1 text-[10px] font-semibold text-[#790D3D] sm:text-xs">Tuition Management System</p>
                 </div>
               </div>
               <p className="min-w-0 border-y border-[#D8CDD2] px-3 py-4 text-center text-sm leading-relaxed sm:col-span-2 sm:row-start-2 sm:text-base 2xl:col-span-1 2xl:row-start-1 2xl:border-y-0 2xl:border-x 2xl:px-5">
-                A complete Tuition Management System for Educational Institutes.
+                Empowering Every Classroom.
               </p>
               <div className="flex min-w-0 flex-col items-center gap-3 sm:items-start sm:justify-self-end sm:pr-1 2xl:justify-self-start 2xl:pl-5">
                 <a href="mailto:tirth.freelance31@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
@@ -180,7 +180,7 @@ function AppContent() {
               </div>
             </div>
             <div className="mt-5 flex flex-col items-center justify-between gap-3 border-t border-[#D8CDD2] pt-4 text-center 2xl:flex-row 2xl:text-left">
-              <span>© 2026 EduLedger. All rights reserved.</span>
+              <span>© 2026 ClassBandhu. All rights reserved.</span>
               <span className="font-medium text-[#5B2941]">Developed by Tirth Patel</span>
               <span className="font-medium italic text-[#5B2941]">—　Empowering Education. Together.　—</span>
               <span className="rounded-full bg-[#EEE8EC] px-4 py-1.5 text-sm font-semibold text-[#5B2941]">v{APP_VERSION}</span>
@@ -207,7 +207,7 @@ function AppEntry() {
           <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <h1 className="text-xl font-bold text-slate-900">Workspace setup required</h1>
             <p role="alert" className="mt-3 text-sm leading-6 text-slate-600">
-              EduLedger is not connected to its authentication and database service. Please contact your administrator.
+              ClassBandhu is not connected to its authentication and database service. Please contact your administrator.
             </p>
           </section>
         </main>
@@ -255,7 +255,7 @@ function AppEntry() {
         <section className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-8 shadow-sm">
           <h1 className="text-xl font-bold text-slate-900">Workspace access is unavailable</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            This institute subscription is {auth.activeMembership.accessStatus}. Contact EduLedger administration or your institute owner to restore access.
+            This institute subscription is {auth.activeMembership.accessStatus}. Contact ClassBandhu administration or your institute owner to restore access.
           </p>
           {auth.memberships.filter(item => item.instituteId !== auth.activeMembership?.instituteId && item.accessStatus === 'active').length > 0 && (
             <div className="mt-5 space-y-2">
