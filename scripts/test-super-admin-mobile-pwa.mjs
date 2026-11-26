@@ -15,13 +15,20 @@ const packageJson = JSON.parse(read("../package.json"));
 assert.match(dashboard, /import \{ PWAControls \} from "\.\.\/components\/PWAControls"/);
 assert.match(dashboard, /<PWAControls\s*\/>/);
 
+// The mobile grid's scrollable navigation must not establish a min-content page width.
+assert.match(dashboard, /grid w-full min-w-0 max-w-full grid-cols-1 gap-4 lg:grid-cols-\[230px,minmax\(0,1fr\)\]/);
+assert.match(dashboard, /h-fit w-full min-w-0 max-w-full rounded-2xl/);
+assert.match(dashboard, /grid w-full min-w-0 max-w-full grid-cols-2 gap-1\.5 pb-1 lg:flex/);
+assert.match(dashboard, /flex min-h-11 w-full min-w-0 items-center gap-2/);
+assert.match(dashboard, /w-full min-w-0 max-w-full break-words border-b/);
+
 // Institute management fields and actions must stay inside the viewport on phones.
 assert.match(dashboard, /group\/manage mt-4 min-w-0 w-full max-w-full overflow-hidden/);
 assert.match(dashboard, /grid min-w-0 w-full max-w-full grid-cols-1/);
 assert.match(dashboard, /box-border mt-1\.5 block w-full min-w-0 max-w-full/);
-assert.match(dashboard, /min-h-11 w-full items-center justify-center rounded-xl bg-\[#6B1F38\]/);
-assert.match(dashboard, /min-h-11 w-full items-center justify-center rounded-xl border border-rose-200/);
-assert.match(dashboard, /min-h-11 w-full items-center justify-center rounded-xl border border-emerald-200/);
+assert.match(dashboard, /min-h-11 w-full min-w-0 items-center justify-center rounded-xl bg-\[#6B1F38\]/);
+assert.match(dashboard, /min-h-11 w-full min-w-0 items-center justify-center rounded-xl border border-rose-200/);
+assert.match(dashboard, /min-h-11 w-full min-w-0 items-center justify-center rounded-xl border border-emerald-200/);
 assert.match(dashboard, /pb-\[calc\(env\(safe-area-inset-bottom\)\+1rem\)\]/);
 assert.match(css, /#root \{\s*min-height: 100dvh;\s*min-width: 0;/);
 assert.match(css, /main \{\s*min-width: 0;\s*max-width: 100%;\s*overflow-x: clip;/);
