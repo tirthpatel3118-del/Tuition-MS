@@ -233,7 +233,7 @@ function AppEntry() {
         missing: error ? [] : (Array.isArray(data?.missing_document_slugs) ? data.missing_document_slugs : []),
         error: error?.message ?? '',
       });
-    }).catch(value => {
+    }).catch((value: unknown) => {
       if (active) setLegalGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Legal status could not be verified.' });
     });
     return () => { active = false; };
