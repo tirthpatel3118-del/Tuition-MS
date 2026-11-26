@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function EduLedgerMark({ className = '' }: { className?: string }) {
+export function ClassBandhuMark({ className = '' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
       {/* Graduation cap */}

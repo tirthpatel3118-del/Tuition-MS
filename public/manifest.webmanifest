@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "EduLedger",
-  "short_name": "EduLedger",
-  "description": "Your institute workspace for teaching, attendance and academic records.",
+  "name": "ClassBandhu Tuition",
+  "short_name": "ClassBandhu",
+  "description": "Tuition institute workspace for admissions, fees, attendance and academic records.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

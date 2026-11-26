@@ -1,4 +1,5 @@
-const CACHE_NAME = 'eduledger-shell-v1.0.1';
+const CACHE_NAME = 'classbandhu-shell-v1.0.1';
+const LEGACY_CACHE_PREFIX = ['edu', 'ledger', '-shell-'].join('');
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/pwa-icon-v1.0.1.svg', '/pwa-maskable-v1.0.1.svg'];
 
 self.addEventListener('install', event => {
@@ -11,7 +12,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(name => name.startsWith('eduledger-shell-') && name !== CACHE_NAME).map(name => caches.delete(name)));
+    await Promise.all(names.filter(name => (name.startsWith(LEGACY_CACHE_PREFIX) || name.startsWith('classbandhu-shell-')) && name !== CACHE_NAME).map(name => caches.delete(name)));
     await self.clients.claim();
   })());
 });

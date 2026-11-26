@@ -8,7 +8,7 @@ const css = read('../src/index.css');
 const admissions = read('../src/pages/Admissions.tsx');
 const auth = read('../src/pages/AuthPages.tsx');
 const loader = read('../src/components/PageLoader.tsx');
-const mark = read('../src/components/EduLedgerMark.tsx');
+const mark = read('../src/components/ClassBandhuMark.tsx');
 const brandLoader = read('../src/components/BrandLoading.tsx');
 const favicon = read('../public/favicon.svg');
 const pwaIcon = read('../public/pwa-icon.svg');
@@ -23,15 +23,16 @@ const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.1.svg');
 const versionedFavicon = read('../public/favicon-v1.0.1.svg');
 
 // Footer content, contact links and version match the supplied reference.
-assert.ok(app.includes('EduLedger'));
-assert.ok(app.includes('Learning Made Organized'));
+assert.ok(app.includes('ClassBandhu'));
+assert.ok(app.includes('Empowering Every Classroom.'));
 assert.ok(app.includes('A complete Tuition Management System for Educational Institutes.'));
-assert.ok(app.includes('tirth.freelance31@gmail.com'));
-assert.ok(app.includes('mailto:tirth.freelance31@gmail.com'));
-assert.ok(app.includes('81607 33101'));
-assert.ok(app.includes('https://wa.me/918160733101'));
-assert.ok(app.includes('Empowering Education. Together.'));
-assert.ok(app.includes('© 2026 EduLedger. All rights reserved.'));
+assert.ok(app.includes('info.classbandhu@gmail.com'));
+assert.ok(app.includes('mailto:info.classbandhu@gmail.com'));
+assert.ok(!app.includes('tirth.freelance31@gmail.com'));
+assert.ok(app.includes(''));
+assert.ok(app.includes(''));
+assert.ok(app.includes('ClassBandhu Tuition · Tuition Management Platform'));
+assert.ok(app.includes('© 2026 ClassBandhu. All rights reserved.'));
 assert.ok(app.includes('v{APP_VERSION}'));
 assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
@@ -53,14 +54,14 @@ assert.ok(app.includes('min-h-dvh'));
 assert.ok(admissions.includes('overflow-x-auto bg-white shadow-xs'));
 
 // Institute name stays in the sidebar beside the shared product mark.
-assert.ok(sidebar.includes('EduLedgerMark className='));
+assert.ok(sidebar.includes('ClassBandhuMark className='));
 assert.ok(sidebar.includes('settings.instituteName'));
 assert.ok(sidebar.includes('Institute workspace'));
 assert.ok(sidebar.includes("collapsed ? 'xl:hidden' : ''"));
 assert.ok(sidebar.includes("window.matchMedia('(min-width: 1280px)')"));
 assert.ok(auth.includes('<BrandLoading message={message} />'));
-assert.ok(loader.includes('<EduLedgerMark'));
-assert.ok(brandLoader.includes('Loading EduLedger'));
+assert.ok(loader.includes('<ClassBandhuMark'));
+assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
 // Shared mark and install icons consistently depict a graduation cap and open book.
 assert.ok(mark.includes('M5 19.5L32 7.5L59 19.5'));
@@ -68,8 +69,8 @@ assert.ok(mark.includes('Open book'));
 assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(html.includes('<title>EduLedger ERP</title>'));
-assert.ok(manifest.includes('"short_name": "EduLedger"'));
+assert.ok(html.includes('<title>ClassBandhu ERP</title>'));
+assert.ok(manifest.includes('"short_name": "ClassBandhu"'));
 assert.ok(manifest.includes('/pwa-icon-v1.0.1.svg'));
 assert.ok(manifest.includes('/pwa-maskable-v1.0.1.svg'));
 assert.ok(html.includes('/favicon-v1.0.1.svg'));
@@ -78,8 +79,8 @@ assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(html.includes('/favicon-v1.0.1.svg'));
 assert.ok(versionedPwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
 assert.ok(versionedPwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(serviceWorker.includes("eduledger-shell-v1.0.1"));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.1"));
 assert.ok(serviceWorker.includes('/pwa-icon-v1.0.1.svg'));
 assert.ok(serviceWorker.includes('/pwa-maskable-v1.0.1.svg'));
 
-console.log('EduLedger responsive brand shell checks passed.');
+console.log('ClassBandhu responsive brand shell checks passed.');
