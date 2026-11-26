@@ -46,6 +46,7 @@ export function PWAControls() {
     let active = true;
     let registration: ServiceWorkerRegistration | undefined;
     let registrationUpdateFound: (() => void) | undefined;
+    let hasController = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
     const watchedWorkers = new Map<ServiceWorker, () => void>();
     const displayMode = window.matchMedia?.('(display-mode: standalone)');
 
@@ -67,10 +68,13 @@ export function PWAControls() {
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
     const onControllerChange = () => {
-      if (applyingUpdateRef.current) {
+      if (applyingUpdateRef.current || hasController) {
         applyingUpdateRef.current = false;
         window.location.reload();
+        return;
       }
+      // The first controller claim is the initial install, not an app update.
+      hasController = true;
     };
     const checkForUpdates = () => {
       if (document.visibilityState === 'hidden') return;
