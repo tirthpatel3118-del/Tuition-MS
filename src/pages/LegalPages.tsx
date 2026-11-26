@@ -4,7 +4,7 @@ import { Download, ShieldCheck } from "lucide-react";
 import { ClassBandhuMark } from "../components/ClassBandhuMark";
 import { useAuth } from "../context/AuthContext";
 import {
-  acceptCurrentLegalDocuments, acceptInstituteDpa,
+  acceptCurrentLegalDocuments, acceptInstituteLegalBundle,
   getMyDpaRequirements, getMyPrivacyConsents, getPublishedLegalDocument,
   getPublishedRequiredLegalDocuments, listMyLegalAcceptances, setMyProductUpdateConsent,
   type LegalSlug, type PrivacyConsent,
@@ -24,8 +24,10 @@ function LegalShell({ children, title = "ClassBandhu" }: { children: ReactNode; 
       </section>
       <nav aria-label="Legal documents" className="mt-5 flex flex-wrap justify-center gap-5 text-xs text-slate-500">
         <Link to="/privacy" className="hover:text-[#6B1F38]">Privacy Policy</Link>
-        <Link to="/terms" className="hover:text-[#6B1F38]">Terms of Service</Link>
-        <Link to="/dpa" className="hover:text-[#6B1F38]">Data Processing Agreement</Link>
+        <Link to="/terms" className="hover:text-[#6B1F38]">Terms & Conditions</Link>
+        <Link to="/acceptable-use" className="hover:text-[#6B1F38]">Acceptable Use Policy</Link>
+        <Link to="/dpa" className="hover:text-[#6B1F38]">Institute DPA</Link>
+        <Link to="/privacy-request" className="hover:text-[#6B1F38]">Privacy requests</Link>
         <Link to="/" className="hover:text-[#6B1F38]">Back to ClassBandhu</Link>
       </nav>
     </div>
@@ -167,6 +169,26 @@ export function TermsPage() {
   return <PublicLegalDocumentPage slug="terms-of-service" />;
 }
 
+export function AcceptableUsePolicyPage() {
+  return <PublicLegalDocumentPage slug="acceptable-use-policy" />;
+}
+
+export function PrivacyRequestPage() {
+  return <LegalShell title="Privacy requests and grievances">
+    <p className="mt-3 text-sm leading-7 text-slate-600">
+      For privacy questions, access or correction requests, consent withdrawal, deletion requests, or a privacy grievance, email the ClassBandhu privacy contact. For student or parent/guardian records managed by an institute, contact that institute first; ClassBandhu will assist the institute where it acts as a service provider.
+    </p>
+    <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-sm font-semibold text-slate-900">Privacy contact</p>
+      <a className="mt-2 inline-block break-all font-semibold text-[#6B1F38] underline" href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Privacy%20Request">info.classbandhu@gmail.com</a>
+      <p className="mt-3 text-xs leading-5 text-slate-500">
+        Describe the request and include enough information to locate the account or Institute. Do not send passwords, OTPs, payment PINs or unnecessary identity documents. Proportionate verification may be requested.
+      </p>
+    </div>
+    <p className="mt-4 text-xs leading-5 text-slate-500">This is an initial email-based intake route. No response-time SLA or automatic deletion promise is made by this development draft.</p>
+  </LegalShell>;
+}
+
 export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) {
   const [documents, setDocuments] = useState<RequiredLegalDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -196,16 +218,16 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
     }
   };
 
-  const bothPresent = ["privacy-policy", "terms-of-service"].every(slug => documents.some(doc => doc.slug === slug));
+  const bothPresent = ["privacy-policy", "terms-of-service", "acceptable-use-policy"].every(slug => documents.some(doc => doc.slug === slug));
   const testOnly = documents.some(doc => doc.is_test_only);
   return <LegalShell title="Review updated legal documents">
-    <p className="mt-2 text-sm leading-6 text-slate-600">The current Terms of Service and Privacy Policy must be reviewed and accepted before you can continue to your workspace. The system records the exact document versions and server timestamp.</p>
+    <p className="mt-2 text-sm leading-6 text-slate-600">The current Terms & Conditions and Acceptable Use Policy must be accepted, and the Privacy Policy acknowledged, before you can continue to your workspace. The exact document versions and server timestamps are recorded.</p>
     {testOnly && <div role="alert" className="mt-4 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
       These are development test copies, not approved production policies. Use this flow only for staging tests.
     </div>}
     {loading && <p className="mt-5 text-sm text-slate-500">Loading current documents…</p>}
     {!loading && !bothPresent && <div role="alert" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-      Both required documents must be published before acceptance can continue. Contact the ClassBandhu administrator.
+      The current Terms, Acceptable Use Policy and Privacy Policy must all be published before acceptance can continue.
     </div>}
     <div className="mt-5 space-y-3">
       {documents.map(doc => <article key={doc.id} className="rounded-xl border border-slate-200 p-4">
@@ -221,7 +243,7 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
     </div>
     {!loading && bothPresent && <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
       <input type="checkbox" checked={accepted} onChange={event => setAccepted(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]" />
-      <span>I agree to the current Terms of Service and acknowledge that I have read the current Privacy Policy.</span>
+      <span>I have read and agree to the current ClassBandhu Terms & Conditions and Acceptable Use Policy, and acknowledge the ClassBandhu Privacy Policy.</span>
     </label>}
     {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     <button type="button" disabled={!accepted || !bothPresent || loading || busy} onClick={() => void submit()} className="mt-5 w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">
@@ -241,10 +263,13 @@ function downloadCsv(rows: Record<string, string | number | null>[], filename: s
   URL.revokeObjectURL(url);
 }
 
-export function InstituteDpaAcceptanceGate({ onAccepted }: { onAccepted: () => void }) {
+export function InstituteLegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) {
   const auth = useAuth();
   const [requirements, setRequirements] = useState<import("../services/legalService").MyDpaRequirements | null>(null);
-  const [reviewed, setReviewed] = useState(false);
+  const [documents, setDocuments] = useState<RequiredLegalDocument[]>([]);
+  const [bundleAccepted, setBundleAccepted] = useState(false);
+  const [authorityAccepted, setAuthorityAccepted] = useState(false);
+  const [dataAuthorityAccepted, setDataAuthorityAccepted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -254,10 +279,15 @@ export function InstituteDpaAcceptanceGate({ onAccepted }: { onAccepted: () => v
     setLoading(true);
     setError("");
     try {
-      setRequirements(await getMyDpaRequirements());
-      setReviewed(false);
+      const next = await getMyDpaRequirements();
+      setRequirements(next);
+      setDocuments(next.documents);
+      setBundleAccepted(false);
+      setAuthorityAccepted(false);
+      setDataAuthorityAccepted(false);
+      if (next.documents.length !== 4) throw new Error("The complete current legal bundle is unavailable. Contact ClassBandhu support.");
     } catch (value) {
-      setError(value instanceof Error ? value.message : "The current institution DPA status could not be verified.");
+      setError(value instanceof Error ? value.message : "The current Institute legal status could not be verified.");
     } finally {
       setLoading(false);
     }
@@ -265,76 +295,86 @@ export function InstituteDpaAcceptanceGate({ onAccepted }: { onAccepted: () => v
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const acceptAll = async () => {
-    if (!requirements?.document || !reviewed || busy) return;
+  const pending = requirements?.institutes.filter(item => !item.accepted) ?? [];
+  const submit = async () => {
+    if (pending.length === 0 || documents.length !== 4 || !bundleAccepted || !authorityAccepted || !dataAuthorityAccepted || busy) return;
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      const pending = requirements.institutes.filter(item => !item.accepted);
+      const documentIds = Object.fromEntries(documents.map(document => [document.slug, document.id]));
       for (const institute of pending) {
-        await acceptInstituteDpa(institute.institute_id);
+        await acceptInstituteLegalBundle(institute.institute_id, documentIds, authorityAccepted, dataAuthorityAccepted);
       }
       const next = await getMyDpaRequirements();
       setRequirements(next);
-      setReviewed(false);
+      setDocuments(next.documents);
       if (next.missing_institute_ids.length === 0) {
-        setNotice("The current DPA has been recorded for all your owner institutions.");
+        setNotice("The document bundle and three declarations were recorded separately for each Institute you own.");
         onAccepted();
       } else {
-        setNotice("Some institute records were accepted. Review the remaining institution(s) below.");
+        setNotice("Some Institute confirmations remain outstanding. Review the remaining Institute(s) below.");
       }
+      setBundleAccepted(false);
+      setAuthorityAccepted(false);
+      setDataAuthorityAccepted(false);
     } catch (value) {
-      setError(value instanceof Error ? value.message : "DPA acceptance could not be recorded for every institution.");
-      try { setRequirements(await getMyDpaRequirements()); } catch { /* Keep the original error visible. */ }
+      setError(value instanceof Error ? value.message : "The Institute legal confirmations could not be recorded.");
+      try {
+        const next = await getMyDpaRequirements();
+        setRequirements(next);
+        setDocuments(next.documents);
+      } catch {
+        // Keep the original acceptance error visible.
+      }
     } finally {
       setBusy(false);
     }
   };
 
-  const document = requirements?.document ?? null;
-  const pendingCount = requirements?.missing_institute_ids.length ?? 0;
-
-  return <LegalShell title="Institution agreement required">
-    <p className="mt-2 text-sm leading-6 text-slate-600">
-      Before opening your workspace, an authorised institute owner must review and accept the current Data Processing Agreement for each institution they own. This acceptance is recorded against the institution, the document version and the server timestamp.
-    </p>
-    {document?.is_test_only && <div role="alert" className="mt-4 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
-      DEVELOPMENT TEST COPY — This DPA is only for development testing and is not an approved production agreement.
-    </div>}
-    {loading && <p className="mt-5 text-sm text-slate-500">Checking institution agreements…</p>}
+  return <LegalShell title="Institute legal confirmation">
+    <p className="mt-2 text-sm leading-6 text-slate-600">An Institute Owner must review the current Terms, AUP, Privacy Policy and mandatory DPA, then make the two Institute-specific authority declarations. This is a per-owner, per-Institute process. Staff and platform administrators cannot accept on an owner's behalf.</p>
+    {documents.some(document => document.is_test_only) && <div role="alert" className="mt-4 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">DEVELOPMENT TEST COPY — these documents are staging drafts for your review, not approved production agreements.</div>}
+    {loading && <p className="mt-5 text-sm text-slate-500">Checking Institute legal confirmations…</p>}
     {error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-    {!loading && !document && <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-      No current Data Processing Agreement is published. Workspace access is paused until the ClassBandhu administrator publishes the current agreement.
-    </div>}
-    {document && <>
-      <div className="mt-5 rounded-xl border border-slate-200 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div><h2 className="font-bold text-slate-900">{document.title}</h2><p className="mt-1 text-xs text-slate-500">Version {document.version} · {document.locale}</p></div>
-          <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">Current version</span>
-        </div>
-        <div className="mt-4 max-h-[24rem] overflow-y-auto rounded-lg bg-slate-50 p-3 sm:p-4">
-          <LegalMarkdownBody value={document.body_markdown ?? ""} />
-        </div>
-        <p className="mt-3 break-all text-[10px] leading-4 text-slate-500">SHA-256: <code>{document.content_sha256}</code></p>
-      </div>
-      <section className="mt-5 space-y-3">
-        <div><h2 className="text-sm font-bold text-slate-900">Your institutions</h2><p className="mt-1 text-xs text-slate-500">The DPA is recorded once per institution. Other owners can see the institution's accepted status.</p></div>
-        {requirements?.institutes.map(institute=><article key={institute.institute_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
-          <div><p className="text-sm font-semibold text-slate-900">{institute.institute_name}</p><p className="mt-1 text-xs text-slate-500">{institute.accepted ? "Accepted by " + (institute.accepted_by ?? "an institute owner") + (institute.accepted_at ? " · " + new Date(institute.accepted_at).toLocaleString() : "") : "Acceptance required"}</p></div>
-          <span className={institute.accepted ? "rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800" : "rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"}>{institute.accepted ? "Accepted" : "Pending"}</span>
-        </article>)}
-        {pendingCount > 0 && <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
-          <input type="checkbox" checked={reviewed} onChange={event=>setReviewed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
-          <span>I have reviewed the current DPA and confirm that I am authorised to accept it on behalf of each pending institution listed above.</span>
-        </label>}
-        {pendingCount > 0 && <button type="button" disabled={!reviewed || busy || loading || !document} onClick={()=>void acceptAll()} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
-          {busy ? "Recording institution acceptance…" : "Accept DPA and continue"}
-        </button>}
-        {pendingCount === 0 && document && !loading && <div className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-900">All your owner institutions have accepted the current DPA. You can continue to your workspace.</div>}
-      </section>
-    </>}
+    {!loading && <section className="mt-5 space-y-2">
+      <h2 className="text-sm font-bold text-slate-900">Institutes requiring your confirmation</h2>
+      {requirements?.institutes.map(item => <article key={item.institute_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+        <div><p className="text-sm font-semibold text-slate-900">{item.institute_name}</p><p className="mt-1 text-xs text-slate-500">{item.accepted ? "Confirmed by you" : "Your confirmation is pending"}</p></div>
+        <span className={item.accepted ? "rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800" : "rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"}>{item.accepted ? "Complete" : "Pending"}</span>
+      </article>)}
+    </section>}
+    <section className="mt-5 space-y-3 rounded-xl border border-slate-200 p-4">
+      <div><h2 className="text-sm font-bold text-slate-900">1. Platform policies and mandatory Institute DPA</h2><p className="mt-1 text-xs leading-5 text-slate-500">One checkbox covers the three account policies and the mandatory Institute DPA. Each document receives its own acceptance evidence linked to the same action and Institute.</p></div>
+      {documents.map(document => <details key={document.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <summary className="cursor-pointer text-xs font-bold text-slate-800">{document.title} · v{document.version}</summary>
+        <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: {document.content_sha256}</p>
+        <div className="mt-2 max-h-60 overflow-y-auto rounded-lg bg-white p-3"><LegalMarkdownBody value={document.body_markdown ?? ""}/></div>
+      </details>)}
+      {documents.length === 4 && <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-xs leading-5 text-slate-700">
+        <input type="checkbox" checked={bundleAccepted} onChange={event => setBundleAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+        <span>I have read and agree to the current ClassBandhu Terms & Conditions, Acceptable Use Policy and Institute Data Processing Agreement (DPA), and acknowledge the ClassBandhu Privacy Policy.</span>
+      </label>}
+    </section>
+    <section className="mt-4 space-y-3 rounded-xl border border-slate-200 p-4">
+      <h2 className="text-sm font-bold text-slate-900">2. Authority to create/manage the Institute</h2>
+      <label className="flex cursor-pointer items-start gap-3 text-xs leading-5 text-slate-700">
+        <input type="checkbox" checked={authorityAccepted} onChange={event => setAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+        <span>I confirm that I am authorised to create and manage this institution's account and to provide the institution's information to ClassBandhu for the ERP service.</span>
+      </label>
+    </section>
+    <section className="mt-4 space-y-3 rounded-xl border border-slate-200 p-4">
+      <h2 className="text-sm font-bold text-slate-900">3. Authority to provide student/parent data</h2>
+      <label className="flex cursor-pointer items-start gap-3 text-xs leading-5 text-slate-700">
+        <input type="checkbox" checked={dataAuthorityAccepted} onChange={event => setDataAuthorityAccepted(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+        <span>I confirm that, wherever required by applicable law, the institution has obtained the necessary consent or other lawful authorisation from parents or legal guardians for collecting and sharing student personal information with ClassBandhu to provide the ERP service.</span>
+      </label>
+      <p className="text-[11px] leading-5 text-slate-500">This is an Institute Owner attestation. It is not itself a student's or parent's consent and does not prove that a particular parent/guardian consent was obtained.</p>
+    </section>
     {notice && <p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
+    {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+    {pending.length > 0 && <button type="button" disabled={busy || loading || documents.length !== 4 || !bundleAccepted || !authorityAccepted || !dataAuthorityAccepted} onClick={() => void submit()} className="mt-5 w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{busy ? "Recording Institute declarations…" : "Confirm three declarations for each pending Institute"}</button>}
+    {pending.length === 0 && !loading && <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-900">All your current owner Institutes have a complete legal bundle and declaration record.</div>}
     <button type="button" onClick={() => void auth.signOut()} className="mt-5 w-full py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">Sign out</button>
   </LegalShell>;
 }
