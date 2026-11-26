@@ -94,7 +94,7 @@ assert.match(adminPanel, /TEST ONLY/);
 assert.match(adminPanel, /Account email addresses and browser identifiers are not displayed/);
 assert.match(legalService, /platform_admin_legal_audit_logs/);
 assert.match(adminPanel, /Policy administration audit trail/);
-assert.match(adminPanel, /Administrator/);
+assert.match(adminPanel, /Platform administrator/);
 assert.match(legalPages, /InstituteLegalAcceptanceGate/);
 assert.match(legalPages, /Acceptable Use Policy/);
 assert.match(legalPages, /Confirm three declarations for each pending Institute/);
