@@ -7,6 +7,13 @@ const sidebar = read('../src/components/Sidebar.tsx');
 const css = read('../src/index.css');
 const admissions = read('../src/pages/Admissions.tsx');
 const auth = read('../src/pages/AuthPages.tsx');
+const superAdmin = read('../src/pages/SuperAdminDashboard.tsx');
+const platformInvitation = read('../src/pages/PlatformInvitationAcceptancePage.tsx');
+const receipts = read('../src/pages/Receipts.tsx');
+const attendance = read('../src/pages/Attendance.tsx');
+const settings = read('../src/pages/Settings.tsx');
+const authContext = read('../src/context/AuthContext.tsx');
+const pwaControls = read('../src/components/PWAControls.tsx');
 const loader = read('../src/components/PageLoader.tsx');
 const mark = read('../src/components/ClassBandhuMark.tsx');
 const brandLoader = read('../src/components/BrandLoading.tsx');
@@ -40,6 +47,11 @@ assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
 assert.equal(packageJson.version, '1.0.1');
 
+const legacyProductName = ['Edu', 'Ledger'].join('');
+for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
+  assert.ok(!content.includes(legacyProductName), `${surface} still contains the retired product name`);
+}
+
 // Phone and tablet layouts use the drawer and bottom navigation until large desktop.
 assert.ok(app.includes('xl:hidden'));
 assert.ok(sidebar.includes('xl:block'));
@@ -62,6 +74,15 @@ assert.ok(sidebar.includes("window.matchMedia('(min-width: 1280px)')"));
 assert.ok(auth.includes('<BrandLoading message={message} />'));
 assert.ok(auth.includes('ClassBandhu'));
 assert.ok(auth.includes('Empowering Every Classroom.'));
+assert.ok(superAdmin.includes('ClassBandhu control center'));
+assert.ok(platformInvitation.includes('ClassBandhu access'));
+assert.ok(receipts.includes("'Your Institute'"));
+assert.ok(attendance.includes('ClassBandhu · Attendance'));
+assert.ok(settings.includes('classbandhu_workspace_snapshot_'));
+assert.ok(settings.includes('classbandhu_students_export_'));
+assert.ok(authContext.includes('A valid invitation is required to create a ClassBandhu account.'));
+assert.ok(authContext.includes("'eduledger.activeInstituteId'")); // Preserve existing local workspace state.
+assert.ok(pwaControls.includes('deferredClassBandhuInstall'));
 assert.ok(loader.includes('<ClassBandhuMark'));
 assert.ok(brandLoader.includes('Loading ClassBandhu'));
 

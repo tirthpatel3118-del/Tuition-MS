@@ -212,7 +212,7 @@ export const Receipts: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-base leading-none">{settings?.instituteName || 'EduLedger Coaching'}</h3>
+                  <h3 className="font-bold text-slate-800 text-base leading-none">{settings?.instituteName || 'Your Institute'}</h3>
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1 block">{settings?.website || 'ERP Academy Suite'}</span>
                 </div>
               </div>

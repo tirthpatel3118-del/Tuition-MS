@@ -90,7 +90,7 @@ export function SuperAdminDashboard() {
   const [invoiceDue, setInvoiceDue] = useState(() => calculateSubscriptionDates(formatLocalDate(new Date()), "monthly").dueAt);
   const [billingContactPhone, setBillingContactPhone] = useState("");
   const [invoiceAmount, setInvoiceAmount] = useState("");
-  const [invoiceDescription, setInvoiceDescription] = useState("EduLedger platform subscription");
+  const [invoiceDescription, setInvoiceDescription] = useState("ClassBandhu platform subscription");
   const [paymentInvoice, setPaymentInvoice] = useState<PlatformBillingInvoice | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"upi" | "bank_transfer" | "cash" | "other">("upi");
   const [paymentReference, setPaymentReference] = useState("");
@@ -320,7 +320,7 @@ export function SuperAdminDashboard() {
       <section className="rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-sm">
         <ShieldCheck className="mx-auto h-10 w-10 text-rose-700" />
         <h1 className="mt-4 text-xl font-bold text-slate-900">Access restricted</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Only the designated EduLedger platform administrator can access this area.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Only the designated ClassBandhu platform administrator can access this area.</p>
       </section>
     </main>;
   }
@@ -334,7 +334,7 @@ export function SuperAdminDashboard() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-rose-100">
-            <Sparkles className="h-3.5 w-3.5" /> EduLedger control center
+            <Sparkles className="h-3.5 w-3.5" /> ClassBandhu control center
           </div>
           <h1 className="mt-3 text-2xl font-bold tracking-tight sm:mt-4 sm:text-4xl">Good to see you.</h1>
           <p className="mt-2 max-w-xl text-sm leading-5 text-rose-100/80 sm:leading-6">Your platform at a glance. Monitor institute growth, service usage and access from one place.</p>
@@ -442,7 +442,7 @@ export function SuperAdminDashboard() {
           </div>
         </article>
       </div>
-      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] leading-5 text-amber-900">UPI/bank transfers are manually verified by you; EduLedger does not query bank accounts. Receipts are payment acknowledgements, not GST tax invoices. Paid entries are immutable; an audited reversal workflow is not included yet.</p>
+      <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] leading-5 text-amber-900">UPI/bank transfers are manually verified by you; ClassBandhu does not query bank accounts. Receipts are payment acknowledgements, not GST tax invoices. Paid entries are immutable; an audited reversal workflow is not included yet.</p>
     </section>
 
     {paymentInvoice&&<div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4"><form onSubmit={submitPayment} className="max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-2xl">
@@ -455,13 +455,13 @@ export function SuperAdminDashboard() {
       <button type="submit" disabled={busy} className="min-h-11 w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{busy?"Saving payment…":"Confirm payment & issue receipt"}</button>
     </form></div>}
 
-    {receipt&&<div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6"><style>{'@page { size: A4; margin: 12mm; } @media print { html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; } body * { visibility: hidden !important; } #eduledger-billing-receipt, #eduledger-billing-receipt * { visibility: visible !important; } #eduledger-billing-receipt { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid !important; page-break-inside: avoid !important; } .receipt-actions { display: none !important; } }'}</style>
-      <div id="eduledger-billing-receipt" className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-        <div className="flex items-start justify-between gap-3 border-b border-dashed border-slate-300 pb-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8A3452]">EduLedger</p><h3 className="mt-1 text-2xl font-bold text-slate-900">Payment receipt</h3><p className="mt-1 text-xs text-slate-500">Subscription payment acknowledgement</p></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">PAID</span></div>
+    {receipt&&<div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6"><style>{'@page { size: A4; margin: 12mm; } @media print { html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #fff !important; } body * { visibility: hidden !important; } #classbandhu-billing-receipt, #classbandhu-billing-receipt * { visibility: visible !important; } #classbandhu-billing-receipt { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; break-inside: avoid !important; page-break-inside: avoid !important; } .receipt-actions { display: none !important; } }'}</style>
+      <div id="classbandhu-billing-receipt" className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="flex items-start justify-between gap-3 border-b border-dashed border-slate-300 pb-4"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8A3452]">ClassBandhu</p><h3 className="mt-1 text-2xl font-bold text-slate-900">Payment receipt</h3><p className="mt-1 text-xs text-slate-500">Subscription payment acknowledgement</p></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">PAID</span></div>
         <div className="mt-5 grid grid-cols-2 gap-4 text-sm"><div><p className="text-xs text-slate-500">Receipt number</p><p className="font-bold text-slate-900">{receipt.receipt_number}</p></div><div><p className="text-xs text-slate-500">Payment date</p><p className="font-semibold text-slate-900">{receipt.paid_at}</p></div><div><p className="text-xs text-slate-500">Received from</p><p className="font-semibold text-slate-900">{receipt.institute_name}</p></div><div><p className="text-xs text-slate-500">Invoice number</p><p className="font-semibold text-slate-900">{receipt.invoice_number}</p></div><div><p className="text-xs text-slate-500">Billing period</p><p className="font-semibold text-slate-900">{receipt.period_start} to {receipt.period_end}</p></div><div><p className="text-xs text-slate-500">Payment method</p><p className="font-semibold capitalize text-slate-900">{receipt.payment_method?.replace("_"," ")}</p></div></div>
         <div className="mt-6 flex items-center justify-between border-y border-slate-200 py-4"><span className="font-semibold text-slate-700">Amount received</span><strong className="text-2xl text-slate-950">₹{Number(receipt.payment_amount_inr??receipt.amount_inr).toLocaleString("en-IN",{minimumFractionDigits:2})}</strong></div>
         {receipt.transaction_reference&&<p className="mt-4 break-all text-xs text-slate-500">Transaction reference: {receipt.transaction_reference}</p>}
-        <p className="mt-6 text-center text-[11px] leading-5 text-slate-500">Thank you for choosing EduLedger. This receipt is not a GST tax invoice.</p>
+        <p className="mt-6 text-center text-[11px] leading-5 text-slate-500">Thank you for choosing ClassBandhu. This receipt is not a GST tax invoice.</p>
         <div className="receipt-actions mt-5 flex gap-2"><button type="button" onClick={()=>window.print()} className="flex-1 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-bold text-white">Print / Save PDF</button><button type="button" onClick={()=>setReceipt(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Close</button></div>
       </div>
     </div>}
@@ -470,7 +470,7 @@ export function SuperAdminDashboard() {
         <SectionHeading eyebrow="Workspaces" title="Institute management" description="Review workspace health and manage subscription or access settings." icon={Building2} />
         <label className="relative block w-full sm:max-w-xs"><span className="sr-only">Search institutions</span><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input aria-label="Search institutions" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search institute or workspace…" className={`${fieldClass} pl-10`} /></label>
       </div>
-      <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 text-xs leading-5 text-slate-500">Student and guardian details, member email addresses, fees, payments, receipts and attendance content are not exposed. The separate subscription ledger shows only EduLedger platform billing records.</div>
+      <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3 text-xs leading-5 text-slate-500">Student and guardian details, member email addresses, fees, payments, receipts and attendance content are not exposed. The separate subscription ledger shows only ClassBandhu platform billing records.</div>
       {loading ? <div className="p-8 text-center text-sm text-slate-500"><RefreshCw className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading institute summaries…</div> : visibleInstitutes.length === 0 ? <div className="px-5 py-12 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><Building2 className="h-6 w-6" /></span><p className="mt-3 font-semibold text-slate-800">{search ? "No matching institutes" : "Your institute list is empty"}</p><p className="mt-1 text-sm text-slate-500">{search ? "Try a different institute name or workspace slug." : "New workspaces will appear here after an owner creates an institute."}</p></div> : <div className="divide-y divide-slate-100">
         {visibleInstitutes.map(item => {
           const draft = drafts[item.institute_id];
@@ -543,10 +543,10 @@ export function SuperAdminDashboard() {
         <li>Database usage is the whole-project Supabase total. Institute estimates sum tagged row payloads and exclude indexes, TOAST and shared overhead.</li>
         <li>Storage totals are project-wide. Per-institute file attribution is unavailable until institute-specific storage paths are introduced and audited.</li>
         <li>Team activity counts unique invited team accounts active per day over the last 30 days.</li>
-        <li>Student login tracking is unavailable because students do not currently have EduLedger login accounts.</li>
+        <li>Student login tracking is unavailable because students do not currently have ClassBandhu login accounts.</li>
         <li>Institute summaries show aggregate student and team counts only. Personal student, guardian and member information is not exposed.</li>
       </ul>
     </details>
-    <p className="pb-2 text-center text-[11px] text-slate-400">EduLedger Platform · Secure administration · Privacy-first by design</p>
+    <p className="pb-2 text-center text-[11px] text-slate-400">ClassBandhu Platform · Secure administration · Privacy-first by design</p>
   </main>;
 }
