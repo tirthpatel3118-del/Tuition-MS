@@ -7,6 +7,8 @@ const seed = read("../supabase/migrations/20261126174600_seed_legal_document_dra
 const capture = read("../supabase/migrations/20261126180000_legal_acceptance_capture_hardening.sql");
 const exportMigration = read("../supabase/migrations/20261126181000_legal_acceptance_export.sql");
 const auditMigration = read("../supabase/migrations/20261126182000_legal_locale_and_admin_audit.sql");
+const dpaRequiredMigration = read("../supabase/migrations/20261126184500_dpa_required_for_institute_onboarding.sql");
+const dpaNoDocumentMigration = read("../supabase/migrations/20261126185200_require_dpa_when_no_current_document.sql");
 const authPages = read("../src/pages/AuthPages.tsx");
 const authContext = read("../src/context/AuthContext.tsx");
 const legalPages = read("../src/pages/LegalPages.tsx");
@@ -14,8 +16,9 @@ const legalService = read("../src/services/legalService.ts");
 const adminPanel = read("../src/components/LegalCompliancePanel.tsx");
 const app = read("../src/App.tsx");
 const adminDashboard = read("../src/pages/SuperAdminDashboard.tsx");
+const settings = read("../src/pages/Settings.tsx");
 
-for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration]]) {
+for (const [name, migration] of [["schema", schema], ["seed", seed], ["capture", capture], ["export", exportMigration], ["audit", auditMigration], ["DPA onboarding", dpaRequiredMigration], ["DPA missing document gate", dpaNoDocumentMigration]]) {
   assert.ok(migration.trim().length > 100, name + " migration should not be empty");
 }
 
@@ -42,7 +45,12 @@ assert.match(capture, /DEVELOPMENT DRAFT/);
 assert.match(capture, /unresolved placeholders/);
 assert.match(exportMigration, /platform_admin_export_legal_acceptances/);
 assert.match(exportMigration, /private\.require_platform_admin\(\)/);
-assert.doesNotMatch(schema + capture + exportMigration, /DROP TABLE/i);
+assert.doesNotMatch(schema + capture + exportMigration + dpaRequiredMigration + dpaNoDocumentMigration, /DROP TABLE/i);
+assert.match(dpaRequiredMigration, /create_institute_with_dpa_acceptance/);
+assert.match(dpaRequiredMigration, /private\.record_legal_acceptance/);
+assert.match(dpaRequiredMigration, /REVOKE ALL ON FUNCTION public\.create_institute_atomic/);
+assert.match(dpaRequiredMigration, /p_dpa_document_id/);
+assert.match(dpaNoDocumentMigration, /missing_institute_ids/);
 
 assert.match(authPages, /getPublishedRequiredLegalDocuments/);
 assert.match(authPages, /I agree to the/);
@@ -51,6 +59,11 @@ assert.match(authPages, /legalDocuments.length < 2/);
 assert.match(authContext, /legal_terms_accepted: true/);
 assert.match(authContext, /legal_terms_document_id: legalAcceptance\.termsDocumentId/);
 assert.match(authContext, /legal_privacy_document_id: legalAcceptance\.privacyDocumentId/);
+assert.match(authContext, /create_institute_with_dpa_acceptance/);
+assert.match(authContext, /p_dpa_document_id: dpaDocumentId/);
+assert.match(authPages, /Accept DPA & Create institute/);
+assert.match(authPages, /I have reviewed this DPA/);
+assert.match(authPages, /createInstitute\(name, slug, dpaDocument\.id\)/);
 
 assert.match(legalPages, /LegalAcceptanceGate/);
 assert.match(legalPages, /acceptCurrentLegalDocuments/);
@@ -65,6 +78,8 @@ assert.match(legalService, /platform_admin_export_legal_acceptances/);
 assert.match(legalService, /platform_admin_legal_audit_logs/);
 
 assert.match(app, /get_my_legal_status/);
+assert.match(app, /get_my_dpa_requirements/);
+assert.match(app, /InstituteDpaAcceptanceGate/);
 assert.match(app, /LegalAcceptanceGate/);
 assert.match(app, /PrivacyPreferencesPage/);
 assert.match(app, /location\.pathname === '\/dpa'/);
@@ -77,7 +92,12 @@ assert.match(adminPanel, /No student information is included/);
 assert.match(legalService, /platform_admin_legal_audit_logs/);
 assert.match(adminPanel, /Policy administration audit trail/);
 assert.match(adminPanel, /Administrator/);
-assert.match(legalPages, /I have reviewed this DPA/);
+assert.match(legalPages, /InstituteDpaAcceptanceGate/);
+assert.match(legalPages, /I have reviewed the current DPA/);
+assert.match(legalPages, /Accept DPA and continue/);
+assert.match(legalService, /get_my_dpa_requirements/);
+assert.doesNotMatch(legalPages, /InstituteDpaSettingsPanel/);
+assert.doesNotMatch(settings, /Legal & Privacy|InstituteDpaSettingsPanel/);
 assert.match(legalPages, /renderInlineMarkdown/);
 assert.match(legalPages, /font-semibold text-slate-900/);
 assert.match(legalPages, /sm:hidden/);
