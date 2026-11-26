@@ -25,9 +25,9 @@ const manifest = read('../public/manifest.webmanifest');
 const serviceWorker = read('../public/sw.js');
 const packageJson = JSON.parse(read('../package.json'));
 const appVersion = read('../src/lib/appVersion.ts');
-const versionedPwaIcon = read('../public/pwa-icon-v1.0.1.svg');
-const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.1.svg');
-const versionedFavicon = read('../public/favicon-v1.0.1.svg');
+const versionedPwaIcon = read('../public/pwa-icon-v1.0.2.svg');
+const versionedPwaMaskable = read('../public/pwa-maskable-v1.0.2.svg');
+const versionedFavicon = read('../public/favicon-v1.0.2.svg');
 
 // Footer content, contact links and version match the supplied reference.
 assert.ok(app.includes('ClassBandhu'));
@@ -45,7 +45,7 @@ assert.ok(brandLoader.includes('v{APP_VERSION}'));
 assert.ok(app.includes("import { APP_VERSION } from './lib/appVersion'"));
 assert.ok(brandLoader.includes("import { APP_VERSION } from '../lib/appVersion'"));
 assert.ok(appVersion.includes(`'${packageJson.version}'`));
-assert.equal(packageJson.version, '1.0.1');
+assert.equal(packageJson.version, '1.0.2');
 
 const legacyProductName = ['Edu', 'Ledger'].join('');
 for (const [surface, content] of Object.entries({ app, sidebar, auth, superAdmin, platformInvitation, receipts, attendance, brandLoader, pwaControls, html, manifest })) {
@@ -86,25 +86,26 @@ assert.ok(pwaControls.includes('deferredClassBandhuInstall'));
 assert.ok(loader.includes('<ClassBandhuMark'));
 assert.ok(brandLoader.includes('Loading ClassBandhu'));
 
-// Shared mark and install icons consistently depict a graduation cap and open book.
-assert.ok(mark.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(mark.includes('Open book'));
-assert.ok(favicon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(pwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(pwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
+// Shared mark and install icons consistently use the globe-orbit-book emblem.
+assert.ok(mark.includes('cx="50" cy="39" r="25"'));
+assert.ok(mark.includes('M12 71 C26 66 39 69 50 77'));
+assert.ok(mark.includes('M11 50 C27 72 68 62 84 33'));
+assert.ok(favicon.includes('cx="50" cy="39" r="25"'));
+assert.ok(pwaIcon.includes('cx="50" cy="39" r="25"'));
+assert.ok(pwaMaskable.includes('cx="50" cy="39" r="25"'));
 assert.ok(html.includes('<title>ClassBandhu Tuition ERP</title>'));
 assert.ok(manifest.includes('"short_name": "ClassBandhu"'));
-assert.ok(manifest.includes('/pwa-icon-v1.0.1.svg'));
-assert.ok(manifest.includes('/pwa-maskable-v1.0.1.svg'));
-assert.ok(html.includes('/favicon-v1.0.1.svg'));
+assert.ok(manifest.includes('/pwa-icon-v1.0.2.svg'));
+assert.ok(manifest.includes('/pwa-maskable-v1.0.2.svg'));
+assert.ok(html.includes('/favicon-v1.0.2.svg'));
 assert.ok(versionedFavicon.includes('width="64" height="64"'));
-assert.ok(versionedFavicon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(html.includes('/favicon-v1.0.1.svg'));
-assert.ok(versionedPwaIcon.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(versionedPwaMaskable.includes('M5 19.5L32 7.5L59 19.5'));
-assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.1"));
+assert.ok(versionedFavicon.includes('cx="50" cy="39" r="25"'));
+assert.ok(html.includes('/favicon-v1.0.2.svg'));
+assert.ok(versionedPwaIcon.includes('cx="50" cy="39" r="25"'));
+assert.ok(versionedPwaMaskable.includes('cx="50" cy="39" r="25"'));
+assert.ok(serviceWorker.includes("classbandhu-shell-v1.0.2"));
 assert.ok(serviceWorker.includes('LEGACY_CACHE_PREFIX'));
-assert.ok(serviceWorker.includes('/pwa-icon-v1.0.1.svg'));
-assert.ok(serviceWorker.includes('/pwa-maskable-v1.0.1.svg'));
+assert.ok(serviceWorker.includes('/pwa-icon-v1.0.2.svg'));
+assert.ok(serviceWorker.includes('/pwa-maskable-v1.0.2.svg'));
 
 console.log('ClassBandhu responsive brand shell checks passed.');
