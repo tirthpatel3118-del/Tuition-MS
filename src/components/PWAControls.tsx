@@ -35,6 +35,13 @@ export function PWAControls() {
   const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   useEffect(() => {
+    let active = true;
+    let refreshing = false;
+    let registration: ServiceWorkerRegistration | undefined;
+    let onUpdateFound: (() => void) | undefined;
+    let installingWorker: ServiceWorker | null = null;
+    let onWorkerStateChange: (() => void) | undefined;
+
     setStandalone(isStandaloneApp());
     setAppleMobile(isAppleMobileDevice());
 
@@ -44,31 +51,38 @@ export function PWAControls() {
       window.deferredClassBandhuInstall = promptEvent;
       setInstallPrompt(promptEvent);
     };
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-
-    let registration: ServiceWorkerRegistration | undefined;
-    const onControllerChange = () => window.location.reload();
+    const onControllerChange = () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    };
     const checkForUpdates = () => {
       void registration?.update().catch(error => {
         console.warn('ClassBandhu update check failed:', error);
       });
     };
 
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
       void navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
         .then(value => {
+          if (!active) return;
           registration = value;
+
           const inspect = () => {
             if (registration?.waiting && navigator.serviceWorker.controller) setUpdateReady(true);
           };
           inspect();
 
-          const onUpdateFound = () => {
-            const worker = registration?.installing;
-            worker?.addEventListener('statechange', () => {
-              if (worker.state === 'installed' && navigator.serviceWorker.controller) setUpdateReady(true);
-            });
+          onUpdateFound = () => {
+            installingWorker = registration?.installing ?? null;
+            if (!installingWorker) return;
+            onWorkerStateChange = () => {
+              if (installingWorker?.state === 'installed' && navigator.serviceWorker.controller) setUpdateReady(true);
+            };
+            installingWorker.addEventListener('statechange', onWorkerStateChange);
           };
 
           registration.addEventListener('updatefound', onUpdateFound);
@@ -79,12 +93,15 @@ export function PWAControls() {
     }
 
     return () => {
+      active = false;
       window.removeEventListener('beforeinstallprompt', onBeforeInstall);
       window.removeEventListener('focus', checkForUpdates);
       window.removeEventListener('online', checkForUpdates);
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       }
+      if (registration && onUpdateFound) registration.removeEventListener('updatefound', onUpdateFound);
+      if (installingWorker && onWorkerStateChange) installingWorker.removeEventListener('statechange', onWorkerStateChange);
     };
   }, []);
 
@@ -93,9 +110,8 @@ export function PWAControls() {
     setInstalling(true);
     try {
       await installPrompt.prompt();
-      const choice = await installPrompt.userChoice;
-      if (choice.outcome === 'accepted') setInstallPrompt(null);
-      else setInstallPrompt(null);
+      await installPrompt.userChoice;
+      setInstallPrompt(null);
       window.deferredClassBandhuInstall = undefined;
     } catch (error) {
       console.error('ClassBandhu installation prompt failed:', error);
@@ -106,8 +122,12 @@ export function PWAControls() {
 
   const applyUpdate = async () => {
     if (!('serviceWorker' in navigator)) return;
-    const registration = await navigator.serviceWorker.getRegistration('/');
-    registration?.waiting?.postMessage({ type: 'SKIP_WAITING' });
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/');
+      registration?.waiting?.postMessage({ type: 'SKIP_WAITING' });
+    } catch (error) {
+      console.error('ClassBandhu update could not be applied:', error);
+    }
   };
 
   return (
