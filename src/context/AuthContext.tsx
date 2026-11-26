@@ -45,7 +45,7 @@ interface AuthContextValue {
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   selectInstitute: (instituteId: string) => void;
-  createInstitute: (name: string, slug: string) => Promise<void>;
+  createInstitute: (name: string, slug: string, dpaDocumentId: string) => Promise<void>;
   refreshMemberships: () => Promise<void>;
   acceptInvitation: (token: string) => Promise<void>;
   acceptPlatformInvitation: (token: string) => Promise<void>;
@@ -561,10 +561,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRequestInstituteId(instituteId);
   }, [activeInstituteId, memberships]);
 
-  const createInstitute = useCallback(async (name: string, slug: string) => {
-    const { data, error: createError } = await supabase.rpc('create_institute_atomic', {
+  const createInstitute = useCallback(async (name: string, slug: string, dpaDocumentId: string) => {
+    if (!dpaDocumentId) throw new Error('Review and accept the current Data Processing Agreement before creating the institute.');
+    const { data, error: createError } = await supabase.rpc('create_institute_with_dpa_acceptance', {
       p_name: name.trim(),
       p_slug: slug.trim().toLowerCase(),
+      p_dpa_document_id: dpaDocumentId,
+      p_user_agent: typeof navigator === 'undefined' ? null : navigator.userAgent,
       p_currency_symbol: '₹',
       p_receipt_prefix: 'REC',
     });
