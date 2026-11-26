@@ -169,9 +169,9 @@ function AppContent() {
                 Empowering Every Classroom.
               </p>
               <div className="flex min-w-0 flex-col items-center gap-3 sm:items-start sm:justify-self-end sm:pr-1 2xl:justify-self-start 2xl:pl-5">
-                <a href="mailto:tirth.freelance31@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
+                <a href="mailto:info.classbandhu@gmail.com" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
                   <Mail className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />
-                  <span className="break-all">tirth.freelance31@gmail.com</span>
+                  <span className="break-all">info.classbandhu@gmail.com</span>
                 </a>
                 <a href="https://wa.me/918160733101" target="_blank" rel="noreferrer" className="flex min-w-0 max-w-full items-center gap-3 text-sm transition-colors hover:text-[#790D3D] sm:text-base">
                   <MessageCircle className="h-5 w-5 shrink-0 text-[#790D3D] sm:h-6 sm:w-6" aria-hidden="true" />
