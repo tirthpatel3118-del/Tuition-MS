@@ -45,6 +45,7 @@ export function PWAControls() {
   useEffect(() => {
     let active = true;
     let registration: ServiceWorkerRegistration | undefined;
+    let registrationUpdateFound: (() => void) | undefined;
     const watchedWorkers = new Map<ServiceWorker, () => void>();
     const displayMode = window.matchMedia?.('(display-mode: standalone)');
 
@@ -108,12 +109,8 @@ export function PWAControls() {
           if (registration.waiting && navigator.serviceWorker.controller) setUpdateReady(true);
           watchInstallingWorker(registration.installing);
 
-          const onUpdateFound = () => watchInstallingWorker(registration?.installing ?? null);
-          registration.addEventListener('updatefound', onUpdateFound);
-          watchedWorkers.set(registration.installing as ServiceWorker, () => {
-            // The registration listener is removed separately below.
-          });
-          (registration as ServiceWorkerRegistration & { __classBandhuUpdateFound?: EventListener }).__classBandhuUpdateFound = onUpdateFound;
+          registrationUpdateFound = () => watchInstallingWorker(registration?.installing ?? null);
+          registration.addEventListener('updatefound', registrationUpdateFound);
           checkForUpdates();
         })
         .catch(error => console.error('ClassBandhu service worker registration failed:', error));
@@ -132,9 +129,8 @@ export function PWAControls() {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       }
-      if (registration) {
-        const updateFound = (registration as ServiceWorkerRegistration & { __classBandhuUpdateFound?: EventListener }).__classBandhuUpdateFound;
-        if (updateFound) registration.removeEventListener('updatefound', updateFound);
+      if (registration && registrationUpdateFound) {
+        registration.removeEventListener('updatefound', registrationUpdateFound);
       }
       for (const [worker, handler] of watchedWorkers) {
         worker.removeEventListener('statechange', handler);
