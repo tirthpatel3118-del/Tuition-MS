@@ -4,7 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ClassBandhuMark } from '../components/ClassBandhuMark';
 import { BrandLoading } from '../components/BrandLoading';
-import { getPublishedRequiredLegalDocuments, type RequiredLegalDocument } from '../services/legalService';
+import { getPublishedLegalDocument, getPublishedRequiredLegalDocuments, type RequiredLegalDocument } from '../services/legalService';
+import { LegalMarkdownBody } from './LegalPages';
 
 export function AuthFrame({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
@@ -240,8 +241,22 @@ export function CreateInstitutePage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
+  const [dpaDocument, setDpaDocument] = useState<RequiredLegalDocument | null>(null);
+  const [dpaLoading, setDpaLoading] = useState(true);
+  const [dpaReviewed, setDpaReviewed] = useState(false);
+  const [dpaLoadError, setDpaLoadError] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setDpaLoading(true);
+    void getPublishedLegalDocument('data-processing-agreement')
+      .then(document => { if (active) setDpaDocument(document); })
+      .catch(value => { if (active) setDpaLoadError(value instanceof Error ? value.message : 'The current DPA could not be loaded.'); })
+      .finally(() => { if (active) setDpaLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   const updateName = (value: string) => {
     setName(value);
@@ -250,10 +265,14 @@ export function CreateInstitutePage() {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!dpaDocument || !dpaReviewed) {
+      setError('Review and accept the current Data Processing Agreement before creating your institute.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
-      await createInstitute(name, slug);
+      await createInstitute(name, slug, dpaDocument.id);
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Could not create the institute.');
     } finally {
@@ -262,7 +281,7 @@ export function CreateInstitutePage() {
   };
 
   return (
-    <AuthFrame title="Set up your institute" description={`Signed in as ${email ?? 'your account'}. Add your institute details to continue.`}>
+    <AuthFrame title="Set up your institute" description={`Signed in as ${email ?? 'your account'}. Add your institute details and review the required Data Processing Agreement to continue.`}>
       <form className="space-y-4" onSubmit={submit}>
         <label className="block text-sm font-semibold text-slate-700">
           Institute name
@@ -276,9 +295,30 @@ export function CreateInstitutePage() {
           </div>
           <span className="mt-1 block text-xs font-normal text-slate-400">Lowercase letters, numbers, and hyphens.</span>
         </label>
+
+        <section className="rounded-xl border border-slate-200 p-4">
+          <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#6B1F38]"/><h2 className="text-sm font-bold text-slate-900">Data Processing Agreement</h2></div>
+          <p className="mt-1 text-xs leading-5 text-slate-500">The institute owner must review and accept this agreement for the new institute. Acceptance is recorded with the institute ID and exact document version during creation.</p>
+          {dpaLoading && <p className="mt-3 text-xs text-slate-500">Loading current DPA…</p>}
+          {dpaLoadError && <p role="alert" className="mt-3 text-xs text-rose-700">{dpaLoadError}</p>}
+          {!dpaLoading && !dpaDocument && <p role="alert" className="mt-3 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">A current DPA has not been published. Institute creation is unavailable until the administrator publishes one.</p>}
+          {dpaDocument && <>
+            {dpaDocument.is_test_only && <div role="alert" className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-800">DEVELOPMENT TEST COPY — For staging tests only. This DPA is not an approved production agreement.</div>}
+            <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-xs font-bold text-slate-900">{dpaDocument.title}</h3><span className="text-[10px] text-slate-500">v{dpaDocument.version}</span></div>
+              <LegalMarkdownBody value={dpaDocument.body_markdown ?? ""}/>
+            </div>
+            <p className="mt-2 break-all text-[10px] text-slate-400">SHA-256: {dpaDocument.content_sha256}</p>
+            <label className="mt-3 flex cursor-pointer items-start gap-2 text-xs leading-5 text-slate-700">
+              <input type="checkbox" checked={dpaReviewed} onChange={event => setDpaReviewed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+              <span>I have reviewed this DPA and confirm that I am authorised to accept it on behalf of this institute.</span>
+            </label>
+          </>}
+        </section>
+
         {(error || authError) && <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700">{error || authError}</p>}
-        <button disabled={busy} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white hover:bg-[#57172D] disabled:opacity-60">
-          {busy ? 'Creating workspace…' : 'Create institute'}
+        <button disabled={busy || dpaLoading || !dpaDocument || !dpaReviewed} className="w-full rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white hover:bg-[#57172D] disabled:cursor-not-allowed disabled:opacity-60">
+          {busy ? 'Creating workspace and recording acceptance…' : 'Accept DPA & Create institute'}
         </button>
       </form>
       <button onClick={() => void signOut()} className="mt-5 w-full py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">Sign out</button>
