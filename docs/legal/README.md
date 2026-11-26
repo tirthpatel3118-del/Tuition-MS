@@ -29,6 +29,12 @@ Older versions: `archive_v0.1/`, `archive_v0.2/`, `archive_v0.3/`.
 Exactly three Institute checkboxes (DPA inside checkbox 1, no fourth) · no "all records accurate" checkbox · 7-day grace period, then suspension, never automatic deletion · deletion requests by email · no student/parent login · manual WhatsApp reminders · manual attendance · no postal address published.
 
 ## Still open (needs approval)
-Counsel: DPDP roles, child data, bundled DPA acceptance, dispute clause, liability, breach workflow, retention, cross-border, forum. Accountant: GST, invoices, refunds. Operator: prices, billing rules, transition period for existing Institutes, response SLA. Technical: backups, export/deletion, subprocessors, locations. Still to draft: parent/guardian notice, deletion-request page, website enquiry notice, cookie policy (if needed).
+Counsel: DPDP roles, child data, bundled DPA acceptance, dispute clause, liability, breach workflow, retention, cross-border, forum. Accountant: GST, invoices, refunds. Operator: prices, billing rules, transition period for existing Institutes, response SLA. Technical: backups, export/deletion, subprocessors, locations. Still to draft/approve: parent/guardian notice, website enquiry notice, cookie policy (if needed). An initial Privacy Requests page is now present in the development website with email links for privacy questions, access/export and deletion requests. Internal request registration, verification/fulfilment workflow and response SLA are not yet operationally approved.
 
-The v0.4 development implementation is tracked separately from legal approval. Development-only staging documents are marked TEST ONLY. No production resource is modified.
+## Development implementation status (26 November 2026)
+
+The v0.4 / Privacy Policy v0.10 draft bundle is staged in Testing Supabase and the development Netlify branch preview. The website includes public Terms, AUP, Privacy Policy and DPA routes; invitation signup acceptance; the three Institute confirmations; current-owner-specific Institute evidence; a 14-day review window for existing owners in development; and an email-based Privacy Requests page. Super Admin legal evidence responses no longer include account email or browser/user-agent fields.
+
+All four documents are marked TEST ONLY. This is a technical staging review, not legal approval or production publication. The development CI build, lint and regression suite passed. The privacy request page is an intake link only; there is no automated request register, export fulfilment or deletion workflow yet.
+
+Production Supabase, production Netlify and GitHub main remain untouched.
