@@ -32,18 +32,95 @@ function LegalShell({ children, title = "ClassBandhu" }: { children: ReactNode; 
   </main>;
 }
 
+function renderInlineMarkdown(value: string): ReactNode[] {
+  const pattern = /(\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\x60[^\x60]+\x60|\[[^\]]+\]\(https?:\/\/[^)\s]+\)|https?:\/\/[^\s]+)/g;
+  return value.split(pattern).filter(Boolean).map((token, index) => {
+    const linkMatch = token.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
+    if (linkMatch) return <a key={index} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-700 underline break-all">{linkMatch[1]}</a>;
+    if (/^https?:\/\//.test(token)) return <a key={index} href={token} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-700 underline break-all">{token}</a>;
+    if ((token.startsWith("**") && token.endsWith("**")) || (token.startsWith("__") && token.endsWith("__"))) {
+      return <strong key={index} className="font-semibold text-slate-900">{token.slice(2, -2)}</strong>;
+    }
+    if ((token.startsWith("*") && token.endsWith("*")) || (token.startsWith("_") && token.endsWith("_"))) {
+      return <em key={index}>{token.slice(1, -1)}</em>;
+    }
+    if (token.startsWith("`") && token.endsWith("`")) return <code key={index} className="rounded bg-slate-100 px-1.5 py-0.5 text-[0.9em]">{token.slice(1, -1)}</code>;
+    return token;
+  });
+}
+
 function MarkdownBody({ value }: { value: string }) {
-  const blocks = value.split(/\n{2,}/).map(item => item.trim()).filter(Boolean);
-  return <div className="mt-6 space-y-4 text-sm leading-7 text-slate-700">
-    {blocks.map((block, index) => {
-      const lines = block.split("\n");
-      if (block.startsWith("# ")) return <h2 key={index} className="text-xl font-bold text-slate-900">{block.slice(2)}</h2>;
-      if (block.startsWith("## ")) return <h3 key={index} className="pt-2 text-base font-bold text-slate-900">{block.slice(3)}</h3>;
-      if (block.startsWith("> ")) return <blockquote key={index} className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-950">{block.replace(/^> /gm, "")}</blockquote>;
-      if (lines.every(line => line.startsWith("- "))) return <ul key={index} className="list-disc space-y-1 pl-6">{lines.map((line, i) => <li key={i}>{line.slice(2)}</li>)}</ul>;
-      return <p key={index} className="whitespace-pre-wrap">{block}</p>;
-    })}
-  </div>;
+  const lines = value.replace(/\r\n/g, "\n").split("\n");
+  const blocks: ReactNode[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index].trim();
+    if (!line) { index += 1; continue; }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const content = renderInlineMarkdown(heading[2]);
+      const key = "heading-" + index;
+      blocks.push(heading[1].length === 1
+        ? <h2 key={key} className="text-xl font-bold text-slate-900">{content}</h2>
+        : heading[1].length === 2
+          ? <h3 key={key} className="pt-2 text-base font-bold text-slate-900">{content}</h3>
+          : <h4 key={key} className="pt-1 text-sm font-bold text-slate-900">{content}</h4>);
+      index += 1; continue;
+    }
+
+    if (line === "---" || line === "***") {
+      blocks.push(<hr key={"rule-" + index} className="border-slate-200"/>);
+      index += 1; continue;
+    }
+
+    if (line.startsWith("> ")) {
+      const quote: string[] = [];
+      while (index < lines.length && lines[index].trim().startsWith("> ")) {
+        quote.push(lines[index].trim().replace(/^>\s?/, ""));
+        index += 1;
+      }
+      blocks.push(<blockquote key={"quote-" + index} className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950">
+        {quote.map((part, partIndex) => <p key={partIndex}>{renderInlineMarkdown(part)}</p>)}
+      </blockquote>);
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^\s*[-*]\s+/.test(lines[index])) {
+        items.push(lines[index].trim().replace(/^[-*]\s+/, ""));
+        index += 1;
+      }
+      blocks.push(<ul key={"ul-" + index} className="list-disc space-y-1 pl-6">{items.map((item, itemIndex) => <li key={itemIndex}>{renderInlineMarkdown(item)}</li>)}</ul>);
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+      while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
+        items.push(lines[index].trim().replace(/^\d+\.\s+/, ""));
+        index += 1;
+      }
+      blocks.push(<ol key={"ol-" + index} className="list-decimal space-y-1 pl-6">{items.map((item, itemIndex) => <li key={itemIndex}>{renderInlineMarkdown(item)}</li>)}</ol>);
+      continue;
+    }
+
+    const paragraph: string[] = [];
+    while (index < lines.length && lines[index].trim()
+      && !/^(#{1,3})\s+/.test(lines[index].trim())
+      && !lines[index].trim().startsWith("> ")
+      && !/^[-*]\s+/.test(lines[index].trim())
+      && !/^\d+\.\s+/.test(lines[index].trim())
+      && !/^---$|^\*\*\*$/.test(lines[index].trim())) {
+      paragraph.push(lines[index].trim());
+      index += 1;
+    }
+    blocks.push(<p key={"paragraph-" + index} className="break-words">{renderInlineMarkdown(paragraph.join(" "))}</p>);
+  }
+
+  return <div className="mt-6 space-y-4 text-sm leading-7 text-slate-700">{blocks}</div>;
 }
 
 export function PublicLegalDocumentPage({ slug }: { slug: LegalSlug }) {
