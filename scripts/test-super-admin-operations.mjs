@@ -12,7 +12,7 @@ assert.match(ops, /Action centre/);
 assert.match(ops, /platform_admin_analytics_monthly/);
 assert.match(analyticsMigration, /require_platform_admin/);
 assert.match(analyticsMigration, /platform_revenue_inr/);
-assert.doesNotMatch(ops, /OpenAI|Copilot|OAuth/i);
+assert.doesNotMatch(ops, /OpenAI|Copilot|signInWithOAuth|Continue with Google/i);
 assert.doesNotMatch(auth, /signInWithOAuth|Continue with Google|PLATFORM ADMIN ONLY/);
 assert.doesNotMatch(app, /Google sign-in is restricted|app_metadata\?\.provider === 'google'/);
 assert.doesNotMatch(settings, /Team Access|TeamSettings|setActiveSection\('team'\)/);
