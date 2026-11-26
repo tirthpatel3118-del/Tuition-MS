@@ -10,7 +10,7 @@ import { Menu, RotateCcw, Bell, LogOut, LayoutDashboard, UserPlus, CreditCard, C
 import { resetToDefault } from './data/mockData';
 import { isDemoMode, supabase } from './lib/supabase';
 import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, PasswordResetPage, SelectInstitutePage } from './pages/AuthPages';
-import { LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage } from './pages/LegalPages';
+import { InstituteDpaAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -202,6 +202,26 @@ function AppEntry() {
   const [legalGate, setLegalGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
     userId: null, loading: false, missing: [], error: '',
   });
+  const hasOwnerMemberships = auth.memberships.some(membership => membership.role === 'owner');
+  const [dpaGate, setDpaGate] = useState<{ userId: string | null; loading: boolean; missing: string[]; error: string }>({
+    userId: null, loading: false, missing: [], error: '',
+  });
+
+  const refreshDpaStatus = () => {
+    if (!userId || !hasOwnerMemberships) return;
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
+      setDpaGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution DPA status could not be verified.' });
+    });
+  };
+
 
   const refreshLegalStatus = () => {
     if (!userId) return;
@@ -238,6 +258,27 @@ function AppEntry() {
     });
     return () => { active = false; };
   }, [auth.configured, auth.status, userId]);
+  useEffect(() => {
+    if (!auth.configured || auth.status !== 'ready' || !userId || !hasOwnerMemberships) {
+      setDpaGate({ userId: null, loading: false, missing: [], error: '' });
+      return;
+    }
+    let active = true;
+    setDpaGate({ userId, loading: true, missing: [], error: '' });
+    void Promise.resolve(supabase.rpc('get_my_dpa_requirements')).then(({ data, error }) => {
+      if (!active) return;
+      setDpaGate({
+        userId,
+        loading: false,
+        missing: error ? [] : (Array.isArray(data?.missing_institute_ids) ? data.missing_institute_ids : []),
+        error: error?.message ?? '',
+      });
+    }).catch((value: unknown) => {
+      if (active) setDpaGate({ userId, loading: false, missing: [], error: value instanceof Error ? value.message : 'Institution DPA status could not be verified.' });
+    });
+    return () => { active = false; };
+  }, [auth.configured, auth.status, userId, hasOwnerMemberships, auth.memberships]);
+
 
   if (location.pathname === '/privacy') return <PrivacyPolicyPage />;
   if (location.pathname === '/terms') return <TermsPage />;
@@ -283,8 +324,6 @@ function AppEntry() {
     );
   }
 
-  if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
-
   if (auth.session && (legalGate.userId !== userId || legalGate.loading)) {
     return <AuthLoading message="Checking current legal agreements..." />;
   }
@@ -303,6 +342,27 @@ function AppEntry() {
   if (auth.session && legalGate.missing.length > 0) {
     return <LegalAcceptanceGate onAccepted={refreshLegalStatus} />;
   }
+
+  if (auth.session && hasOwnerMemberships && (dpaGate.userId !== userId || dpaGate.loading)) {
+    return <AuthLoading message="Checking institution agreement..." />;
+  }
+  if (auth.session && hasOwnerMemberships && dpaGate.error) {
+    return (
+      <main className="min-h-screen bg-[#FAF7F8] px-4 py-10">
+        <section className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-white p-7 text-center shadow-sm">
+          <h1 className="text-lg font-bold text-slate-900">Institution agreement could not be verified</h1>
+          <p role="alert" className="mt-2 text-sm leading-6 text-slate-600">{dpaGate.error}</p>
+          <button type="button" onClick={refreshDpaStatus} className="mt-5 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">Retry verification</button>
+          <button type="button" onClick={() => void auth.signOut()} className="ml-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">Sign out</button>
+        </section>
+      </main>
+    );
+  }
+  if (auth.session && hasOwnerMemberships && dpaGate.missing.length > 0) {
+    return <InstituteDpaAcceptanceGate onAccepted={refreshDpaStatus} />;
+  }
+
+  if (location.pathname === '/privacy-preferences') return <PrivacyPreferencesPage />;
 
   if (location.pathname === '/accept-platform-invitation') return <PlatformInvitationAcceptancePage />;
   if (isInvitationRoute) return <InvitationAcceptancePage />;
