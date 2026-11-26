@@ -204,19 +204,6 @@ export function LegalCompliancePanel() {
 
     <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Policy administration history</h3></div><p className="mt-1 text-xs text-slate-500">Who created, edited, published or archived each legal document version.</p></div>
-        <span className="text-xs text-slate-500">{adminAudit.length} recent events</span>
-      </div>
-      {adminAudit.length === 0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No policy administration changes have been recorded yet.</p> : <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-        <table className="w-full min-w-[720px] text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500"><tr><th className="p-3">Action</th><th className="p-3">Document</th><th className="p-3">Version</th><th className="p-3">Performed by</th><th className="p-3">Timestamp</th></tr></thead>
-          <tbody>{adminAudit.map((event,index)=><tr key={event.action+event.created_at+index} className="border-t border-slate-100"><td className="p-3 font-semibold text-slate-800">{event.action.replaceAll("_"," ")}</td><td className="p-3">{event.document_title ?? event.document_slug ?? "—"}</td><td className="p-3">{event.document_version ?? "—"}</td><td className="p-3">{event.actor_email ?? "Unknown administrator"}</td><td className="p-3">{new Date(event.created_at).toLocaleString()}</td></tr>)}</tbody>
-        </table>
-      </div>}
-    </article>
-
-    <article className={card}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
         <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance evidence</h3></div><p className="mt-1 text-xs text-slate-500">Recent user and institution-level records. No student information is included.</p></div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
