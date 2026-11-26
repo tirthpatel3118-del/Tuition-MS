@@ -48,7 +48,7 @@ assert.match(pwaControls, /appinstalled/);
 assert.match(pwaControls, /navigator\.onLine/);
 assert.match(pwaControls, /How to install/);
 assert.match(dashboard, /<PWAControls\s*\/>/);
-assert.match(css, /pb-\[calc\(env\(safe-area-inset-bottom\)\+1rem\)\]/);
+assert.match(dashboard, /pb-\[calc\(env\(safe-area-inset-bottom\)\+1rem\)\]/);
 assert.match(pwaControls, /navigator\.serviceWorker\.register/);
 assert.match(pwaControls, /Add to Home Screen/);
 assert.match(pwaControls, /display-mode: standalone/);
