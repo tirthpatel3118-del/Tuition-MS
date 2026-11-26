@@ -25,6 +25,11 @@ export interface LegalAcceptanceSummary {
   total_acceptance_events: number;
   users_missing_current_acceptance: number;
   recent_acceptances: Array<{
+    actor_ref: string;
+    actor_role: string | null;
+    action_id: string | null;
+    institute_id: string | null;
+    institute_name: string | null;
     document_slug: string;
     document_title: string;
     document_version: string;
@@ -34,8 +39,8 @@ export interface LegalAcceptanceSummary {
     acceptance_scope: "user" | "institute";
     acceptance_method: string;
     acceptance_source: string | null;
-    actor_role: string | null;
     acceptance_context: "account" | "institute";
+    is_current_version: boolean;
     accepted_at: string;
   }>;
 }
