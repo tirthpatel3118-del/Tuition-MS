@@ -13,6 +13,7 @@ import {
 import { createPlatformBillingInvoice, getPlatformBillingOverview, listPlatformBilling, recordPlatformBillingPayment, updatePlatformBillingContact, voidPlatformBillingInvoice, type BillingOverview, type PlatformBillingInvoice } from "../services/platformBillingService";
 import { buildSubscriptionReminderMessage, calculateSubscriptionDates, classifyBillingDueDate, daysOverdue, formatLocalDate, toWhatsAppPhone } from "../utils/platformBillingDates";
 import { SuperAdminOperations } from "./SuperAdminOperations";
+import { LegalCompliancePanel } from "../components/LegalCompliancePanel";
 
 type InstituteDraft = {
   accessStatus: "active" | "suspended";
@@ -396,6 +397,7 @@ export function SuperAdminDashboard() {
     {notice && <div role="status" className="flex items-start gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><Check className="mt-0.5 h-4 w-4 shrink-0" />{notice}</div>}
 
     <SuperAdminOperations />
+    <LegalCompliancePanel />
 
     <section>
       <div className="mb-3 flex items-end justify-between gap-3">
