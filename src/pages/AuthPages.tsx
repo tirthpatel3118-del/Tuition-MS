@@ -156,7 +156,7 @@ export function AuthPage() {
         </p>
       ) : (
         <div className="mt-6 rounded-xl bg-slate-50 p-4 text-center text-sm leading-6 text-slate-600">
-          <p>Already part of an institute? Ask your institute owner for an invitation.</p>
+          <p>Access is provided by invitation. Already part of an institute? Ask your institute owner for an invitation.</p>
           <p className="mt-2">Setting up a new institute or requesting a product demo? Email ClassBandhu at{" "}
             <a href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Institute%20Access%20or%20Demo%20Request" className="font-semibold text-[#6B1F38] underline underline-offset-2">info.classbandhu@gmail.com</a>.
           </p>
