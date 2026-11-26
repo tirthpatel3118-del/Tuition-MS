@@ -5,7 +5,7 @@ import { ClassBandhuMark } from "../components/ClassBandhuMark";
 import { useAuth } from "../context/AuthContext";
 import {
   acceptCurrentLegalDocuments, acceptInstituteDpa, getInstituteDpaStatus,
-  getMyPrivacyConsents, getPublishedLegalDocument,
+  getMyDpaRequirements, getMyPrivacyConsents, getPublishedLegalDocument,
   getPublishedRequiredLegalDocuments, listMyLegalAcceptances, setMyProductUpdateConsent,
   type InstituteDpaStatus, type LegalSlug, type PrivacyConsent,
   type RequiredLegalDocument, type UserLegalAcceptance,
@@ -49,7 +49,7 @@ function renderInlineMarkdown(value: string): ReactNode[] {
   });
 }
 
-function MarkdownBody({ value }: { value: string }) {
+export function LegalMarkdownBody({ value }: { value: string }) {
   const lines = value.replace(/\r\n/g, "\n").split("\n");
   const blocks: ReactNode[] = [];
   let index = 0;
@@ -154,7 +154,7 @@ export function PublicLegalDocumentPage({ slug }: { slug: LegalSlug }) {
         <span>Version {document.version}</span><span>Locale {document.locale}</span>
         <span>SHA-256: <code>{document.content_sha256}</code></span>
       </div>
-      <MarkdownBody value={document.body_markdown ?? ""} />
+      <LegalMarkdownBody value={document.body_markdown ?? ""} />
     </>}
   </LegalShell>;
 }
@@ -214,7 +214,7 @@ export function LegalAcceptanceGate({ onAccepted }: { onAccepted: () => void }) 
           <span className="text-xs text-slate-500">v{doc.version}</span>
         </div>
         <div className="mt-3 max-h-56 overflow-y-auto rounded-lg bg-slate-50 p-3">
-          <MarkdownBody value={doc.body_markdown ?? ""} />
+          <LegalMarkdownBody value={doc.body_markdown ?? ""} />
         </div>
         {doc.is_test_only && <p className="mt-2 text-xs font-semibold text-rose-700">Development test only — not approved legal content.</p>}
       </article>)}
@@ -239,6 +239,104 @@ function downloadCsv(rows: Record<string, string | number | null>[], filename: s
   const anchor = document.createElement("a");
   anchor.href = url; anchor.download = filename; anchor.click();
   URL.revokeObjectURL(url);
+}
+
+export function InstituteDpaAcceptanceGate({ onAccepted }: { onAccepted: () => void }) {
+  const auth = useAuth();
+  const [requirements, setRequirements] = useState<import("../services/legalService").MyDpaRequirements | null>(null);
+  const [reviewed, setReviewed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setRequirements(await getMyDpaRequirements());
+      setReviewed(false);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "The current institution DPA status could not be verified.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  const acceptAll = async () => {
+    if (!requirements?.document || !reviewed || busy) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const pending = requirements.institutes.filter(item => !item.accepted);
+      for (const institute of pending) {
+        await acceptInstituteDpa(institute.institute_id);
+      }
+      const next = await getMyDpaRequirements();
+      setRequirements(next);
+      setReviewed(false);
+      if (next.missing_institute_ids.length === 0) {
+        setNotice("The current DPA has been recorded for all your owner institutions.");
+        onAccepted();
+      } else {
+        setNotice("Some institute records were accepted. Review the remaining institution(s) below.");
+      }
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "DPA acceptance could not be recorded for every institution.");
+      try { setRequirements(await getMyDpaRequirements()); } catch { /* Keep the original error visible. */ }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const document = requirements?.document ?? null;
+  const pendingCount = requirements?.missing_institute_ids.length ?? 0;
+
+  return <LegalShell title="Institution agreement required">
+    <p className="mt-2 text-sm leading-6 text-slate-600">
+      Before opening your workspace, an authorised institute owner must review and accept the current Data Processing Agreement for each institution they own. This acceptance is recorded against the institution, the document version and the server timestamp.
+    </p>
+    {document?.is_test_only && <div role="alert" className="mt-4 rounded-xl border border-rose-300 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">
+      DEVELOPMENT TEST COPY — This DPA is only for development testing and is not an approved production agreement.
+    </div>}
+    {loading && <p className="mt-5 text-sm text-slate-500">Checking institution agreements…</p>}
+    {error && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
+    {!loading && !document && <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+      No current Data Processing Agreement is published. Workspace access is paused until the ClassBandhu administrator publishes the current agreement.
+    </div>}
+    {document && <>
+      <div className="mt-5 rounded-xl border border-slate-200 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div><h2 className="font-bold text-slate-900">{document.title}</h2><p className="mt-1 text-xs text-slate-500">Version {document.version} · {document.locale}</p></div>
+          <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">Current version</span>
+        </div>
+        <div className="mt-4 max-h-[24rem] overflow-y-auto rounded-lg bg-slate-50 p-3 sm:p-4">
+          <LegalMarkdownBody value={document.body_markdown ?? ""} />
+        </div>
+        <p className="mt-3 break-all text-[10px] leading-4 text-slate-500">SHA-256: <code>{document.content_sha256}</code></p>
+      </div>
+      <section className="mt-5 space-y-3">
+        <div><h2 className="text-sm font-bold text-slate-900">Your institutions</h2><p className="mt-1 text-xs text-slate-500">The DPA is recorded once per institution. Other owners can see the institution's accepted status.</p></div>
+        {requirements?.institutes.map(institute=><article key={institute.institute_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+          <div><p className="text-sm font-semibold text-slate-900">{institute.institute_name}</p><p className="mt-1 text-xs text-slate-500">{institute.accepted ? "Accepted by " + (institute.accepted_by ?? "an institute owner") + (institute.accepted_at ? " · " + new Date(institute.accepted_at).toLocaleString() : "") : "Acceptance required"}</p></div>
+          <span className={institute.accepted ? "rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800" : "rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"}>{institute.accepted ? "Accepted" : "Pending"}</span>
+        </article>)}
+        {pendingCount > 0 && <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
+          <input type="checkbox" checked={reviewed} onChange={event=>setReviewed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#6B1F38]"/>
+          <span>I have reviewed the current DPA and confirm that I am authorised to accept it on behalf of each pending institution listed above.</span>
+        </label>}
+        {pendingCount > 0 && <button type="button" disabled={!reviewed || busy || loading || !document} onClick={()=>void acceptAll()} className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">
+          {busy ? "Recording institution acceptance…" : "Accept DPA and continue"}
+        </button>}
+        {pendingCount === 0 && document && !loading && <div className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-900">All your owner institutions have accepted the current DPA. You can continue to your workspace.</div>}
+      </section>
+    </>}
+    {notice && <p role="status" className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
+    <button type="button" onClick={() => void auth.signOut()} className="mt-5 w-full py-2 text-sm font-semibold text-slate-500 hover:text-slate-800">Sign out</button>
+  </LegalShell>;
 }
 
 export function InstituteDpaSettingsPanel() {
@@ -335,7 +433,7 @@ export function InstituteDpaSettingsPanel() {
           </span>
         </div>
         <div className="mt-3 max-h-[28rem] overflow-y-auto rounded-lg bg-slate-50 p-3 sm:p-4">
-          <MarkdownBody value={document.body_markdown ?? ""} />
+          <LegalMarkdownBody value={document.body_markdown ?? ""} />
         </div>
         <p className="mt-3 break-all text-[10px] leading-4 text-slate-500">
           SHA-256: <code>{document.content_sha256}</code>
@@ -434,7 +532,7 @@ export function PrivacyPreferencesPage() {
       <p className="mt-1 text-sm leading-6 text-slate-600">This acceptance is recorded for the current institution and the signed-in owner. It does not replace the institution's review of its legal duties.</p>
       {!dpa?.document || !dpaDocument ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">No published DPA is currently available.</p> : <div className="mt-3 rounded-xl border border-slate-200 p-4">
         <p className="font-semibold text-slate-900">{dpa.document.title} · v{dpa.document.version}</p>
-        <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3"><MarkdownBody value={dpaDocument.body_markdown ?? ""}/></div>
+        <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3"><LegalMarkdownBody value={dpaDocument.body_markdown ?? ""}/></div>
         <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: <code>{dpa.document.content_sha256}</code></p>
         <p className="mt-2 text-xs text-slate-500">{dpa.accepted ? "Accepted by " + (dpa.accepted_by ?? "an owner") + " on " + new Date(dpa.accepted_at ?? "").toLocaleString() : "Not yet accepted for this institution."}</p>
         {!dpa.accepted && <>
