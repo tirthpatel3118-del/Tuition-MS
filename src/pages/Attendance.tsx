@@ -198,7 +198,7 @@ export function AttendancePage() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           {isTeacher && <Link to="/" className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B1F38] hover:text-[#57172D]"><ArrowLeft className="h-3.5 w-3.5" /> Teacher workspace</Link>}
-          <p className="text-xs font-bold uppercase tracking-wider text-[#6B1F38]">EduLedger · Attendance</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#6B1F38]">ClassBandhu · Attendance</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">Attendance</h1>
           <p className="mt-1 text-sm text-slate-500">{isOwner ? 'Institute attendance, corrections, and audit history.' : 'Mark attendance for your assigned batches and request corrections.'}</p>
         </div>

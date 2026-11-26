@@ -126,7 +126,7 @@ export const Settings: React.FC = () => {
       const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(dump, null, 2))}`;
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute('href', jsonString);
-      downloadAnchor.setAttribute('download', `eduledger_workspace_snapshot_${formatLocalDateInput()}.json`);
+      downloadAnchor.setAttribute('download', `classbandhu_workspace_snapshot_${formatLocalDateInput()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -171,7 +171,7 @@ export const Settings: React.FC = () => {
       
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `eduledger_students_export_${formatLocalDateInput()}.csv`);
+      link.setAttribute('download', `classbandhu_students_export_${formatLocalDateInput()}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();

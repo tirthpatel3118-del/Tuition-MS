@@ -481,7 +481,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(async (email: string, password: string, fullName: string, invitationToken?: string) => {
     setError(null);
-    if (!invitationToken) throw new Error('A valid invitation is required to create an EduLedger account.');
+    if (!invitationToken) throw new Error('A valid invitation is required to create a ClassBandhu account.');
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,

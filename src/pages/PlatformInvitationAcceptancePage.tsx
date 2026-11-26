@@ -32,7 +32,7 @@ export function PlatformInvitationAcceptancePage() {
       return;
     }
     if (!token) {
-      setError("The invitation token is missing. Ask the EduLedger administrator for a new invitation.");
+      setError("The invitation token is missing. Ask the ClassBandhu administrator for a new invitation.");
       return;
     }
     if (requiresPasswordSetup && password.length < 8) {
@@ -62,7 +62,7 @@ export function PlatformInvitationAcceptancePage() {
     </AuthFrame>;
   }
 
-  return <AuthFrame title="Activate your EduLedger access" description={"Invitation for " + (email ?? "your account") + ". The invitation email must match the signed-in account."}>
+  return <AuthFrame title="Activate your ClassBandhu access" description={"Invitation for " + (email ?? "your account") + ". The invitation email must match the signed-in account."}>
     <form onSubmit={submit} className="space-y-4">
       {requiresPasswordSetup && <>
         <label className="block text-sm font-semibold text-slate-700">
