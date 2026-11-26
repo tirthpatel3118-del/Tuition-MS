@@ -243,7 +243,7 @@ export function LegalCompliancePanel() {
     </article>}
     {activeTab === "acceptance" && <article className={card}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance history by account</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy acceptance events. Account email addresses and browser identifiers are not displayed.</p></div>
+        <div><div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[#6B1F38]"/><h3 className="font-bold text-slate-900">Acceptance history by account</h3></div><p className="mt-1 text-xs text-slate-500">Recent policy events are grouped by account. Email addresses and raw account IDs are not exposed.</p></div>
         <button type="button" disabled={busy || !summary.total_acceptance_events} onClick={()=>void exportAll()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40"><Download className="h-4 w-4"/>Export audit CSV</button>
       </div>
       {acceptanceGroups.length===0 ? <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">No acceptance events have been recorded yet. Publish a reviewed or explicitly test-only version to exercise the acceptance flow.</p> : <>
@@ -260,7 +260,7 @@ export function LegalCompliancePanel() {
               </div>
             </header>
             <div className="divide-y divide-slate-100">
-              {group.records.map((record,index) => <div key={record.action_id ?? record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              {group.records.map((record,index) => <div key={record.document_slug + record.document_version + record.accepted_at + index} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-slate-900">{record.document_title}</p>
