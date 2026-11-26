@@ -19,21 +19,16 @@ import {
   Sparkles, 
   RefreshCw,
   HelpCircle,
-  ShieldCheck,
 } from 'lucide-react';
 import { PageLoader } from '../components/PageLoader';
 import { AppSettings } from '../types';
-import { useAuth } from '../context/AuthContext';
-import { InstituteDpaSettingsPanel } from './LegalPages';
 
 export const Settings: React.FC = () => {
   const { settings, updateSettings, showToast, courses, students, payments, installments } = useData();
-  const auth = useAuth();
-  const isInstituteOwner = auth.activeMembership?.role === 'owner';
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup' | 'legal'>('profile');
+  const [activeSection, setActiveSection] = useState<'profile' | 'receipt' | 'reminder' | 'app' | 'backup'>('profile');
 
   // Local state for the settings form
   const [formData, setFormData] = useState<AppSettings>({ ...settings });
@@ -204,10 +199,10 @@ export const Settings: React.FC = () => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-6">
         
         {/* Navigation Sidebar */}
-        <div className="grid grid-cols-2 gap-2 pb-1 lg:flex lg:flex-col lg:overflow-visible lg:pb-0">
+        <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
           <button
             onClick={() => setActiveSection('profile')}
-            className={`flex min-w-0 items-center gap-2.5 rounded-lg border px-3 py-3 text-left text-xs font-semibold transition-colors lg:w-full ${
+            className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg border px-3.5 py-3 text-left text-xs font-semibold transition-colors lg:w-full ${
               activeSection === 'profile'
                 ? 'bg-[#6B1F38] border-[#6B1F38] text-white'
                 : 'bg-white hover:bg-[#FCF6F8] border-[#E5DDE0] text-slate-600 hover:text-[#6B1F38]'
@@ -265,20 +260,7 @@ export const Settings: React.FC = () => {
             <span>Workspace Export</span>
           </button>
 
-          {isInstituteOwner && (
-            <button
-              type="button"
-              onClick={() => setActiveSection('legal')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-xs font-bold transition-all border ${
-                activeSection === 'legal'
-                  ? 'bg-[#6B1F38] border-[#6B1F38] text-white shadow-sm'
-                  : 'bg-white hover:bg-[#FCF6F8] border-[#E5DDE0] text-slate-600 hover:text-[#6B1F38]'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Legal & Privacy</span>
-            </button>
-          )}
+}
         </div>
 
         {/* Content Container */}
@@ -591,11 +573,6 @@ export const Settings: React.FC = () => {
                 </div>
               )}
 
-              {/* SECTION 6: LEGAL & PRIVACY */}
-              {activeSection === 'legal' && isInstituteOwner && (
-                <InstituteDpaSettingsPanel />
-              )}
-
               {/* SECTION 5: BACKUP & INTEGRATIONS */}
               {activeSection === 'backup' && (
                 <div className="space-y-4">
@@ -663,7 +640,7 @@ export const Settings: React.FC = () => {
             </div>
 
             {/* Actions Footer */}
-            {activeSection !== 'backup' && activeSection !== 'legal' && (
+            {activeSection !== 'backup' && (
               <div className="flex items-center justify-end gap-3 border-t border-[#E5DDE0] bg-[#FCFAFB] p-4">
                 <button
                   type="button"
