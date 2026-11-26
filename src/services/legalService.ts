@@ -25,14 +25,17 @@ export interface LegalAcceptanceSummary {
   total_acceptance_events: number;
   users_missing_current_acceptance: number;
   recent_acceptances: Array<{
-    user_email: string;
     document_slug: string;
     document_title: string;
     document_version: string;
+    document_locale: string;
     content_sha256: string;
+    acceptance_type: string | null;
     acceptance_scope: "user" | "institute";
     acceptance_method: string;
-    institute_id: string | null;
+    acceptance_source: string | null;
+    actor_role: string | null;
+    acceptance_context: "account" | "institute";
     accepted_at: string;
   }>;
 }
@@ -109,7 +112,6 @@ export interface LegalAdminAuditEvent {
   action: "DRAFT_CREATED" | "DRAFT_UPDATED" | "DOCUMENT_PUBLISHED" | "DOCUMENT_ARCHIVED";
   details: Record<string, unknown>;
   created_at: string;
-  actor_email: string | null;
   document_slug: LegalSlug | null;
   document_title: string | null;
   document_version: string | null;
@@ -120,16 +122,17 @@ export const listPlatformLegalAdminAudit = (limit = 100) =>
 
 export interface PlatformLegalAcceptanceRecord {
   id: string;
-  user_email: string;
   document_slug: string;
   document_title: string;
   document_version: string;
   document_locale: string;
   content_sha256: string;
+  acceptance_type: string | null;
   acceptance_scope: "user" | "institute";
-  institute_id: string | null;
   acceptance_method: string;
-  user_agent: string | null;
+  acceptance_source: string | null;
+  actor_role: string | null;
+  acceptance_context: "account" | "institute";
   accepted_at: string;
 }
 
