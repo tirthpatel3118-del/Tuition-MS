@@ -169,6 +169,8 @@ export function PrivacyPreferencesPage() {
   const [consent, setConsent] = useState<PrivacyConsent | null>(null);
   const [productUpdates, setProductUpdates] = useState(false);
   const [dpa, setDpa] = useState<InstituteDpaStatus | null>(null);
+  const [dpaDocument, setDpaDocument] = useState<RequiredLegalDocument | null>(null);
+  const [dpaReviewed, setDpaReviewed] = useState(false);
   const [acceptances, setAcceptances] = useState<UserLegalAcceptance[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -178,7 +180,9 @@ export function PrivacyPreferencesPage() {
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const [nextConsent, nextAcceptances] = await Promise.all([getMyPrivacyConsents(), listMyLegalAcceptances()]);
+      const [nextConsent, nextAcceptances, nextDpaDocument] = await Promise.all([getMyPrivacyConsents(), listMyLegalAcceptances(), getPublishedLegalDocument('data-processing-agreement')]);
+      setDpaDocument(nextDpaDocument);
+      setDpaReviewed(false);
       setConsent(nextConsent); setProductUpdates(nextConsent.product_updates); setAcceptances(nextAcceptances);
       if (auth.activeMembership?.role === "owner") {
         setDpa(await getInstituteDpaStatus(auth.activeMembership.instituteId));
@@ -231,10 +235,18 @@ export function PrivacyPreferencesPage() {
     {auth.activeMembership?.role === "owner" && <section className="mt-6 border-t border-slate-100 pt-5">
       <h2 className="font-bold text-slate-900">Institution Data Processing Agreement</h2>
       <p className="mt-1 text-sm leading-6 text-slate-600">This acceptance is recorded for the current institution and the signed-in owner. It does not replace the institution's review of its legal duties.</p>
-      {!dpa?.document ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">No published DPA is currently available.</p> : <div className="mt-3 rounded-xl border border-slate-200 p-4">
-        <p className="font-semibold text-slate-900">{dpa.document.title} · v{dpa.document.version}</p><Link to="/dpa" className="mt-1 inline-block text-xs font-semibold text-blue-700 underline">Read current DPA</Link>
-        <p className="mt-1 text-xs text-slate-500">{dpa.accepted ? "Accepted by " + (dpa.accepted_by ?? "an owner") + " on " + new Date(dpa.accepted_at ?? "").toLocaleString() : "Not yet accepted for this institution."}</p>
-        {!dpa.accepted && <button type="button" disabled={busy} onClick={() => void acceptDpa()} className="mt-3 rounded-xl bg-[#6B1F38] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Review and accept DPA</button>}
+      {!dpa?.document || !dpaDocument ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">No published DPA is currently available.</p> : <div className="mt-3 rounded-xl border border-slate-200 p-4">
+        <p className="font-semibold text-slate-900">{dpa.document.title} · v{dpa.document.version}</p>
+        <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-slate-50 p-3"><MarkdownBody value={dpaDocument.body_markdown ?? ""}/></div>
+        <p className="mt-2 break-all text-[10px] text-slate-500">SHA-256: <code>{dpa.document.content_sha256}</code></p>
+        <p className="mt-2 text-xs text-slate-500">{dpa.accepted ? "Accepted by " + (dpa.accepted_by ?? "an owner") + " on " + new Date(dpa.accepted_at ?? "").toLocaleString() : "Not yet accepted for this institution."}</p>
+        {!dpa.accepted && <>
+          <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-slate-700">
+            <input type="checkbox" checked={dpaReviewed} onChange={event=>setDpaReviewed(event.target.checked)} className="mt-1 h-4 w-4 accent-[#6B1F38]"/>
+            <span>I have reviewed this DPA and confirm that I am authorised to accept it on behalf of the institution.</span>
+          </label>
+          <button type="button" disabled={busy || !dpaReviewed} onClick={() => void acceptDpa()} className="mt-3 rounded-xl bg-[#6B1F38] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Record institution acceptance</button>
+        </>}
       </div>}
     </section>}
 
