@@ -178,10 +178,15 @@ export function PrivacyRequestPage() {
     <p className="mt-3 text-sm leading-7 text-slate-600">
       For privacy questions, access or correction requests, consent withdrawal, deletion requests, or a privacy grievance, email the ClassBandhu privacy contact. For student or parent/guardian records managed by an institute, contact that institute first; ClassBandhu will assist the institute where it acts as a service provider.
     </p>
-    <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="mt-5 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <p className="text-sm font-semibold text-slate-900">Privacy contact</p>
-      <a className="mt-2 inline-block break-all font-semibold text-[#6B1F38] underline" href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Privacy%20Request">info.classbandhu@gmail.com</a>
-      <p className="mt-3 text-xs leading-5 text-slate-500">
+      <p className="break-all text-sm font-semibold text-[#6B1F38]">info.classbandhu@gmail.com</p>
+      <div className="flex flex-wrap gap-3 text-xs font-semibold">
+        <a className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[#6B1F38] underline" href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Privacy%20Question">Privacy question / grievance</a>
+        <a className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[#6B1F38] underline" href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Data%20Access%20or%20Export%20Request">Access / export request</a>
+        <a className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[#6B1F38] underline" href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Data%20Deletion%20Request">Deletion request</a>
+      </div>
+      <p className="mt-1 text-xs leading-5 text-slate-500">
         Describe the request and include enough information to locate the account or Institute. Do not send passwords, OTPs, payment PINs or unnecessary identity documents. Proportionate verification may be requested.
       </p>
     </div>
