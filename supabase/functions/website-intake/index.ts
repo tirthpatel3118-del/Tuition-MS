@@ -80,13 +80,10 @@ Deno.serve(async (request: Request) => {
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
   const gatewayDigest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(gatewaySecret));
   const gatewayHash = Array.from(new Uint8Array(gatewayDigest)).map(v => v.toString(16).padStart(2, "0")).join("");
-  const { data: gatewayConfig, error: gatewayError } = await admin
-    .schema("private")
-    .from("website_intake_config")
-    .select("gateway_secret_hash")
-    .eq("singleton", true)
-    .maybeSingle();
-  if (gatewayError || !gatewayConfig?.gateway_secret_hash || gatewayConfig.gateway_secret_hash !== gatewayHash) {
+  const { data: gatewayValid, error: gatewayError } = await admin.rpc("website_verify_gateway_secret", {
+    p_hash: gatewayHash,
+  });
+  if (gatewayError || gatewayValid !== true) {
     return json({ error: "Website gateway authentication failed." }, 401, origin);
   }
   if (body.type === "access_request") {
