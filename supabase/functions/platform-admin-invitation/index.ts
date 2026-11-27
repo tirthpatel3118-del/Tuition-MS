@@ -15,7 +15,6 @@ function jsonResponse(body: Record<string, unknown>, status: number, origin: str
 
 Deno.serve(async (request) => {
   const appUrl = Deno.env.get("EDULEDGER_APP_URL") ?? "https://tuition-ms.netlify.app";
-  if (!appUrl) return jsonResponse({ error: "EDULEDGER_APP_URL is not configured." }, 500, "null");
 
   let allowedOrigin: string;
   try {
@@ -53,7 +52,14 @@ Deno.serve(async (request) => {
   if (userError || !userResult.user) return jsonResponse({ error: "Sign-in session could not be verified." }, 401, allowedOrigin);
 
   const { data: isAdmin, error: adminError } = await userClient.rpc("is_platform_admin");
-  if (adminError || isAdmin !== true) return jsonResponse({ error: "Platform administrator access is required." }, 403, allowedOrigin);
+  if (adminError || isAdmin !== true) {
+    console.error("[platform-admin-invitation] admin_check_failed", {
+      code: adminError?.code ?? null,
+      message: adminError?.message ?? null,
+      isAdmin: isAdmin === true,
+    });
+    return jsonResponse({ error: "Platform administrator access is required." }, 403, allowedOrigin);
+  }
 
   let body: { email?: unknown; role?: unknown; institute_id?: unknown };
   try {
@@ -66,17 +72,44 @@ Deno.serve(async (request) => {
   const role = typeof body.role === "string" ? body.role : "";
   const instituteId = typeof body.institute_id === "string" && body.institute_id.trim() ? body.institute_id.trim() : null;
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonResponse({ error: "Enter a valid email address." }, 400, allowedOrigin);
-  if (!["owner", "teacher", "accountant"].includes(role)) return jsonResponse({ error: "Select a valid role." }, 400, allowedOrigin);
-  if (role !== "owner" && !instituteId) return jsonResponse({ error: "Teacher and accountant invitations require an institute." }, 400, allowedOrigin);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const roleValid = ["owner", "teacher", "accountant"].includes(role);
+  const instituteScopeValid = role === "owner" || Boolean(instituteId);
+  if (!email || !emailValid || !roleValid || !instituteScopeValid) {
+    console.error("[platform-admin-invitation] input_validation_failed", {
+      emailPresent: Boolean(email),
+      emailValid,
+      roleValid,
+      instituteScopeValid,
+      hasInstituteId: Boolean(instituteId),
+    });
+    if (!email || !emailValid) return jsonResponse({ error: "Enter a valid email address." }, 400, allowedOrigin);
+    if (!roleValid) return jsonResponse({ error: "Select a valid role." }, 400, allowedOrigin);
+    return jsonResponse({ error: "Teacher and accountant invitations require an institute." }, 400, allowedOrigin);
+  }
 
   const { data: invitation, error: invitationError } = await userClient.rpc("platform_admin_create_invitation", {
     p_email: email,
     p_role: role,
     p_institute_id: instituteId,
   });
-  if (invitationError || !invitation?.raw_token || !invitation?.invitation_id) {
-    return jsonResponse({ error: invitationError?.message ?? "Invitation could not be created." }, 400, allowedOrigin);
+  if (invitationError) {
+    console.error("[platform-admin-invitation] invitation_rpc_failed", {
+      code: invitationError.code ?? null,
+      message: invitationError.message ?? null,
+      details: invitationError.details ?? null,
+      hint: invitationError.hint ?? null,
+    });
+    return jsonResponse({ error: invitationError.message ?? "Invitation could not be created." }, 400, allowedOrigin);
+  }
+  if (!invitation?.raw_token || !invitation?.invitation_id) {
+    console.error("[platform-admin-invitation] invitation_rpc_unexpected_result", {
+      hasData: Boolean(invitation),
+      hasRawToken: Boolean(invitation?.raw_token),
+      hasInvitationId: Boolean(invitation?.invitation_id),
+      dataType: typeof invitation,
+    });
+    return jsonResponse({ error: "Invitation service returned an incomplete result." }, 502, allowedOrigin);
   }
 
   const redirectUrl = new URL("/accept-platform-invitation", appUrl);
@@ -102,7 +135,18 @@ Deno.serve(async (request) => {
 
   const actionLink = generated.data?.properties?.action_link;
   if (generated.error || !actionLink) {
-    await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    console.error("[platform-admin-invitation] auth_link_generation_failed", {
+      code: generated.error?.status ?? null,
+      message: generated.error?.message ?? null,
+      hasActionLink: Boolean(actionLink),
+    });
+    const { error: revokeError } = await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    if (revokeError) {
+      console.error("[platform-admin-invitation] invitation_revoke_after_link_failure_failed", {
+        code: revokeError.code ?? null,
+        message: revokeError.message ?? null,
+      });
+    }
     return jsonResponse({ error: generated.error?.message ?? "Supabase did not return an action link." }, 502, allowedOrigin);
   }
 
