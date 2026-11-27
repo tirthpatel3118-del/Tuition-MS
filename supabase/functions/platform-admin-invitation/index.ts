@@ -14,7 +14,7 @@ function jsonResponse(body: Record<string, unknown>, status: number, origin: str
 }
 
 Deno.serve(async (request) => {
-  const appUrl = Deno.env.get("EDULEDGER_APP_URL");
+  const appUrl = Deno.env.get("EDULEDGER_APP_URL") ?? "https://tuition-ms.netlify.app";
   if (!appUrl) return jsonResponse({ error: "EDULEDGER_APP_URL is not configured." }, 500, "null");
 
   let allowedOrigin: string;
