@@ -1,0 +1,2 @@
+[functions.website-intake]
+verify_jwt = false
