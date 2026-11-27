@@ -245,9 +245,10 @@ export function WebsiteManagementPanel() {
           {selectedAccess.status!=="approved" && selectedAccess.status!=="rejected" && <div className="mt-3 space-y-2">
             {selectedAccess.requested_role!=="owner" && <label className={labelClass}>Assign institute before issuing invite<select value={accessInstituteId} onChange={event=>setAccessInstituteId(event.target.value)} className={inputClass}><option value="">Select institute…</option>{institutes.filter(i=>!i.archived_at).map(i=><option key={i.institute_id} value={i.institute_id}>{i.name}</option>)}</select></label>}
             <button type="button" disabled={busy} onClick={()=>void approveAccessAndInvite()} className="min-h-10 w-full rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Approve & generate invitation</button>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" disabled={busy} onClick={()=>void saveAccessStatus("reviewing")} className="min-h-10 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-800 disabled:opacity-50">Mark reviewing</button>
-              <button type="button" disabled={busy} onClick={()=>void saveAccessStatus("rejected")} className="min-h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 disabled:opacity-50">Reject request</button>
+            <div className="grid grid-cols-3 gap-2">
+              <button type="button" disabled={busy} onClick={()=>void saveAccessStatus("reviewing")} className="min-h-10 rounded-xl border border-sky-200 bg-sky-50 px-2 py-2 text-xs font-bold text-sky-800 disabled:opacity-50">Reviewing</button>
+              <button type="button" disabled={busy} onClick={()=>void saveAccessStatus("rejected")} className="min-h-10 rounded-xl border border-rose-200 bg-rose-50 px-2 py-2 text-xs font-bold text-rose-800 disabled:opacity-50">Reject</button>
+              <button type="button" disabled={busy} onClick={()=>void saveAccessStatus("closed")} className="min-h-10 rounded-xl border border-slate-200 bg-white px-2 py-2 text-xs font-bold text-slate-700 disabled:opacity-50">Close</button>
             </div>
           </div>}
           {selectedAccess.linked_invitation_id && <p className="mt-3 break-all text-[11px] text-slate-500">Invitation ID: {selectedAccess.linked_invitation_id}</p>}
