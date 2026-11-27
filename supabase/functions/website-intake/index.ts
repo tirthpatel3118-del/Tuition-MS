@@ -47,6 +47,11 @@ Deno.serve(async (request: Request) => {
     return json({ error: "Website integration credentials could not be verified." }, 401, origin);
   }
 
+  const gatewaySecret = request.headers.get("x-classbandhu-gateway-key") ?? "";
+  if (gatewaySecret.length < 40 || gatewaySecret.length > 200) {
+    return json({ error: "Website gateway authentication failed." }, 401, origin);
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceRoleKey) return json({ error: "Website intake service is not configured." }, 503, origin);
@@ -73,6 +78,17 @@ Deno.serve(async (request: Request) => {
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const gatewayDigest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(gatewaySecret));
+  const gatewayHash = Array.from(new Uint8Array(gatewayDigest)).map(v => v.toString(16).padStart(2, "0")).join("");
+  const { data: gatewayConfig, error: gatewayError } = await admin
+    .schema("private")
+    .from("website_intake_config")
+    .select("gateway_secret_hash")
+    .eq("singleton", true)
+    .maybeSingle();
+  if (gatewayError || !gatewayConfig?.gateway_secret_hash || gatewayConfig.gateway_secret_hash !== gatewayHash) {
+    return json({ error: "Website gateway authentication failed." }, 401, origin);
+  }
   if (body.type === "access_request") {
     const requestedRole = clean(form.requestedRole, 20).toLowerCase();
     if (!["owner", "teacher", "accountant"].includes(requestedRole)) return json({ error: "Please select the account role you are requesting." }, 400, origin);
