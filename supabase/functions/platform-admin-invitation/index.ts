@@ -53,7 +53,14 @@ Deno.serve(async (request) => {
   if (userError || !userResult.user) return jsonResponse({ error: "Sign-in session could not be verified." }, 401, allowedOrigin);
 
   const { data: isAdmin, error: adminError } = await userClient.rpc("is_platform_admin");
-  if (adminError || isAdmin !== true) return jsonResponse({ error: "Platform administrator access is required." }, 403, allowedOrigin);
+  if (adminError || isAdmin !== true) {
+    console.error("[platform-admin-invitation] admin_check_failed", {
+      code: adminError?.code ?? null,
+      message: adminError?.message ?? null,
+      isAdmin: isAdmin === true,
+    });
+    return jsonResponse({ error: "Platform administrator access is required." }, 403, allowedOrigin);
+  }
 
   let body: { email?: unknown; role?: unknown; institute_id?: unknown };
   try {
@@ -75,8 +82,23 @@ Deno.serve(async (request) => {
     p_role: role,
     p_institute_id: instituteId,
   });
-  if (invitationError || !invitation?.raw_token || !invitation?.invitation_id) {
-    return jsonResponse({ error: invitationError?.message ?? "Invitation could not be created." }, 400, allowedOrigin);
+  if (invitationError) {
+    console.error("[platform-admin-invitation] invitation_rpc_failed", {
+      code: invitationError.code ?? null,
+      message: invitationError.message ?? null,
+      details: invitationError.details ?? null,
+      hint: invitationError.hint ?? null,
+    });
+    return jsonResponse({ error: invitationError.message ?? "Invitation could not be created." }, 400, allowedOrigin);
+  }
+  if (!invitation?.raw_token || !invitation?.invitation_id) {
+    console.error("[platform-admin-invitation] invitation_rpc_unexpected_result", {
+      hasData: Boolean(invitation),
+      hasRawToken: Boolean(invitation?.raw_token),
+      hasInvitationId: Boolean(invitation?.invitation_id),
+      dataType: typeof invitation,
+    });
+    return jsonResponse({ error: "Invitation service returned an incomplete result." }, 502, allowedOrigin);
   }
 
   const redirectUrl = new URL("/accept-platform-invitation", appUrl);
@@ -102,7 +124,18 @@ Deno.serve(async (request) => {
 
   const actionLink = generated.data?.properties?.action_link;
   if (generated.error || !actionLink) {
-    await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    console.error("[platform-admin-invitation] auth_link_generation_failed", {
+      code: generated.error?.status ?? null,
+      message: generated.error?.message ?? null,
+      hasActionLink: Boolean(actionLink),
+    });
+    const { error: revokeError } = await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    if (revokeError) {
+      console.error("[platform-admin-invitation] invitation_revoke_after_link_failure_failed", {
+        code: revokeError.code ?? null,
+        message: revokeError.message ?? null,
+      });
+    }
     return jsonResponse({ error: generated.error?.message ?? "Supabase did not return an action link." }, 502, allowedOrigin);
   }
 
