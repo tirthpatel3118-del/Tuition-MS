@@ -6,7 +6,4 @@ CREATE TABLE IF NOT EXISTS private.website_intake_config (
 );
 ALTER TABLE private.website_intake_config ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON private.website_intake_config FROM PUBLIC, anon, authenticated;
-INSERT INTO private.website_intake_config(singleton,gateway_secret_hash)
-VALUES(true,'910fc1b1b891a23983e6ec17ede9c812393ec1488500ea34106c218ab17e021b')
-ON CONFLICT(singleton) DO UPDATE
-SET gateway_secret_hash=EXCLUDED.gateway_secret_hash,updated_at=now();
+-- Provision the gateway hash out-of-band per environment; never commit a usable credential hash.
