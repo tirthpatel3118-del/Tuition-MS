@@ -150,6 +150,44 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: generated.error?.message ?? "Supabase did not return an action link." }, 502, allowedOrigin);
   }
 
+  // Supabase Auth can fall back to Site URL when a redirect target is not
+  // allowlisted. Never expose an action link carrying a preview/incorrect URL.
+  let generatedRedirect: URL | null = null;
+  try {
+    const linkUrl = new URL(actionLink);
+    const redirectParam = linkUrl.searchParams.get("redirect_to");
+    if (redirectParam) generatedRedirect = new URL(redirectParam);
+  } catch {
+    generatedRedirect = null;
+  }
+
+  const expectedSetup = inviteKind === "invite" ? "1" : "0";
+  const redirectIsCorrect = generatedRedirect !== null
+    && generatedRedirect.origin === allowedOrigin
+    && generatedRedirect.pathname === "/accept-platform-invitation"
+    && Boolean(generatedRedirect.searchParams.get("token"))
+    && generatedRedirect.searchParams.get("setup") === expectedSetup;
+
+  if (!redirectIsCorrect) {
+    console.error("[platform-admin-invitation] auth_redirect_mismatch", {
+      expectedOrigin: allowedOrigin,
+      actualOrigin: generatedRedirect?.origin ?? null,
+      actualPath: generatedRedirect?.pathname ?? null,
+      hasInvitationToken: Boolean(generatedRedirect?.searchParams.get("token")),
+      setupMatches: generatedRedirect?.searchParams.get("setup") === expectedSetup,
+    });
+    const { error: revokeError } = await userClient.rpc("platform_admin_revoke_invitation", { p_invitation_id: invitation.invitation_id });
+    if (revokeError) {
+      console.error("[platform-admin-invitation] invitation_revoke_after_redirect_mismatch_failed", {
+        code: revokeError.code ?? null,
+        message: revokeError.message ?? null,
+      });
+    }
+    return jsonResponse({
+      error: "Supabase Auth is not allowing the Production invitation redirect yet. Add https://tuition-ms.netlify.app/accept-platform-invitation* to Auth Redirect URLs, set Auth Site URL to https://tuition-ms.netlify.app, and retry.",
+    }, 409, allowedOrigin);
+  }
+
   return jsonResponse({
     invitation_id: invitation.invitation_id,
     action_link: actionLink,
