@@ -24,9 +24,38 @@ function json(body: Record<string, unknown>, status: number, origin: string): Re
     "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
   }});
 }
+
 function clean(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
+
+function acceptedApiKeys(): string[] {
+  const candidates: unknown[] = [
+    Deno.env.get("SUPABASE_ANON_KEY"),
+    // Optional compatibility variable for projects that explicitly define a singular key.
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
+  ];
+
+  // Current Supabase projects expose publishable keys as a JSON map, keyed by the
+  // configured key name (normally "default"). Read the map instead of embedding a
+  // project-specific publishable key in source code.
+  const publishableKeysJson = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+  if (publishableKeysJson) {
+    try {
+      const parsed: unknown = JSON.parse(publishableKeysJson);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        candidates.push(...Object.values(parsed as Record<string, unknown>));
+      }
+    } catch {
+      console.error("[website-intake] SUPABASE_PUBLISHABLE_KEYS is not valid JSON.");
+    }
+  }
+
+  return [...new Set(candidates.filter(
+    (value): value is string => typeof value === "string" && value.trim().length > 0,
+  ))];
+}
+
 async function hashIp(ip: string, secret: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret + "|website-intake|" + ip));
   return Array.from(new Uint8Array(digest)).map(v => v.toString(16).padStart(2, "0")).join("");
@@ -41,13 +70,8 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, allowedOrigin(origin) ? origin : "null");
   if (!allowedOrigin(origin)) return json({ error: "Origin not allowed." }, 403, "null");
 
-  const acceptedApiKeys = [
-    Deno.env.get("SUPABASE_ANON_KEY"),
-    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
-    // Publishable project key. It is intentionally public; the gateway secret below authenticates the server-to-server call.
-    "sb_publishable_Pd19W8TbLzl56sDga1JEaw_Uccd-yXk",
-  ].filter((value): value is string => Boolean(value));
-  if (!acceptedApiKeys.includes(request.headers.get("apikey") ?? "")) {
+  const suppliedApiKey = request.headers.get("apikey") ?? "";
+  if (!suppliedApiKey || !acceptedApiKeys().includes(suppliedApiKey)) {
     return json({ error: "Website integration credentials could not be verified." }, 401, origin);
   }
 
