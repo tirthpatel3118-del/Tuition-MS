@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Activity, ArrowDownRight, Building2, Check, ChevronDown, Clock3, Copy, Database, CircleDollarSign, ReceiptText, CreditCard, AlertCircle, MessageCircle,
-  GraduationCap, HardDrive, LayoutDashboard, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles,
+  GraduationCap, HardDrive, LayoutDashboard, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles, Globe,
   UserPlus, Users, X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -15,8 +15,9 @@ import { buildSubscriptionReminderMessage, calculateSubscriptionDates, classifyB
 import { SuperAdminOperations } from "./SuperAdminOperations";
 import { LegalCompliancePanel } from "../components/LegalCompliancePanel";
 import { PWAControls } from "../components/PWAControls";
+import { WebsiteManagementPanel } from "../components/WebsiteManagementPanel";
 
-type SuperAdminSection = "overview" | "institutes" | "invitations" | "billing" | "compliance" | "operations";
+type SuperAdminSection = "overview" | "institutes" | "invitations" | "billing" | "compliance" | "operations" | "website";
 
 type InstituteDraft = {
   accessStatus: "active" | "suspended";
@@ -370,6 +371,7 @@ export function SuperAdminDashboard() {
     { id: "invitations", label: "Invitations", description: "Invite owners and institute teams", icon: UserPlus },
     { id: "billing", label: "Subscription billing", description: "Invoices, payments and receipts", icon: CircleDollarSign },
     { id: "compliance", label: "Legal & privacy", description: "Policies and acceptance evidence", icon: ShieldCheck },
+    { id: "website", label: "Website", description: "Website enquiries, access requests and notifications", icon: Globe },
     { id: "operations", label: "Operations", description: "Health checks and platform analytics", icon: Activity },
   ];
   const selectedNavigation = navigation.find(item => item.id === activeSection) ?? navigation[0];
@@ -474,6 +476,7 @@ export function SuperAdminDashboard() {
     </section>
         </>}
 
+        {activeSection === "website" && <WebsiteManagementPanel />}
         {activeSection === "operations" && <SuperAdminOperations />}
         {activeSection === "compliance" && <LegalCompliancePanel />}
 
