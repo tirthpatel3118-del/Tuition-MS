@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Bell, Building2, Check, CheckCheck, ClipboardList, Clock3, ExternalLink, Globe, Mail, MessageSquareText,
+  Bell, Check, CheckCheck, ClipboardList, Clock3, Globe, Mail, MessageSquareText,
   RefreshCw, Search, ShieldCheck, UserRound, Users, X,
 } from "lucide-react";
 import { createPlatformInvitation, listPlatformInstitutes, type PlatformInstitute } from "../services/platformAdminService";
@@ -182,10 +182,13 @@ export function WebsiteManagementPanel() {
         { label: "Access requests", value: summary.total_access_requests, icon: Users },
         { label: "New access", value: summary.new_access_requests, icon: UserRound },
         { label: "Unread alerts", value: summary.unread_notifications, icon: Bell },
-      ].map(card => <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{card.label}</p><card.icon className="h-4 w-4 text-[#8A3452]"/></div>
-        <p className="mt-2 text-2xl font-bold tabular-nums text-slate-950">{card.value}</p>
-      </article>)}
+      ].map(card => {
+        const Icon = card.icon;
+        return <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{card.label}</p><Icon className="h-4 w-4 text-[#8A3452]"/></div>
+          <p className="mt-2 text-2xl font-bold tabular-nums text-slate-950">{card.value}</p>
+        </article>;
+      })}
     </div>
 
     <section className={panelClass}>
