@@ -41,8 +41,12 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, allowedOrigin(origin) ? origin : "null");
   if (!allowedOrigin(origin)) return json({ error: "Origin not allowed." }, 403, "null");
 
-  const acceptedApiKeys = [Deno.env.get("SUPABASE_ANON_KEY"), Deno.env.get("SUPABASE_PUBLISHABLE_KEY")]
-    .filter((value): value is string => Boolean(value));
+  const acceptedApiKeys = [
+    Deno.env.get("SUPABASE_ANON_KEY"),
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
+    // Publishable project key. It is intentionally public; the gateway secret below authenticates the server-to-server call.
+    "sb_publishable_Pd19W8TbLzl56sDga1JEaw_Uccd-yXk",
+  ].filter((value): value is string => Boolean(value));
   if (!acceptedApiKeys.includes(request.headers.get("apikey") ?? "")) {
     return json({ error: "Website integration credentials could not be verified." }, 401, origin);
   }
