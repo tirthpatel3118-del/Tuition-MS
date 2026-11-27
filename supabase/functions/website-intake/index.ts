@@ -13,7 +13,7 @@ function allowedOrigin(origin: string): boolean {
     return url.protocol === "https:" && (
       host === "development.classbandhu-website.pages.dev" ||
       host === "classbandhu-website.pages.dev" ||
-      /^[a-f0-9]{8}\\.classbandhu-website\\.pages\\.dev$/.test(host)
+      /^[a-f0-9]{8}\.classbandhu-website\.pages\.dev$/.test(host)
     );
   } catch { return false; }
 }
@@ -101,7 +101,7 @@ Deno.serve(async (request: Request) => {
   const city = clean(form.city, 80);
   const message = clean(form.message, 1200);
   const ipHash = await hashIp(clean(request.headers.get("x-site-client-ip"), 100) || "unknown", serviceRoleKey);
-  if (requesterName.length < 2 || instituteName.length < 2 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (requesterName.length < 2 || instituteName.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json({ error: "Please enter your name, institute name and a valid email address." }, 400, origin);
   }
 
