@@ -14,7 +14,7 @@ function jsonResponse(body: Record<string, unknown>, status: number, origin: str
 }
 
 Deno.serve(async (request) => {
-  const appUrl = Deno.env.get("EDULEDGER_APP_URL") ?? "https://tuition-ms.netlify.app";
+  const appUrl = "https://tuition-ms.netlify.app"; // Fixed Production Super Admin origin.
 
   let allowedOrigin: string;
   try {
