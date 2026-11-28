@@ -25,6 +25,7 @@ const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: 
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({ default: module.AttendancePage })));
+const DemoAttendancePage = lazy(() => import('./pages/DemoAttendancePage').then(module => ({ default: module.DemoAttendancePage })));
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
@@ -133,7 +134,7 @@ function AppContent() {
               <Route path="/receipts" element={<Receipts />} />
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/courses" element={<Courses />} />
-              <Route path="/attendance" element={auth.activeMembership?.role === 'owner' ? <AttendancePage /> : <Navigate to="/" replace />} />
+              <Route path="/attendance" element={isDemoMode ? <DemoAttendancePage /> : auth.activeMembership?.role === 'owner' ? <AttendancePage /> : <Navigate to="/" replace />} />
               <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
             </Routes>
           </Suspense>
@@ -145,7 +146,7 @@ function AppContent() {
             { to: auth.platformAdmin ? '/workspace' : '/', label: 'Home', icon: LayoutDashboard },
             { to: '/admissions', label: 'Admissions', icon: UserPlus },
             { to: '/payments', label: 'Fees', icon: CreditCard },
-            ...(auth.activeMembership?.role === 'owner' ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
+            ...(auth.activeMembership?.role === 'owner' || isDemoMode ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
             { to: '/courses', label: 'Courses', icon: BookOpen },
           ].map(item => {
             const Icon = item.icon;
