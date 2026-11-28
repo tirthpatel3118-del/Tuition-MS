@@ -13,6 +13,7 @@ import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, Passwor
 import { InstituteLegalAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage, AcceptableUsePolicyPage, PrivacyRequestPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
+import { RequestDemoPage } from './pages/RequestDemoPage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -45,7 +46,7 @@ function AppContent() {
       <div className="flex-1 flex flex-col min-w-0">
         {isDemoMode && (
           <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
-            Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
+            Browser-only demo · Changes are held in temporary memory and reset on refresh. Nothing is saved to or loaded from the institute database.
           </div>
         )}
         {/* Top Navigation Bar */}
@@ -418,12 +419,24 @@ function AppEntry() {
   </DataProvider>;
 }
 
+function AppRouteContent() {
+  const location = useLocation();
+
+  // This public page is intentionally outside AuthProvider. It does not
+  // initialize Supabase Auth or make any backend request.
+  if (location.pathname === '/request-demo') return <RequestDemoPage />;
+
+  return (
+    <AuthProvider>
+      <AppEntry />
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppEntry />
-      </AuthProvider>
+      <AppRouteContent />
     </Router>
   );
 }
