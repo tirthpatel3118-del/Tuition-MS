@@ -15,12 +15,12 @@ All four drafts are to remain database status draft and is_test_only=true. Do no
 
 ## Product facts carried into the drafts
 - Product scope is ClassBandhu Tuition only; ClassBandhu School is separate.
-- Operator details presently confirmed in the project draft: Tirth Patel, individual operator; contact info.classbandhu@gmail.com. Legal entity and postal/service address are not confirmed.
+- Operator name confirmed as Tirth Patel. Current contact preference is email-only at info.classbandhu@gmail.com. The Operator reports having no office and has not supplied an office/residential address or a customer-support phone number. The precise legal form/registration status and any required geographic/service address remain unverified. Do not invent or publish a private address; obtain legal review of any address-disclosure requirement.
 - Subscription billing is manually collected; monthly and yearly cycles are contemplated. Pricing, tax, refund and invoice-issuer details require approval.
 - Project draft describes a seven-calendar-day grace period as a proposed operational rule; confirm the live billing implementation and commercial approval before making it binding.
 - WhatsApp reminder workflow is manual/user-initiated. Automatic WhatsApp Business API, email and SMS sending are not represented as current features.
 - Face recognition/biometric attendance is not represented as a current feature.
-- Known infrastructure: Supabase and Netlify; Gmail is the published support/contact channel; WhatsApp is an external user-initiated messaging service.
+- Known infrastructure: Supabase and Netlify; Gmail is the only currently offered support/privacy/grievance contact channel; no phone support is currently offered; WhatsApp is an external user-initiated messaging service.
 - Supabase Primary and Testing project metadata checked 27 November 2026 reports database region ap-northeast-1 (Tokyo). This does not establish all backup, log, support-access or Netlify locations.
 
 ## Legal framework timing checked 27 November 2026
@@ -29,13 +29,15 @@ All four drafts are to remain database status draft and is_test_only=true. Do no
 - DPDP (Removal of Difficulties) Order, 2026, S.O. 5458(E), published 6 October 2026, corrects wording in sections 9(1) and 10(2)(c)(ii). It does not change the staggered commencement schedule.
 - IT Act, 2000 section 43A and the 2011 SPDI Rules should be assessed during the transition because the DPDP Act section 44(2) amendment group is scheduled for the eighteen-month commencement phase. Counsel must confirm applicability to the actual Provider/Institute roles and data processed.
 - CERT-In Directions of 28 April 2022 include 6-hour incident reporting and 180-day log-retention/location requirements for covered entities. Counsel and security reviewers must decide which obligations apply to ClassBandhu, its providers and its service arrangements. Do not assume a Tokyo database location alone answers where logs must be stored.
+- Consumer Protection (E-Commerce) Rules, 2020: Rule 4(1)(a) and Rule 4(2) contain entity-status and disclosure requirements, including legal name, principal geographic address and customer-care/grievance contact details. Counsel must determine whether ClassBandhu's institute-focused SaaS and direct subscription model fall within the statutory definition/scope and how the individual-operator/business structure is treated. Do not assume the Rules apply or do not apply without this assessment.
+- Consumer Protection (E-Commerce) (Amendment) Rules, 2026, G.S.R. 789(E), dated 9 September 2026, are scheduled to commence on 1 January 2027. For entities within scope, amended Rule 4(2) specifies legal name, principal geographic address, website details and email, landline and mobile contact details for customer care and the grievance officer; amended Rule 4(5) requires acknowledgement within 48 hours, a copy of the recorded complaint and redressal within one month. Because ClassBandhu currently plans email-only contact and has no office, counsel must decide the applicable requirements and a lawful, workable disclosure/contact arrangement before publication.
 
 ## Mandatory review blockers before publishing
-1. Confirm the contracting operator's legal identity, business status, service address and required public disclosures.
+1. Confirm the contracting operator's full legal identity and legal form/registration status; determine the legally appropriate geographic/service address and required public disclosures. Assess Consumer Protection (E-Commerce) Rules 2020 coverage, Rule 4(1)(a), and the 2026 amendments effective 1 January 2027. Do not substitute an email address for a geographic address unless counsel confirms that is legally sufficient.
 2. Confirm final canonical public website and application domains.
 3. Verify exact product feature list in Production and update any mismatch.
 4. Approve pricing, GST/tax treatment, invoice issuer, payment methods, cancellation/refund and grace-period rules.
-5. Approve support channels, operating hours, response targets and grievance procedure.
+5. Confirm the email-only support/grievance arrangement at info.classbandhu@gmail.com, appoint/identify the correct grievance contact if required, and approve operating hours, acknowledgement/redressal targets and any required phone or other contact channels. Implement and test the process before publication.
 6. Complete data inventory against Production tables, website forms, application telemetry, analytics, cookies and support processes.
 7. Confirm Data Fiduciary/Processor allocation for each processing purpose.
 8. Obtain and review current Supabase, Netlify, Google/Gmail and other vendor DPAs, sub-processors and regional processing details.
@@ -61,5 +63,7 @@ All four drafts are to remain database status draft and is_test_only=true. Do no
 - Gazette of India, S.O. 5458(E), Digital Personal Data Protection (Removal of Difficulties) Order, 2026 — https://egazette.gov.in/WriteReadData/2026/276885.pdf
 - MeitY, IT (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011, G.S.R. 313(E) — https://meity.gov.in/sites/upload_files/dit/files/GSR313E_10511%281%29.pdf
 - CERT-In Directions, 28 April 2022 — https://www.cert-in.org.in/PDF/CERT-In_Directions_70B_28.04.2022.pdf
+- Consumer Protection (E-Commerce) Rules, 2020, G.S.R. 462(E), 23 July 2020 — https://consumeraffairs.gov.in/public/upload/files/E%20commerce%20rules_1732703966.pdf
+- Consumer Protection (E-Commerce) (Amendment) Rules, 2026, G.S.R. 789(E), 9 September 2026; effective 1 January 2027 — https://consumeraffairs.gov.in/public/upload/files/E%20Commerce%20Amendment%20Rules%202026_1789128659.pdf
 
 This checklist is not a legal opinion. Qualified Indian counsel must approve the final documents and applicability analysis.
