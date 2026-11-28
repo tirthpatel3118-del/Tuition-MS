@@ -15,12 +15,12 @@ All four drafts are to remain database status draft and is_test_only=true. Do no
 
 ## Product facts carried into the drafts
 - Product scope is ClassBandhu Tuition only; ClassBandhu School is separate.
-- Operator name confirmed as Tirth Patel. Current contact preference is email-only at info.classbandhu@gmail.com. The Operator reports having no office and has not supplied an office/residential address or a customer-support phone number. The precise legal form/registration status and any required geographic/service address remain unverified. Do not invent or publish a private address; obtain legal review of any address-disclosure requirement.
+- Operator name confirmed as Tirth Patel. The only customer-facing contact channel currently authorised for publication is the official email address info.classbandhu@gmail.com. The Operator has a phone but does not want to publish it; no phone number should be added to public-facing drafts. The Operator reports having no office and has not supplied an office/residential address. The precise legal form/registration status and any required geographic/service address remain unverified. Do not invent or publish a private address; obtain legal review of any address-disclosure requirement.
 - Subscription billing is manually collected; monthly and yearly cycles are contemplated. Pricing, tax, refund and invoice-issuer details require approval.
 - Project draft describes a seven-calendar-day grace period as a proposed operational rule; confirm the live billing implementation and commercial approval before making it binding.
 - WhatsApp reminder workflow is manual/user-initiated. Automatic WhatsApp Business API, email and SMS sending are not represented as current features.
 - Face recognition/biometric attendance is not represented as a current feature.
-- Known infrastructure: Supabase and Netlify; Gmail is the only currently offered support/privacy/grievance contact channel; no phone support is currently offered; WhatsApp is an external user-initiated messaging service.
+- Known infrastructure: Supabase and Netlify; info.classbandhu@gmail.com is the only customer-facing support/privacy/grievance contact channel authorised for publication at present; the Operator has a phone but does not consent to publishing it; WhatsApp is an external user-initiated messaging service.
 - Supabase Primary and Testing project metadata checked 27 November 2026 reports database region ap-northeast-1 (Tokyo). This does not establish all backup, log, support-access or Netlify locations.
 
 ## Legal framework timing checked 27 November 2026
@@ -37,7 +37,7 @@ All four drafts are to remain database status draft and is_test_only=true. Do no
 2. Confirm final canonical public website and application domains.
 3. Verify exact product feature list in Production and update any mismatch.
 4. Approve pricing, GST/tax treatment, invoice issuer, payment methods, cancellation/refund and grace-period rules.
-5. Confirm the email-only support/grievance arrangement at info.classbandhu@gmail.com, appoint/identify the correct grievance contact if required, and approve operating hours, acknowledgement/redressal targets and any required phone or other contact channels. Implement and test the process before publication.
+5. Configure and test the email-only support/privacy/grievance workflow at info.classbandhu@gmail.com, appoint/identify the correct grievance contact if required, and approve operating hours and acknowledgement/redressal targets. Do not publish the Operator's private phone number. Counsel must determine whether any applicable law nevertheless requires a published telephone contact and advise on a compliant alternative before publication.
 6. Complete data inventory against Production tables, website forms, application telemetry, analytics, cookies and support processes.
 7. Confirm Data Fiduciary/Processor allocation for each processing purpose.
 8. Obtain and review current Supabase, Netlify, Google/Gmail and other vendor DPAs, sub-processors and regional processing details.
