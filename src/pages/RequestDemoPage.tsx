@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, RefreshCw, ShieldCheck, Users, WalletCards } from 'lucide-react';
-import { ClassBandhuMark } from '../components/ClassBandhuMark';
+import { ClassBandhuMark } from '../components/ClassBandhuMark';\n\nconst marketingSiteUrl = window.location.hostname.startsWith('development--')\n  ? 'https://development.classbandhu-website.pages.dev'\n  : 'https://classbandhu-website.pages.dev';
 
 export function RequestDemoPage() {
   return (
