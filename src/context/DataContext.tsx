@@ -9,7 +9,7 @@ import { paymentService } from '../services/paymentService';
 import { courseService } from '../services/courseService';
 import { installmentService } from '../services/installmentService';
 import { receiptService } from '../services/receiptService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isDemoMode, isSupabaseConfigured } from '../lib/supabase';
 import { getActiveInstituteId } from '../lib/tenant';
 import { formatLocalDateInput } from '../lib/date';
 
@@ -49,7 +49,7 @@ interface DataContextType {
   deleteBatch: (id: string) => Promise<boolean>;
   removeCourseFromBatch: (batchId: string, courseId: string) => Promise<boolean>;
   sendReminder: (studentId: string, type: 'WhatsApp' | 'SMS' | 'Email', installmentId?: string) => Promise<void>;
-  sendBulkReminders: (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<void>;
+  sendBulkReminders: (installmentIds: string[], type: 'WhatsApp' | 'SMS' | 'Email') => Promise<number>;
   
   // UI helper functions
   toasts: ToastMessage[];
@@ -779,13 +779,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    if (itemsToQueue.length === 0) return;
+    if (itemsToQueue.length === 0) return 0;
 
     const created = await reminderService.createManyReminders(itemsToQueue.map(({ studentId, amountDue }) => ({
       studentId,
       amountDue,
       channel: type,
-      status: 'queued',
+      status: isDemoMode ? 'simulated' : 'queued',
     })));
 
     const newReminders = created.map((reminder, idx) => ({
@@ -799,6 +799,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (newReminders.length) {
       setData(prev => ({ ...prev, reminders: [...newReminders, ...prev.reminders] }));
     }
+    return newReminders.length;
   };
 
   return (
