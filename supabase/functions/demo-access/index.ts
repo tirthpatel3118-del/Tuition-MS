@@ -5,7 +5,7 @@ const allowedOrigin = (origin: string) => {
     const url = new URL(origin);
     return url.protocol === "https:" &&
       (url.hostname === "development--tuition-ms.netlify.app" ||
-        /^[a-z0-9-]+--tuition-ms\\.netlify\\.app$/.test(url.hostname));
+        url.hostname.endsWith("--tuition-ms.netlify.app"));
   } catch {
     return false;
   }
