@@ -126,6 +126,7 @@ function AppContent() {
           <Suspense fallback={<div className="py-12 text-center text-sm text-slate-500">Loading workspace…</div>}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/workspace" element={auth.activeMembership ? <Dashboard /> : <Navigate to="/super-admin" replace />} />
               <Route path="/admissions" element={<Admissions />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/receipts" element={<Receipts />} />
