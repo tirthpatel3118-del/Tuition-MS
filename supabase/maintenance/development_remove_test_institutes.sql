@@ -142,7 +142,6 @@ BEGIN
   DELETE FROM public.batch_schedule_days WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.batch_courses WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.student_batches WHERE institute_id=ANY(v_target_ids);
-  DELETE FROM public.academic_students WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.students WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.batches WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.courses WHERE institute_id=ANY(v_target_ids);
