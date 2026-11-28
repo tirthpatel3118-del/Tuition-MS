@@ -14,10 +14,20 @@ const requestDemo = read('../src/pages/RequestDemoPage.tsx');
 const app = read('../src/App.tsx');
 const authContext = read('../src/context/AuthContext.tsx');
 const authPages = read('../src/pages/AuthPages.tsx');
+const demoClient = read('../src/services/demoAccessClient.ts');
+const demoGuard = read('../src/components/DemoSessionGuard.tsx');
+const demoPages = read('../src/pages/DemoAccessPages.tsx');
+const demoEdge = read('../supabase/functions/demo-access/index.ts');
 
 // Demo mode must force Supabase to a local inert endpoint and mark it unconfigured.
-assert.ok(supabase.includes("export const isDemoMode = requestedDemoMode || storedDemoMode"));
+assert.ok(supabase.includes("export const isDemoMode = storedDemoSession"));
+assert.ok(supabase.includes("sessionStorage.getItem(DEMO_MODE_SESSION_KEY) === '1'"));
+assert.ok(supabase.includes('export function enableDemoModeSession()'));
+assert.ok(!supabase.includes("get('demo') === '1'"));
 assert.ok(supabase.includes("Boolean(supabaseUrl && supabaseAnonKey) && !isDemoMode"));
+assert.ok(supabase.includes('export const supabaseUrl'));
+assert.ok(supabase.includes('export const supabaseAnonKey'));
+assert.ok(supabase.includes('isDemoMode ? \'demo-only-key\''));
 assert.ok(supabase.includes("isDemoMode ? 'http://127.0.0.1:54321'"));
 assert.ok(supabase.includes("isDemoMode ? 'demo-only-key'"));
 assert.ok(mockStorage.includes('if (isDemoMode) return fallback;'));
@@ -51,6 +61,17 @@ assert.ok(serviceWorker.includes("url.pathname.startsWith('/storage/')"));
 // The public explainer has no backend integration, and is routed outside AuthProvider.
 assert.ok(!requestDemo.includes('supabase'));
 assert.ok(app.includes("if (location.pathname === '/request-demo') return <RequestDemoPage />"));
+assert.ok(app.includes("new URLSearchParams(location.search).get('demo') === '1'"));
+assert.ok(app.includes('<DemoSessionGuard>'));
+assert.ok(demoClient.includes('enableDemoModeSession()'));
+assert.ok(demoClient.includes("action: 'activate'"));
+assert.ok(demoClient.includes("action: 'validate'"));
+assert.ok(demoGuard.includes('window.setInterval(() => { void verify(); }, 10_000)'));
+assert.ok(demoGuard.includes('if (!result.valid || !result.expiresAt'));
+assert.ok(demoPages.includes('window.history.replaceState(null'));
+assert.ok(!demoPages.includes("window.location.replace('/?demo=1')"));
+assert.ok(demoEdge.includes('website_demo_activate'));
+assert.ok(demoEdge.includes('website_demo_validate'));
 assert.ok(app.includes('return (\n    <AuthProvider>'));
 
 // Demo mode starts with a non-configured AuthProvider and skips Supabase auth listeners.
