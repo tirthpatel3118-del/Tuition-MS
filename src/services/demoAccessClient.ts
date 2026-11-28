@@ -1,4 +1,9 @@
-import { supabaseAnonKey, supabaseUrl } from '../lib/supabase';
+import {
+  clearDemoModeSession,
+  enableDemoModeSession,
+  supabaseAnonKey,
+  supabaseUrl,
+} from '../lib/supabase';
 
 const SESSION_KEY = 'classbandhu.demo.session';
 const FUNCTION_URL = (supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl) + '/functions/v1/demo-access';
@@ -18,6 +23,8 @@ type DemoApiResponse = {
   error?: string;
 };
 
+let activationInFlight: { token: string; promise: Promise<void> } | null = null;
+
 function readSessionToken(): string | null {
   try {
     return localStorage.getItem(SESSION_KEY);
@@ -30,8 +37,9 @@ export function clearDemoSession(): void {
   try {
     localStorage.removeItem(SESSION_KEY);
   } catch {
-    // The session remains blocked because local storage cannot be read.
+    // The demo remains blocked because the session marker is also cleared.
   }
+  clearDemoModeSession();
 }
 
 async function callDemoAccess(body: Record<string, unknown>): Promise<DemoApiResponse> {
@@ -51,24 +59,45 @@ async function callDemoAccess(body: Record<string, unknown>): Promise<DemoApiRes
   return data;
 }
 
-export async function activateDemoInvitation(invitationToken: string): Promise<void> {
+async function activateInvitationOnce(invitationToken: string): Promise<void> {
   const current = readSessionToken();
   if (current) {
-    const result = await validateDemoSession(current);
-    if (result.valid) return;
+    const existing = await validateDemoSession(current);
+    if (existing.valid) {
+      if (!enableDemoModeSession()) throw new Error('Your browser could not open a secure demo session. Enable site storage and try again.');
+      return;
+    }
     clearDemoSession();
-    throw new Error('This demo session has expired or been revoked. Request a new demo invitation.');
   }
 
   const result = await callDemoAccess({ action: 'activate', token: invitationToken });
   if (!result.success || !result.sessionToken) {
-    throw new Error('This demo invitation is invalid, expired or already used.');
+    throw new Error('This demo invitation is invalid, expired or already used. Request a new invitation.');
   }
+
   try {
     localStorage.setItem(SESSION_KEY, result.sessionToken);
   } catch {
     throw new Error('Your browser could not save the secure demo session. Enable site storage and reopen your invitation.');
   }
+  if (!enableDemoModeSession()) {
+    clearDemoSession();
+    throw new Error('Your browser could not initialise a secure demo session. Enable site storage and try again.');
+  }
+}
+
+export function activateDemoInvitation(invitationToken: string): Promise<void> {
+  const token = invitationToken.trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(token)) {
+    return Promise.reject(new Error('This demo invitation is invalid or expired.'));
+  }
+  if (activationInFlight?.token === token) return activationInFlight.promise;
+
+  const promise = activateInvitationOnce(token).finally(() => {
+    if (activationInFlight?.token === token) activationInFlight = null;
+  });
+  activationInFlight = { token, promise };
+  return promise;
 }
 
 export async function validateDemoSession(sessionToken = readSessionToken()): Promise<DemoValidation> {
