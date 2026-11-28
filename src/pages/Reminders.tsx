@@ -385,22 +385,36 @@ export const Reminders: React.FC = () => {
   // Send single/bulk reminder trigger
   const handleSendReminders = () => {
     if (selectedInstallmentIds.length === 0) {
-      showToast('Please select at least one item to send reminders.', 'error');
+      showToast('Please select at least one item to continue.', 'error');
       return;
     }
 
+    const selectedCount = selectedInstallmentIds.length;
+    const selectedIds = [...selectedInstallmentIds];
+    const selectedChannel = reminderType;
+
     confirmAction({
-      title: 'Send Fee Reminders',
-      message: `Add reminders for ${selectedInstallmentIds.length} selected item(s) to the ${reminderType} queue? They will be recorded as queued, not sent automatically.`,
-      confirmText: 'Queue Reminders',
+      title: isDemoMode ? 'Simulate Fee Reminder' : 'Queue Fee Reminders',
+      message: isDemoMode
+        ? `Create a temporary preview record for ${selectedCount} selected item(s) via ${selectedChannel}? This is a local demo simulation only. No WhatsApp, SMS or email will be sent, and nothing will be added to a server queue.`
+        : `Add ${selectedCount} selected item(s) to the ${selectedChannel} reminder queue? Messages will not be sent automatically.`,
+      confirmText: isDemoMode ? 'Simulate Reminder' : 'Queue Reminders',
       type: 'primary',
       onConfirm: () => {
-        void sendBulkReminders(selectedInstallmentIds, reminderType).then(() => {
-          showToast(`Reminders queued for ${selectedInstallmentIds.length} selected item(s).`, 'success');
+        void sendBulkReminders(selectedIds, selectedChannel).then(createdCount => {
+          if (createdCount === 0) {
+            showToast('No eligible outstanding fee items were found. Nothing was recorded.', 'warning');
+            return;
+          }
+          if (isDemoMode) {
+            showToast(`${createdCount} demo reminder(s) simulated locally. No message was sent and no server queue was created.`, 'info');
+          } else {
+            showToast(`${createdCount} reminder(s) added to the queue. Messages are not sent automatically.`, 'success');
+          }
           setSelectedInstallmentIds([]);
           setFocusedInstallmentId(null);
         }).catch((error: unknown) => {
-          showToast(error instanceof Error ? error.message : 'Could not queue reminders.', 'error');
+          showToast(error instanceof Error ? error.message : 'Could not record reminders.', 'error');
         });
       }
     });
@@ -412,7 +426,7 @@ export const Reminders: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5DDE0] pb-5">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A03B5E]">Collections follow-up</p><h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[30px]">Dues & reminders</h1>
-          <p className="text-sm text-slate-500 mt-1">Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.</p>
+          <p className="text-sm text-slate-500 mt-1">{isDemoMode ? 'Preview reminder templates and simulate local reminder records. No WhatsApp, SMS or email is sent or queued on a server.' : 'Review outstanding dues, queue reminders, or open WhatsApp manually. Messages are never sent automatically.'}</p>
         </div>
 
         {/* Tab Toggle buttons */}
@@ -784,7 +798,7 @@ export const Reminders: React.FC = () => {
                 className="w-full flex items-center justify-center gap-2 bg-[#6B1F38] hover:bg-[#57172D] text-white font-bold py-2.5 rounded-xl text-xs transition-colors shadow-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none cursor-pointer"
               >
                 <Users className="w-4 h-4" />
-                <span>Dispatch {selectedInstallmentIds.length} Reminders</span>
+                <span>{isDemoMode ? 'Simulate' : 'Queue'} {selectedInstallmentIds.length} Reminders</span>
               </button>
             </div>
 
@@ -849,13 +863,14 @@ export const Reminders: React.FC = () => {
                           </td>
                           <td className="px-5 py-3 text-center">
                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              log.status === 'simulated' ? 'text-sky-700 bg-sky-50 border-sky-100' :
                               log.status === 'queued' ? 'text-amber-700 bg-amber-50 border-amber-100' :
                               log.status === 'failed' ? 'text-rose-700 bg-rose-50 border-rose-100' :
                               log.status === 'delivered' || log.status === 'sent' ? 'text-emerald-700 bg-emerald-50 border-emerald-100' :
                               'text-[#6B1F38] bg-[#F8E9ED] border-[#E5DDE0]'
                             }`}>
                               <CheckCircle2 className="w-3 h-3" />
-                              <span>{log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
+                              <span>{log.status === 'simulated' ? 'Simulated · not sent' : log.status === 'manual_opened' ? 'Opened manually' : log.status.replace('_', ' ')}</span>
                             </span>
                           </td>
                         </tr>
