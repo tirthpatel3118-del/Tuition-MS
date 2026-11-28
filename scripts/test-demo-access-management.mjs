@@ -31,7 +31,7 @@ assert.ok(migration.includes('REVOKE ALL ON private.website_demo_access FROM PUB
 assert.ok(migration.includes('REVOKE ALL ON FUNCTION public.website_demo_activate(text,text) FROM PUBLIC, anon, authenticated'));
 assert.ok(auditMigration.includes('platform_admin_demo_list_activity'));
 
-assert.ok(accessFn.includes('verify_jwt'));
+assert.ok(accessFn.includes('allowedOrigin'));
 assert.ok(accessFn.includes('SUPABASE_SERVICE_ROLE_KEY'));
 assert.ok(accessFn.includes('website_demo_activate'));
 assert.ok(accessFn.includes('website_demo_validate'));
