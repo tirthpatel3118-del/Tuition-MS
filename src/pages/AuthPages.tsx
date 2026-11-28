@@ -164,11 +164,11 @@ export function AuthPage() {
         <div className="mt-6 rounded-xl bg-slate-50 p-4 text-center text-sm leading-6 text-slate-600">
           <p>Access is provided by invitation. Already part of an institute? Ask your institute owner for an invitation.</p>
           <div className="mt-3 rounded-lg border border-[#E8D2DB] bg-white p-3">
-            <p className="font-semibold text-slate-800">Want to explore ClassBandhu first?</p>
+            <p className="font-semibold text-slate-800">Want to see ClassBandhu in action?</p>
             <Link to="/request-demo" className="mt-2 inline-flex items-center justify-center rounded-lg bg-[#6B1F38] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#57172D]">
-              Open interactive demo
+              Request a private demo
             </Link>
-            <p className="mt-2 text-xs text-slate-500">Try the ERP with sample data. Your changes reset when you refresh.</p>
+            <p className="mt-2 text-xs text-slate-500">Submit your details on our website. Approved visitors receive a private, time-limited invitation.</p>
           </div>
           <p className="mt-3">For a guided product demo or institute access, email{" "}
             <a href="mailto:info.classbandhu@gmail.com?subject=ClassBandhu%20Demo%20or%20Institute%20Access" className="font-semibold text-[#6B1F38] underline underline-offset-2">info.classbandhu@gmail.com</a>.
