@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const auth = useAuth();
   const role = auth.activeMembership?.role;
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: auth.platformAdmin ? '/workspace' : '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/admissions', label: 'Admissions', icon: UserPlus },
     { to: '/payments', label: 'Fee Collection', icon: CreditCard },
     { to: '/receipts', label: 'Receipts', icon: Receipt },
