@@ -4,7 +4,8 @@
 **Status:** INTERNAL REVIEW DRAFT — NOT APPROVED FOR EXECUTION OR PUBLICATION  
 **Prepared:** 27 November 2026  
 **Proposed Service Provider:** Tirth Patel, individual operator of ClassBandhu  
-**Provider contact:** info.classbandhu@gmail.com  
+**Provider contact (email only):** info.classbandhu@gmail.com  
+**Telephone/mobile support:** Not currently offered or published.  
 **Product scope:** ClassBandhu Tuition only
 
 > This draft assumes that an Institute determines the purposes for its student, parent/guardian, staff and educational-administration records and that the Provider processes those records to supply the Platform. Actual legal roles depend on the facts and applicable law. Qualified Indian data-protection counsel must review this agreement, the parties' identities, vendor contracts, transfer arrangements, security schedule and retention terms before it is signed or accepted.
@@ -145,7 +146,8 @@ The Provider will disclose known processing locations and material cross-border 
 ## 14. Notices and contacts
 
 **Provider:** Tirth Patel — ClassBandhu  
-**Provider email:** info.classbandhu@gmail.com  
+**Provider email (only published contact channel at present):** info.classbandhu@gmail.com  
+**Provider telephone/mobile:** Not offered or published at present.  
 **Provider postal/service address:** [COMPLETE BEFORE EXECUTION]  
 **Institute privacy contact:** [CAPTURE OR AGREE IN WORKSPACE/ORDER FORM]  
 **Incident contact and escalation route:** [COMPLETE ANNEX 4]
@@ -195,7 +197,8 @@ The Provider will disclose known processing locations and material cross-border 
 ## Annex 4 — Incident contacts and escalation
 
 - Provider incident owner: Tirth Patel.
-- Provider contact: info.classbandhu@gmail.com.
+- Provider contact (email only): info.classbandhu@gmail.com.
+- No provider phone number is currently offered or published; legal review must confirm whether any contractual/statutory phone contact is required.
 - Institute incident contact: [REQUIRED].
 - Secondary emergency route: [APPROVE AND TEST].
 - Internal triage/escalation process: [DOCUMENT].
