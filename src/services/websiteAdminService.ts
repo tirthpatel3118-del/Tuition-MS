@@ -65,6 +65,19 @@ export interface WebsiteDemoRequest {
   demo_status: "new" | "reviewing" | "approved" | "rejected" | "link_generated" | "active" | "expired" | "revoked";
 }
 
+export interface WebsiteDemoActivity {
+  id: string;
+  inquiry_id: string;
+  demo_access_id: string | null;
+  action: string;
+  details: Record<string, unknown>;
+  created_at: string;
+  reference_code: string;
+  requester_name: string;
+  institute_name: string;
+  actor_email: string | null;
+}
+
 export interface WebsiteDemoSession {
   demo_access_id: string;
   inquiry_id: string;
@@ -185,3 +198,6 @@ export const extendWebsiteDemoSession = (accessId: string) =>
 
 export const revokeWebsiteDemoSession = (accessId: string) =>
   websiteRpc<void>("platform_admin_demo_revoke", { p_demo_access_id: accessId });
+
+export const listWebsiteDemoActivity = () =>
+  websiteRpc<WebsiteDemoActivity[]>("platform_admin_demo_list_activity");
