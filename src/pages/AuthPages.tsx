@@ -162,7 +162,7 @@ export function AuthPage() {
         </p>
       ) : (
         <div className="mt-6 rounded-xl bg-slate-50 p-4 text-center text-sm leading-6 text-slate-600">
-          <p>Access to a live institute workspace is provided by invitation. Already part of an institute? Ask your institute owner for an invitation.</p>
+          <p>Access is provided by invitation. Already part of an institute? Ask your institute owner for an invitation.</p>
           <div className="mt-3 rounded-lg border border-[#E8D2DB] bg-white p-3">
             <p className="font-semibold text-slate-800">Want to explore ClassBandhu first?</p>
             <Link to="/request-demo" className="mt-2 inline-flex items-center justify-center rounded-lg bg-[#6B1F38] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#57172D]">
