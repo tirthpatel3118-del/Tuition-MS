@@ -422,7 +422,7 @@ BEGIN
   UPDATE private.website_demo_access
   SET activated_at=now(),
       session_hash=encode(extensions.digest(v_session_token,'sha256'),'hex'),
-      session_expires_at=now() + make_interval(mins=>duration_minutes)
+      session_expires_at=now() + make_interval(mins=>v_access.duration_minutes)
   WHERE id=v_access.id
   RETURNING inquiry_id INTO v_request_id;
 
