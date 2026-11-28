@@ -23,7 +23,7 @@ export function RequestDemoPage() {
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#A03B5E]">Interactive product demo</p>
               <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Explore the ClassBandhu ERP yourself.</h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                Open a working, front-end-only copy of the institute workspace. Explore the dashboard, add sample students, create courses and batches, record demo fee payments, and try the everyday workflows.
+                ClassBandhu provides a private, time-limited ERP demonstration after reviewing your request. Submit the demo form on our website; approved visitors receive a unique invitation link by email.
               </p>
               <a href="/?demo=1" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#6B1F38] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#57172D]">
                 Start interactive demo <ArrowRight className="h-4 w-4" />
@@ -53,7 +53,7 @@ export function RequestDemoPage() {
           <div className="grid gap-4 border-t border-[#E5DDE0] bg-[#FCFAFB] p-6 sm:grid-cols-3 sm:p-8">
             <div className="flex gap-3">
               <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-700" />
-              <div><p className="text-xs font-semibold text-slate-800">No backend connection</p><p className="mt-1 text-xs leading-5 text-slate-500">The demo does not read or write Development or Production records.</p></div>
+              <div><p className="text-xs font-semibold text-slate-800">Server-validated access</p><p className="mt-1 text-xs leading-5 text-slate-500">The invitation is checked by the ClassBandhu server before the demo opens.</p></div>
             </div>
             <div className="flex gap-3">
               <RefreshCw className="h-5 w-5 shrink-0 text-[#790D3D]" />
