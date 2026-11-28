@@ -14,6 +14,8 @@ import { InstituteLegalAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, P
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
 import { RequestDemoPage } from './pages/RequestDemoPage';
+import { DemoAccessPage, DemoExpiredPage } from './pages/DemoAccessPages';
+import { DemoSessionGuard } from './components/DemoSessionGuard';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -423,9 +425,24 @@ function AppEntry() {
 function AppRouteContent() {
   const location = useLocation();
 
-  // This public page is intentionally outside AuthProvider. It does not
-  // initialize Supabase Auth or make any backend request.
+  // Public information and invitation routes never initialise normal ERP auth.
   if (location.pathname === '/request-demo') return <RequestDemoPage />;
+  if (location.pathname === '/demo-access') return <DemoAccessPage />;
+  if (location.pathname === '/demo-expired') return <DemoExpiredPage />;
+
+  // A query parameter alone never grants access. A server-issued session token
+  // must exist, and DemoSessionGuard validates it before mounting the ERP.
+  if (!isDemoMode && new URLSearchParams(location.search).get('demo') === '1') {
+    return <DemoExpiredPage />;
+  }
+
+  if (isDemoMode) {
+    return (
+      <DemoSessionGuard>
+        <AuthProvider><AppEntry /></AuthProvider>
+      </DemoSessionGuard>
+    );
+  }
 
   return (
     <AuthProvider>
