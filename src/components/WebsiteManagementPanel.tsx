@@ -41,7 +41,13 @@ export function WebsiteManagementPanel() {
   const [view, setView] = useState<WebsiteView>("inquiries");
   const [summary, setSummary] = useState<WebsiteSummary>(emptySummary);
   const [inquiries, setInquiries] = useState<WebsiteInquiry[]>([]);
-  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);\n  const [demoRequests, setDemoRequests] = useState<WebsiteDemoRequest[]>([]);\n  const [demoSessions, setDemoSessions] = useState<WebsiteDemoSession[]>([]);\n  const [demoActivity, setDemoActivity] = useState<WebsiteDemoActivity[]>([]);\n  const [selectedDemo, setSelectedDemo] = useState<WebsiteDemoRequest | null>(null);\n  const [demoNotes, setDemoNotes] = useState("");\n  const [demoLink, setDemoLink] = useState("");
+  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);
+  const [demoRequests, setDemoRequests] = useState<WebsiteDemoRequest[]>([]);
+  const [demoSessions, setDemoSessions] = useState<WebsiteDemoSession[]>([]);
+  const [demoActivity, setDemoActivity] = useState<WebsiteDemoActivity[]>([]);
+  const [selectedDemo, setSelectedDemo] = useState<WebsiteDemoRequest | null>(null);
+  const [demoNotes, setDemoNotes] = useState("");
+  const [demoLink, setDemoLink] = useState("");
   const [notifications, setNotifications] = useState<WebsiteNotification[]>([]);
   const [institutes, setInstitutes] = useState<PlatformInstitute[]>([]);
   const [search, setSearch] = useState("");
@@ -63,17 +69,22 @@ export function WebsiteManagementPanel() {
     setLoading(true);
     setError("");
     try {
-      const [nextSummary, nextInquiries, nextAccess, nextNotifications, nextInstitutes] = await Promise.all([
+      const [nextSummary, nextInquiries, nextAccess, nextNotifications, nextInstitutes, nextDemos, nextDemoSessions, nextDemoActivity] = await Promise.all([
         getWebsiteSummary(), listWebsiteInquiries(), listWebsiteAccessRequests(),
-        listWebsiteNotifications(), listPlatformInstitutes(),
+        listWebsiteNotifications(), listPlatformInstitutes(), listWebsiteDemoRequests(),
+        listWebsiteDemoSessions(), listWebsiteDemoActivity(),
       ]);
       setSummary(nextSummary);
       setInquiries(nextInquiries);
       setAccessRequests(nextAccess);
+      setDemoRequests(nextDemos);
+      setDemoSessions(nextDemoSessions);
+      setDemoActivity(nextDemoActivity);
       setNotifications(nextNotifications);
       setInstitutes(nextInstitutes);
       setSelectedInquiry(current => current ? nextInquiries.find(item => item.id === current.id) ?? current : null);
       setSelectedAccess(current => current ? nextAccess.find(item => item.id === current.id) ?? current : null);
+      setSelectedDemo(current => current ? nextDemos.find(item => item.id === current.id) ?? current : null);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Could not load website management data.");
     } finally {
@@ -222,7 +233,7 @@ export function WebsiteManagementPanel() {
           "",
           "Regards,",
           "ClassBandhu Team",
-        ].join("\\n")
+        ].join("\n")
       : [
           "Hello " + selectedDemo.requester_name + ",",
           "",
@@ -232,7 +243,7 @@ export function WebsiteManagementPanel() {
           "",
           "Regards,",
           "ClassBandhu Team",
-        ].join("\\n");
+        ].join("\n");
     const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" +
       encodeURIComponent(selectedDemo.email) + "&su=" + encodeURIComponent(subject) +
       "&body=" + encodeURIComponent(body);
@@ -274,7 +285,8 @@ export function WebsiteManagementPanel() {
   const views: Array<{ id: WebsiteView; label: string; icon: typeof Globe; count?: number }> = [
     { id: "inquiries", label: "Website inquiries", icon: MessageSquareText, count: summary.new_inquiries },
     { id: "demos", label: "Demo requests", icon: ShieldCheck, count: demoRequests.filter(item => ["new","reviewing"].includes(item.demo_status)).length },
-    { id: "sessions", label: "Demo sessions", icon: Clock3, count: demoSessions.filter(item => item.status === "active").length },\n    { id: "activity", label: "Activity history", icon: ClipboardList },
+    { id: "sessions", label: "Demo sessions", icon: Clock3, count: demoSessions.filter(item => item.status === "active").length },
+    { id: "activity", label: "Activity history", icon: ClipboardList },
     { id: "access", label: "Access requests", icon: ShieldCheck, count: summary.new_access_requests },
     { id: "details", label: "Inquiry details", icon: ClipboardList },
     { id: "statuses", label: "Status management", icon: Check },
