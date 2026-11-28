@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, HelpCircle, RefreshCw, Share2, X } from 'lucide-react';
+import { isDemoMode } from '../lib/supabase';
 
 interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -43,6 +44,7 @@ export function PWAControls() {
   const applyingUpdateRef = useRef(false);
 
   useEffect(() => {
+    if (isDemoMode) return;
     let active = true;
     let registration: ServiceWorkerRegistration | undefined;
     let registrationUpdateFound: (() => void) | undefined;
@@ -141,6 +143,8 @@ export function PWAControls() {
       }
     };
   }, []);
+
+  if (isDemoMode) return null;
 
   const installApp = async () => {
     if (!installPrompt) return;
