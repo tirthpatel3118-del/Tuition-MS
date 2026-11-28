@@ -14,8 +14,7 @@ function jsonResponse(body: Record<string, unknown>, status: number, origin: str
 }
 
 Deno.serve(async (request) => {
-  const appUrl = "https://6b097872cfa862ead1978d17--tuition-ms.netlify.app"; // Fixed Testing Super Admin origin.
-  if (!appUrl) return jsonResponse({ error: "EDULEDGER_APP_URL is not configured." }, 500, "null");
+  const appUrl = "https://development--tuition-ms.netlify.app"; // Fixed Development Super Admin origin.
 
   let allowedOrigin: string;
   try {
@@ -73,9 +72,21 @@ Deno.serve(async (request) => {
   const role = typeof body.role === "string" ? body.role : "";
   const instituteId = typeof body.institute_id === "string" && body.institute_id.trim() ? body.institute_id.trim() : null;
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonResponse({ error: "Enter a valid email address." }, 400, allowedOrigin);
-  if (!["owner", "teacher", "accountant"].includes(role)) return jsonResponse({ error: "Select a valid role." }, 400, allowedOrigin);
-  if (role !== "owner" && !instituteId) return jsonResponse({ error: "Teacher and accountant invitations require an institute." }, 400, allowedOrigin);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const roleValid = ["owner", "teacher", "accountant"].includes(role);
+  const instituteScopeValid = role === "owner" || Boolean(instituteId);
+  if (!email || !emailValid || !roleValid || !instituteScopeValid) {
+    console.error("[platform-admin-invitation] input_validation_failed", {
+      emailPresent: Boolean(email),
+      emailValid,
+      roleValid,
+      instituteScopeValid,
+      hasInstituteId: Boolean(instituteId),
+    });
+    if (!email || !emailValid) return jsonResponse({ error: "Enter a valid email address." }, 400, allowedOrigin);
+    if (!roleValid) return jsonResponse({ error: "Select a valid role." }, 400, allowedOrigin);
+    return jsonResponse({ error: "Teacher and accountant invitations require an institute." }, 400, allowedOrigin);
+  }
 
   const { data: invitation, error: invitationError } = await userClient.rpc("platform_admin_create_invitation", {
     p_email: email,
@@ -139,8 +150,8 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: generated.error?.message ?? "Supabase did not return an action link." }, 502, allowedOrigin);
   }
 
-  // Never surface a link if Supabase Auth silently substituted its Site URL
-  // (for example a Netlify deploy preview) for the explicit production redirect.
+  // Supabase Auth can fall back to Site URL when a redirect target is not
+  // allowlisted. Never expose an action link carrying a preview/incorrect URL.
   let generatedRedirect: URL | null = null;
   try {
     const linkUrl = new URL(actionLink);
@@ -173,7 +184,7 @@ Deno.serve(async (request) => {
       });
     }
     return jsonResponse({
-      error: "Supabase Auth is not allowing the Production invitation redirect yet. Add https://tuition-ms.netlify.app/accept-platform-invitation* to Auth Redirect URLs, set the Auth Site URL to https://tuition-ms.netlify.app, and retry.",
+      error: "Supabase Auth is not allowing the Development invitation redirect yet. Add https://development--tuition-ms.netlify.app/accept-platform-invitation* to Auth Redirect URLs, set Auth Site URL to https://development--tuition-ms.netlify.app, and retry.",
     }, 409, allowedOrigin);
   }
 

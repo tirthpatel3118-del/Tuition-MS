@@ -126,6 +126,7 @@ function AppContent() {
           <Suspense fallback={<div className="py-12 text-center text-sm text-slate-500">Loading workspace…</div>}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/workspace" element={auth.activeMembership ? <Dashboard /> : <Navigate to="/super-admin" replace />} />
               <Route path="/admissions" element={<Admissions />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/receipts" element={<Receipts />} />
@@ -140,7 +141,7 @@ function AppContent() {
         {/* Mobile primary navigation */}
         <nav aria-label="Mobile primary navigation" className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-[#E5DDE0] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1 shadow-[0_-6px_24px_rgba(31,41,55,0.06)] backdrop-blur xl:hidden">
           {[
-            { to: '/', label: 'Home', icon: LayoutDashboard },
+            { to: auth.platformAdmin ? '/workspace' : '/', label: 'Home', icon: LayoutDashboard },
             { to: '/admissions', label: 'Admissions', icon: UserPlus },
             { to: '/payments', label: 'Fees', icon: CreditCard },
             ...(auth.activeMembership?.role === 'owner' ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),

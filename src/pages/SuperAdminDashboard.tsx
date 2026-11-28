@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   Activity, ArrowDownRight, Building2, Check, ChevronDown, Clock3, Copy, Database, CircleDollarSign, ReceiptText, CreditCard, AlertCircle, MessageCircle,
   GraduationCap, HardDrive, LayoutDashboard, LogOut, Mail, RefreshCw, Search, ShieldCheck, Sparkles, Globe,
@@ -82,7 +83,7 @@ function dateInput(value: string | null) {
 }
 
 export function SuperAdminDashboard() {
-  const { platformAdmin, email, signOut } = useAuth();
+  const { platformAdmin, email, signOut, activeMembership } = useAuth();
   const [overview, setOverview] = useState<PlatformOverview>(emptyOverview);
   const [institutes, setInstitutes] = useState<PlatformInstitute[]>([]);
   const [invitations, setInvitations] = useState<PlatformInvitation[]>([]);
@@ -393,6 +394,9 @@ export function SuperAdminDashboard() {
           </div>
         </div>
         <div className="flex min-w-0 flex-wrap gap-2">
+          {activeMembership && <Link to="/workspace" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-2.5 text-sm font-semibold text-[#57172D] transition hover:bg-rose-50">
+            <GraduationCap className="h-4 w-4" />Open institute workspace
+          </Link>}
           <PWAControls />
           <button type="button" onClick={() => void refresh()} disabled={loading || busy} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20 disabled:opacity-50">
             <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />{loading ? "Refreshing" : "Refresh data"}
