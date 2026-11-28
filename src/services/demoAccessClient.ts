@@ -1,7 +1,7 @@
 import { supabaseAnonKey, supabaseUrl } from '../lib/supabase';
 
 const SESSION_KEY = 'classbandhu.demo.session';
-const FUNCTION_URL = supabaseUrl.replace(/\\/$/, '') + '/functions/v1/demo-access';
+const FUNCTION_URL = (supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl) + '/functions/v1/demo-access';
 
 export interface DemoValidation {
   valid: boolean;
