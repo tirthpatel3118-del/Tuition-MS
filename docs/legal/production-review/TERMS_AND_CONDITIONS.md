@@ -4,7 +4,8 @@
 **Status:** INTERNAL REVIEW DRAFT — NOT APPROVED FOR PUBLICATION OR SIGNATURE  
 **Prepared:** 27 November 2026  
 **Proposed Operator:** Tirth Patel, individual operator of ClassBandhu  
-**Contact:** info.classbandhu@gmail.com  
+**Contact (email only):** info.classbandhu@gmail.com  
+**Telephone support:** Not currently offered; no phone number is published.  
 **Product scope:** ClassBandhu Tuition only
 
 > This is a working contract draft for review by the Operator and qualified Indian legal counsel. It is not legal advice or an offer capable of acceptance. Do not publish or request acceptance until all review items are resolved and a final effective date is approved.
@@ -120,7 +121,7 @@ All users must comply with the Acceptable Use Policy. Prohibited conduct include
 
 11.2 No uptime percentage, service credit, backup frequency, recovery time objective, recovery point objective or support response time is promised unless stated in a separately approved service-level agreement.
 
-11.3 Support channel, business hours, priority levels and response targets must be stated in an approved support schedule. The current support contact for this draft is info.classbandhu@gmail.com.
+11.3 The currently offered support contact is **info.classbandhu@gmail.com** (email only). No telephone/mobile support number is currently offered or published. Support business hours, priority levels and response targets must be stated in an approved support schedule before publication.
 
 11.4 The Institute should maintain appropriate source records for its critical operations and use export facilities where available. No particular export format or immediate restore capability is promised unless verified and documented.
 
@@ -153,7 +154,8 @@ The proposed governing law is the law of India, subject to applicable mandatory 
 ## 16. Contact and notices
 
 **Operator for this draft:** Tirth Patel, individual operator of ClassBandhu  
-**Email:** info.classbandhu@gmail.com  
+**Email (only published contact channel at present):** info.classbandhu@gmail.com  
+**Telephone/mobile:** Not offered or published at present.  
 **Postal/service address:** [REQUIRED REVIEW ITEM — determine lawful disclosure and service address before publication]
 
 ## 17. Applicable legal framework — review note
