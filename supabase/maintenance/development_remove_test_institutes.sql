@@ -115,6 +115,8 @@ BEGIN
   DELETE FROM public.payment_allocations WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.payment_reversals WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.receipts WHERE institute_id=ANY(v_target_ids);
+  DELETE FROM public.installments WHERE institute_id=ANY(v_target_ids);
+  DELETE FROM public.payments WHERE institute_id=ANY(v_target_ids);
 
   ALTER TABLE public.financial_audit_logs ENABLE TRIGGER trg_audit_logs_immutable;
   ALTER TABLE public.institute_legal_declarations ENABLE TRIGGER institute_legal_declarations_immutable;
@@ -139,11 +141,9 @@ BEGIN
   DELETE FROM public.teacher_batch_assignments WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.batch_schedule_days WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.batch_courses WHERE institute_id=ANY(v_target_ids);
-  DELETE FROM public.installments WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.student_batches WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.academic_students WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.students WHERE institute_id=ANY(v_target_ids);
-  DELETE FROM public.payments WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.batches WHERE institute_id=ANY(v_target_ids);
   DELETE FROM public.courses WHERE institute_id=ANY(v_target_ids);
 
