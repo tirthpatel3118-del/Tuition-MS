@@ -29,10 +29,9 @@ export function RequestDemoPage() {
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
                 ClassBandhu provides a private, time-limited ERP demonstration after reviewing your request. Submit the demo form on our website; approved visitors receive a unique invitation link by email.
               </p>
-              <a href="/?demo=1" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#6B1F38] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#57172D]">
-                Start interactive demo <ArrowRight className="h-4 w-4" />
+              <a href={marketingSiteUrl + '/#demo'} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#6B1F38] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#57172D]">\n                Request a private demo <ArrowRight className="h-4 w-4" />
               </a>
-              <p className="mt-3 text-xs leading-5 text-slate-500">No account or sign-in is required. Use fictional details only.</p>
+              <p className="mt-3 text-xs leading-5 text-slate-500">Submit a request on our website. After review, approved visitors receive a unique invitation that opens a 20-minute demo.</p>
             </div>
 
             <div className="rounded-2xl bg-[#FAF7F8] p-5 sm:p-6">
