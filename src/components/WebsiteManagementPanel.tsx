@@ -6,12 +6,14 @@ import {
 import { createPlatformInvitation, listPlatformInstitutes, type PlatformInstitute } from "../services/platformAdminService";
 import {
   getWebsiteSummary, listWebsiteAccessRequests, listWebsiteInquiries, listWebsiteNotifications,
-  markWebsiteNotificationRead, updateWebsiteAccessRequest, updateWebsiteInquiry,
+  listWebsiteDemoRequests, listWebsiteDemoSessions, markWebsiteNotificationRead,
+  updateWebsiteAccessRequest, updateWebsiteInquiry, updateWebsiteDemoRequest,
+  issueWebsiteDemoAccess, extendWebsiteDemoSession, revokeWebsiteDemoSession,
   type WebsiteAccessRequest, type WebsiteAccessStatus, type WebsiteInquiry, type WebsiteInquiryStatus,
-  type WebsiteNotification, type WebsiteSummary,
+  type WebsiteDemoRequest, type WebsiteDemoSession, type WebsiteNotification, type WebsiteSummary,
 } from "../services/websiteAdminService";
 
-type WebsiteView = "inquiries" | "access" | "details" | "statuses" | "notifications";
+type WebsiteView = "inquiries" | "demos" | "sessions" | "access" | "details" | "statuses" | "notifications";
 const emptySummary: WebsiteSummary = {
   total_inquiries: 0, new_inquiries: 0, open_inquiries: 0,
   total_access_requests: 0, new_access_requests: 0, unread_notifications: 0,
@@ -21,7 +23,8 @@ const inputClass = "mt-1.5 block w-full rounded-xl border border-slate-200 bg-wh
 const labelClass = "block text-xs font-semibold text-slate-600";
 const statusLabel: Record<string,string> = {
   new: "New", contacted: "Contacted", demo_scheduled: "Demo scheduled", closed: "Closed",
-  reviewing: "Reviewing", approved: "Approved", rejected: "Rejected",
+  reviewing: "Under review", approved: "Approved", rejected: "Rejected", link_generated: "Link generated",
+  active: "Active", expired: "Expired", revoked: "Revoked",
 };
 function StatusPill({ status }: { status: string }) {
   const cls = status === "approved" || status === "closed" ? "bg-emerald-50 text-emerald-700"
@@ -38,7 +41,7 @@ export function WebsiteManagementPanel() {
   const [view, setView] = useState<WebsiteView>("inquiries");
   const [summary, setSummary] = useState<WebsiteSummary>(emptySummary);
   const [inquiries, setInquiries] = useState<WebsiteInquiry[]>([]);
-  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);
+  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);\n  const [demoRequests, setDemoRequests] = useState<WebsiteDemoRequest[]>([]);\n  const [demoSessions, setDemoSessions] = useState<WebsiteDemoSession[]>([]);\n  const [selectedDemo, setSelectedDemo] = useState<WebsiteDemoRequest | null>(null);\n  const [demoNotes, setDemoNotes] = useState("");\n  const [demoLink, setDemoLink] = useState("");
   const [notifications, setNotifications] = useState<WebsiteNotification[]>([]);
   const [institutes, setInstitutes] = useState<PlatformInstitute[]>([]);
   const [search, setSearch] = useState("");
@@ -165,8 +168,113 @@ export function WebsiteManagementPanel() {
     } finally { setBusy(false); }
   };
 
+  const openDemo = (item: WebsiteDemoRequest) => {
+    setSelectedDemo(item);
+    setDemoNotes(item.admin_notes ?? "");
+    setDemoLink("");
+  };
+
+  const saveDemoDecision = async (status: "reviewing" | "approved" | "rejected") => {
+    if (!selectedDemo) return;
+    setBusy(true); setError(""); setNotice(""); setDemoLink("");
+    try {
+      await updateWebsiteDemoRequest(selectedDemo.id, status, demoNotes);
+      setNotice(status === "approved" ? "Demo request approved. Generate a private link when ready."
+        : status === "rejected" ? "Demo request rejected. You can prepare a manual email response."
+        : "Demo request moved to review.");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not update the demo request.");
+    } finally { setBusy(false); }
+  };
+
+  const generateDemoLink = async () => {
+    if (!selectedDemo) return;
+    setBusy(true); setError(""); setNotice(""); setDemoLink("");
+    try {
+      const invitation = await issueWebsiteDemoAccess(selectedDemo.id);
+      const baseUrl = window.location.origin.replace(/\/$/, "");
+      const url = baseUrl + "/demo-access?token=" + encodeURIComponent(invitation.token);
+      setDemoLink(url);
+      setNotice("A private demo invitation was generated. Copy it or open the Gmail draft; the raw invitation is shown only once.");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not generate a demo invitation.");
+    } finally { setBusy(false); }
+  };
+
+  const openDemoEmailDraft = (kind: "approved" | "rejected") => {
+    if (!selectedDemo) return;
+    const subject = kind === "approved"
+      ? "Your ClassBandhu ERP demo invitation"
+      : "Update on your ClassBandhu ERP demo request";
+    const body = kind === "approved"
+      ? [
+          "Hello " + selectedDemo.requester_name + ",",
+          "",
+          "Thank you for requesting a ClassBandhu ERP demo.",
+          "Your private demo invitation is ready:",
+          demoLink || "[Paste the generated private demo link here]",
+          "",
+          "Please open the link within 48 hours. The 20-minute session starts on first successful opening. You can reopen it on the same browser while the session remains active. One 10-minute extension can be granted by our team.",
+          "",
+          "Please use fictional sample details only. Demo edits are temporary and reset when the page is refreshed.",
+          "",
+          "Regards,",
+          "ClassBandhu Team",
+        ].join("\\n")
+      : [
+          "Hello " + selectedDemo.requester_name + ",",
+          "",
+          "Thank you for your interest in ClassBandhu. After reviewing your demo request, we are unable to provide access at this time.",
+          "",
+          "You may reply to this email if you would like to discuss your requirements or request a future review.",
+          "",
+          "Regards,",
+          "ClassBandhu Team",
+        ].join("\\n");
+    const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=" +
+      encodeURIComponent(selectedDemo.email) + "&su=" + encodeURIComponent(subject) +
+      "&body=" + encodeURIComponent(body);
+    window.open(gmailUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const copyDemoLink = async () => {
+    if (!demoLink) return;
+    try {
+      await navigator.clipboard.writeText(demoLink);
+      setNotice("Private demo link copied. Send it manually to the requester.");
+    } catch {
+      setError("Clipboard access was blocked. Select and copy the invitation link manually.");
+    }
+  };
+
+  const extendDemoSession = async (item: WebsiteDemoSession) => {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const expiry = await extendWebsiteDemoSession(item.demo_access_id);
+      setNotice("The session was extended by 10 minutes, until " + dateLabel(expiry) + ".");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not extend this demo session.");
+    } finally { setBusy(false); }
+  };
+
+  const revokeDemoSession = async (item: WebsiteDemoSession) => {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      await revokeWebsiteDemoSession(item.demo_access_id);
+      setNotice("Demo access revoked. The visitor will be blocked at the next server validation.");
+      await refresh();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Could not revoke this demo access.");
+    } finally { setBusy(false); }
+  };
+
   const views: Array<{ id: WebsiteView; label: string; icon: typeof Globe; count?: number }> = [
     { id: "inquiries", label: "Website inquiries", icon: MessageSquareText, count: summary.new_inquiries },
+    { id: "demos", label: "Demo requests", icon: ShieldCheck, count: demoRequests.filter(item => ["new","reviewing"].includes(item.demo_status)).length },
+    { id: "sessions", label: "Demo sessions", icon: Clock3, count: demoSessions.filter(item => item.status === "active").length },
     { id: "access", label: "Access requests", icon: ShieldCheck, count: summary.new_access_requests },
     { id: "details", label: "Inquiry details", icon: ClipboardList },
     { id: "statuses", label: "Status management", icon: Check },
@@ -174,7 +282,7 @@ export function WebsiteManagementPanel() {
   ];
 
   return <div className="space-y-4">
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7">
       {[
         { label: "All enquiries", value: summary.total_inquiries, icon: MessageSquareText },
         { label: "New enquiries", value: summary.new_inquiries, icon: Mail },
@@ -217,6 +325,72 @@ export function WebsiteManagementPanel() {
             <button type="button" onClick={() => openInquiry(item)} className="min-h-10 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">View enquiry details</button>
           </article>)}
         </div>}
+      </div>}
+
+      {view === "demos" && <div className="grid gap-4 p-3 sm:p-4 xl:grid-cols-[minmax(0,1fr),minmax(320px,420px)]">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><h3 className="text-sm font-bold text-slate-900">Product demo requests</h3><p className="mt-1 text-xs text-slate-500">Review requests before issuing a private 20-minute demo invitation.</p></div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{demoRequests.length} requests</span>
+          </div>
+          <div className="mt-3 divide-y divide-slate-100">
+            {loading ? <p className="py-8 text-center text-sm text-slate-500">Loading demo requests…</p>
+              : demoRequests.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">No demo requests yet. New website submissions will appear here.</p>
+              : demoRequests.map(item => <button key={item.id} type="button" onClick={() => openDemo(item)}
+                className={"block w-full rounded-xl px-3 py-3 text-left transition " + (selectedDemo?.id === item.id ? "bg-rose-50" : "hover:bg-slate-50")}>
+                <div className="flex flex-wrap items-center gap-2"><strong className="text-sm text-slate-900">{item.requester_name}</strong><StatusPill status={item.demo_status}/><span className="text-[10px] font-semibold text-slate-400">{item.reference_code}</span></div>
+                <p className="mt-1 text-xs text-slate-600">{item.institute_name}{item.student_count !== null ? " · " + item.student_count + " students" : ""}</p>
+                <p className="mt-1 text-[11px] text-slate-400">{item.email} · {dateLabel(item.created_at)}</p>
+              </button>)}
+          </div>
+        </div>
+        {selectedDemo ? <aside className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 p-3 sm:p-4">
+          <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-[10px] font-bold uppercase tracking-wider text-[#A03B5E]">Demo request {selectedDemo.reference_code}</p><h3 className="mt-1 text-base font-bold text-slate-900">{selectedDemo.requester_name}</h3></div><StatusPill status={selectedDemo.demo_status}/></div>
+          <dl className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+            <div><dt className="text-slate-400">Institute</dt><dd className="font-semibold text-slate-800">{selectedDemo.institute_name}</dd></div>
+            <div><dt className="text-slate-400">Email</dt><dd className="break-all font-semibold text-slate-800">{selectedDemo.email}</dd></div>
+            <div><dt className="text-slate-400">Mobile</dt><dd className="font-semibold text-slate-800">{selectedDemo.phone || "Not provided"}</dd></div>
+            <div><dt className="text-slate-400">Students</dt><dd className="font-semibold text-slate-800">{selectedDemo.student_count ?? "Not provided"}</dd></div>
+            <div><dt className="text-slate-400">Submitted</dt><dd className="font-semibold text-slate-800">{dateLabel(selectedDemo.created_at)}</dd></div>
+            <div><dt className="text-slate-400">Link expiry</dt><dd className="font-semibold text-slate-800">{selectedDemo.link_expires_at ? dateLabel(selectedDemo.link_expires_at) : "Not generated"}</dd></div>
+            <div><dt className="text-slate-400">Session expiry</dt><dd className="font-semibold text-slate-800">{selectedDemo.session_expires_at ? dateLabel(selectedDemo.session_expires_at) : "Not activated"}</dd></div>
+          </dl>
+          <div className="mt-4 rounded-xl bg-white p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Requirements / message</p><p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-700">{selectedDemo.message || "No additional message."}</p></div>
+          <label className={labelClass + " mt-4"}>Internal notes (private)<textarea rows={3} value={demoNotes} onChange={event => setDemoNotes(event.target.value)} className={inputClass} maxLength={4000} placeholder="Add review notes or a private reason for rejection. These notes are not sent to the visitor."/></label>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" disabled={busy} onClick={() => void saveDemoDecision("reviewing")} className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-50">Mark reviewing</button>
+            <button type="button" disabled={busy} onClick={() => void saveDemoDecision("approved")} className="min-h-10 rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Approve</button>
+            <button type="button" disabled={busy} onClick={() => void saveDemoDecision("rejected")} className="min-h-10 rounded-xl bg-rose-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Reject</button>
+            <button type="button" disabled={busy || !["approved","link_generated"].includes(selectedDemo.demo_status)} onClick={() => void generateDemoLink()} className="min-h-10 rounded-xl bg-[#6B1F38] px-3 py-2 text-xs font-bold text-white disabled:opacity-40">Generate / reissue link</button>
+          </div>
+          {demoLink && <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+            <p className="text-xs font-bold text-emerald-900">Private invitation link (shown once)</p>
+            <p className="mt-2 break-all text-xs leading-5 text-emerald-900">{demoLink}</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => void copyDemoLink()} className="min-h-10 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-bold text-emerald-900">Copy link</button>
+              <button type="button" onClick={() => openDemoEmailDraft("approved")} className="min-h-10 rounded-lg bg-emerald-800 px-3 py-2 text-xs font-bold text-white">Open Gmail draft</button>
+            </div>
+          </div>}
+          {selectedDemo.demo_status === "rejected" && <button type="button" onClick={() => openDemoEmailDraft("rejected")} className="mt-3 min-h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700">Prepare rejection email</button>}
+          <p className="mt-3 text-[10px] leading-5 text-slate-500">Invitation opens for 48 hours. First activation starts a 20-minute server-timed session. The same browser can reopen it while active; one 10-minute extension is available. Reissuing a link revokes the previous invitation/session.</p>
+        </aside> : <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Select a demo request to review its details and take action.</div>}
+      </div>}
+
+      {view === "sessions" && <div className="space-y-3 p-3 sm:p-4">
+        <div><h3 className="text-sm font-bold text-slate-900">Demo sessions</h3><p className="mt-1 text-xs text-slate-500">Monitor invitation expiry, active sessions, extensions and revocations.</p></div>
+        {loading ? <p className="py-8 text-center text-sm text-slate-500">Loading demo sessions…</p>
+          : demoSessions.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">No demo sessions have been issued yet.</p>
+          : <div className="divide-y divide-slate-100">{demoSessions.map(item => <article key={item.demo_access_id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><strong className="text-sm text-slate-900">{item.requester_name}</strong><StatusPill status={item.status}/><span className="text-[10px] font-semibold text-slate-400">{item.reference_code}</span></div>
+              <p className="mt-1 text-xs text-slate-600">{item.institute_name} · {item.email}</p>
+              <p className="mt-1 text-[11px] text-slate-400">Link valid until {dateLabel(item.link_expires_at)} · {item.activated_at ? "Started " + dateLabel(item.activated_at) : "Not opened yet"}</p>
+              <p className="mt-1 text-[11px] text-slate-400">{item.session_expires_at ? "Session expires " + dateLabel(item.session_expires_at) : "Session not started"}{item.extended_at ? " · Extended once" : ""}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" disabled={busy || item.status !== "active" || Boolean(item.extended_at)} onClick={() => void extendDemoSession(item)} className="min-h-10 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-40">Extend 10 min</button>
+              <button type="button" disabled={busy || item.status === "revoked" || item.status === "expired"} onClick={() => void revokeDemoSession(item)} className="min-h-10 rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-40">Revoke access</button>
+            </div>
+          </article>)}</div>}
       </div>}
 
       {view === "access" && <div className="grid gap-4 p-3 sm:p-4 xl:grid-cols-[1fr,1fr]">
