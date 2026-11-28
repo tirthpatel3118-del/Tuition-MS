@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { ClassBandhuMark } from './ClassBandhuMark';
+import { isDemoMode } from '../lib/supabase';
 import {
   LayoutDashboard,
   UserPlus,
@@ -41,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { to: '/receipts', label: 'Receipts', icon: Receipt },
     { to: '/reminders', label: 'Dues & Reminders', icon: BellRing },
     { to: '/courses', label: 'Courses & Batches', icon: BookOpen },
-    ...(role === 'owner' ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
+    ...(role === 'owner' || isDemoMode ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
     ...(role === 'owner' || !auth.configured ? [{ to: '/settings', label: 'Settings', icon: Settings }] : []),
   ];
 
