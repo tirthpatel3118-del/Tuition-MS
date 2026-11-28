@@ -3,9 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.0";
 const allowedOrigin = (origin: string) => {
   try {
     const url = new URL(origin);
-    return url.protocol === "https:" &&
-      (url.hostname === "development--tuition-ms.netlify.app" ||
-        url.hostname.endsWith("--tuition-ms.netlify.app"));
+    return url.protocol === "https:" && url.hostname === "development--tuition-ms.netlify.app";
   } catch {
     return false;
   }
