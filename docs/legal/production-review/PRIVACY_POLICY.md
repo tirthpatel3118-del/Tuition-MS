@@ -4,7 +4,8 @@
 **Status:** INTERNAL REVIEW DRAFT — NOT APPROVED FOR PUBLICATION  
 **Prepared:** 27 November 2026  
 **Proposed Operator:** Tirth Patel, individual operator of ClassBandhu  
-**Privacy contact:** info.classbandhu@gmail.com  
+**Privacy contact (email only):** info.classbandhu@gmail.com  
+**Telephone/mobile contact:** Not currently offered or published.  
 **Product scope:** ClassBandhu Tuition only
 
 > This draft describes the product and data flows presently identified in the project. It is not legal advice or a final statutory notice. It must be checked against the live application, actual vendor contracts, technical configuration, retention schedules and laws in force before publication.
@@ -143,7 +144,7 @@ Where processing is based on consent and applicable law gives a right to withdra
 ## 12. Complaints and grievance contact
 
 **Privacy contact:** Tirth Patel  
-**Email:** info.classbandhu@gmail.com  
+**Email contact:** info.classbandhu@gmail.com (email only; no phone number is currently offered or published).  
 **Grievance handling target:** [APPROVE A REALISTIC OPERATIONAL SLA BEFORE PUBLICATION]
 
 The final document must identify the appropriate grievance contact and response process required by the laws that apply on the publication date. Do not publish an unsupported response deadline.
@@ -161,7 +162,8 @@ We may revise this Policy as the Platform, data flows and applicable laws change
 ## 15. Contact
 
 **Tirth Patel — ClassBandhu**  
-**Email:** info.classbandhu@gmail.com  
+**Email (only published contact channel at present):** info.classbandhu@gmail.com  
+**Telephone/mobile:** Not offered or published at present.  
 **Postal/service address:** [REQUIRED LEGAL REVIEW ITEM — determine mandatory disclosures and appropriate service address before publication]
 
 ---
