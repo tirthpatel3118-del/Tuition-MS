@@ -12,6 +12,8 @@ const mockStorage = read('../src/data/mockData.ts');
 const serviceWorker = read('../public/sw.js');
 const requestDemo = read('../src/pages/RequestDemoPage.tsx');
 const app = read('../src/App.tsx');
+const authContext = read('../src/context/AuthContext.tsx');
+const authPages = read('../src/pages/AuthPages.tsx');
 
 // Demo mode must force Supabase to a local inert endpoint and mark it unconfigured.
 assert.ok(supabase.includes("export const isDemoMode = requestedDemoMode || storedDemoMode"));
@@ -50,5 +52,13 @@ assert.ok(serviceWorker.includes("url.pathname.startsWith('/storage/')"));
 assert.ok(!requestDemo.includes('supabase'));
 assert.ok(app.includes("if (location.pathname === '/request-demo') return <RequestDemoPage />"));
 assert.ok(app.includes('return (\n    <AuthProvider>'));
+
+// Demo mode starts with a non-configured AuthProvider and skips Supabase auth listeners.
+// New public account creation remains invitation-only.
+assert.ok(authContext.includes('const configured = isSupabaseConfigured;'));
+assert.ok(authContext.includes("setStatusState(configured ? 'loading' : 'demo')"));
+assert.ok(authContext.includes('if (!configured) return;'));
+assert.ok(authPages.includes('Access is provided by invitation.'));
+assert.ok(authPages.includes("invitationFlow ? 'sign-up' : 'sign-in'"));
 
 console.log('Demo safety regression checks passed.');
