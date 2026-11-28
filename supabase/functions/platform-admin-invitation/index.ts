@@ -14,7 +14,7 @@ function jsonResponse(body: Record<string, unknown>, status: number, origin: str
 }
 
 Deno.serve(async (request) => {
-  const appUrl = "https://tuition-ms.netlify.app"; // Fixed Production Super Admin origin.
+  const appUrl = "https://development--tuition-ms.netlify.app"; // Fixed Development Super Admin origin.
 
   let allowedOrigin: string;
   try {
@@ -184,7 +184,7 @@ Deno.serve(async (request) => {
       });
     }
     return jsonResponse({
-      error: "Supabase Auth is not allowing the Production invitation redirect yet. Add https://tuition-ms.netlify.app/accept-platform-invitation* to Auth Redirect URLs, set Auth Site URL to https://tuition-ms.netlify.app, and retry.",
+      error: "Supabase Auth is not allowing the Development invitation redirect yet. Add https://development--tuition-ms.netlify.app/accept-platform-invitation* to Auth Redirect URLs, set Auth Site URL to https://development--tuition-ms.netlify.app, and retry.",
     }, 409, allowedOrigin);
   }
 
