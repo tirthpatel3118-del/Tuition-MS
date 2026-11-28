@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import {
   activateDemoInvitation,
@@ -7,10 +7,13 @@ import {
   getDemoSessionToken,
   validateDemoSession,
 } from '../services/demoAccessClient';
-import { ClassBandhuMark } from '../components/ClassBandhuMark';\n\nconst marketingSiteUrl = window.location.hostname.startsWith('development--')\n  ? 'https://development.classbandhu-website.pages.dev'\n  : 'https://classbandhu-website.pages.dev';
+import { ClassBandhuMark } from '../components/ClassBandhuMark';
+
+const marketingSiteUrl = window.location.hostname.startsWith('development--')
+  ? 'https://development.classbandhu-website.pages.dev'
+  : 'https://classbandhu-website.pages.dev';
 
 export function DemoAccessPage() {
-  const navigate = useNavigate();
   const [message, setMessage] = useState('Verifying your private demo invitation…');
   const [failed, setFailed] = useState(false);
 
@@ -47,7 +50,7 @@ export function DemoAccessPage() {
 
     void openDemo();
     return () => { active = false; };
-  }, [navigate]);
+  }, []);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#FAF7F8] px-4 py-10 text-slate-800">
