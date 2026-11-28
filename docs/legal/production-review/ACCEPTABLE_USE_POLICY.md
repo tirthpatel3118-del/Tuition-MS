@@ -4,7 +4,8 @@
 **Status:** INTERNAL REVIEW DRAFT — NOT APPROVED FOR PUBLICATION  
 **Prepared:** 27 November 2026  
 **Proposed Operator:** Tirth Patel, individual operator of ClassBandhu  
-**Contact:** info.classbandhu@gmail.com  
+**Contact (email only):** info.classbandhu@gmail.com  
+**Telephone support:** Not currently offered or published.  
 **Product scope:** ClassBandhu Tuition only
 
 > This draft supplements the ClassBandhu Tuition Terms & Conditions and Privacy Policy. It must be reviewed against the final product, security controls and applicable law before publication.
@@ -131,7 +132,8 @@ This AUP may be updated as the Platform and legal requirements evolve. Material 
 ## 13. Contact
 
 **Tirth Patel — ClassBandhu**  
-**Email:** info.classbandhu@gmail.com  
+**Email (only published contact channel at present):** info.classbandhu@gmail.com  
+**Telephone/mobile:** Not offered or published at present.  
 **Postal/service address:** [REQUIRED LEGAL REVIEW ITEM — determine required disclosure before publication]
 
 ---
