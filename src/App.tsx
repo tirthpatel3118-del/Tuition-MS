@@ -13,6 +13,7 @@ import { AuthLoading, AuthPage, CreateInstitutePage, ForgotPasswordPage, Passwor
 import { InstituteLegalAcceptanceGate, LegalAcceptanceGate, PrivacyPolicyPage, PrivacyPreferencesPage, PublicLegalDocumentPage, TermsPage, AcceptableUsePolicyPage, PrivacyRequestPage } from './pages/LegalPages';
 import { InvitationAcceptancePage } from './pages/InvitationAcceptancePage';
 import { PlatformInvitationAcceptancePage } from './pages/PlatformInvitationAcceptancePage';
+import { RequestDemoPage } from './pages/RequestDemoPage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -24,6 +25,7 @@ const Courses = lazy(() => import('./pages/Courses').then(module => ({ default: 
 const Settings = lazy(() => import('./pages/Settings').then(module => ({ default: module.Settings })));
 const TeacherWorkspace = lazy(() => import('./pages/TeacherWorkspace').then(module => ({ default: module.TeacherWorkspace })));
 const AttendancePage = lazy(() => import('./pages/Attendance').then(module => ({ default: module.AttendancePage })));
+const DemoAttendancePage = lazy(() => import('./pages/DemoAttendancePage').then(module => ({ default: module.DemoAttendancePage })));
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(false);
@@ -45,7 +47,7 @@ function AppContent() {
       <div className="flex-1 flex flex-col min-w-0">
         {isDemoMode && (
           <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs font-medium text-amber-900">
-            Browser demo · Sample data only · Changes stay in this browser and are not saved to the institute database.
+            Browser-only demo · Changes are held in temporary memory and reset on refresh. Nothing is saved to or loaded from the institute database.
           </div>
         )}
         {/* Top Navigation Bar */}
@@ -132,7 +134,7 @@ function AppContent() {
               <Route path="/receipts" element={<Receipts />} />
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/courses" element={<Courses />} />
-              <Route path="/attendance" element={auth.activeMembership?.role === 'owner' ? <AttendancePage /> : <Navigate to="/" replace />} />
+              <Route path="/attendance" element={isDemoMode ? <DemoAttendancePage /> : auth.activeMembership?.role === 'owner' ? <AttendancePage /> : <Navigate to="/" replace />} />
               <Route path="/settings" element={auth.activeMembership?.role === 'owner' || !auth.configured ? <Settings /> : <Navigate to="/" replace />} />
             </Routes>
           </Suspense>
@@ -144,7 +146,7 @@ function AppContent() {
             { to: auth.platformAdmin ? '/workspace' : '/', label: 'Home', icon: LayoutDashboard },
             { to: '/admissions', label: 'Admissions', icon: UserPlus },
             { to: '/payments', label: 'Fees', icon: CreditCard },
-            ...(auth.activeMembership?.role === 'owner' ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
+            ...(auth.activeMembership?.role === 'owner' || isDemoMode ? [{ to: '/attendance', label: 'Attendance', icon: ClipboardCheck }] : []),
             { to: '/courses', label: 'Courses', icon: BookOpen },
           ].map(item => {
             const Icon = item.icon;
@@ -418,12 +420,24 @@ function AppEntry() {
   </DataProvider>;
 }
 
+function AppRouteContent() {
+  const location = useLocation();
+
+  // This public page is intentionally outside AuthProvider. It does not
+  // initialize Supabase Auth or make any backend request.
+  if (location.pathname === '/request-demo') return <RequestDemoPage />;
+
+  return (
+    <AuthProvider>
+      <AppEntry />
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppEntry />
-      </AuthProvider>
+      <AppRouteContent />
     </Router>
   );
 }

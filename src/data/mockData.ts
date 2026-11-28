@@ -1,3 +1,5 @@
+import { isDemoMode } from '../lib/supabase';
+
 export interface Course {
   id: string;
   name: string;
@@ -463,6 +465,10 @@ export const getStoredValue = <T,>(key: string, fallback: T): T => {
     }
   }
 
+  // The public browser demo always starts from built-in sample records.
+  // Ignore persistent storage so refreshing restores the pristine sample state.
+  if (isDemoMode) return fallback;
+
   try {
     const stored = localStorage.getItem(key);
     return stored === null ? fallback : JSON.parse(stored) as T;
@@ -476,6 +482,10 @@ export const setStoredValue = (key: string, value: unknown): boolean => {
   const serialized = JSON.stringify(value);
   if (serialized === undefined) return false;
   memoryStorage.set(key, serialized);
+  // Public demo edits are stored only in this JavaScript runtime's memory.
+  // They disappear on page refresh or when the tab is closed.
+  if (isDemoMode) return true;
+
   try {
     localStorage.setItem(key, serialized);
     return true;

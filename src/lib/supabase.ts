@@ -24,7 +24,9 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey) && !
 
 // Keep the demo build usable without credentials. No request is made unless a
 // service is explicitly enabled by isSupabaseConfigured.
+// In browser-demo mode, point even accidental client calls at a local inert URL.
+ // The demo must never issue requests to either Development or Production Supabase.
 export const supabase = createClient(
-  supabaseUrl || 'http://127.0.0.1:54321',
-  supabaseAnonKey || 'demo-only-key'
+  isDemoMode ? 'http://127.0.0.1:54321' : (supabaseUrl || 'http://127.0.0.1:54321'),
+  isDemoMode ? 'demo-only-key' : (supabaseAnonKey || 'demo-only-key')
 );
