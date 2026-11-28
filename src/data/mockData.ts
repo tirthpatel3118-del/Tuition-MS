@@ -61,7 +61,7 @@ export interface Reminder {
   amountDue: number;
   sentDate: string;
   type: 'WhatsApp' | 'SMS' | 'Email';
-  status: 'queued' | 'manual_opened' | 'sent' | 'delivered' | 'failed';
+  status: 'queued' | 'simulated' | 'manual_opened' | 'sent' | 'delivered' | 'failed';
 }
 
 // Initial Mock Data
