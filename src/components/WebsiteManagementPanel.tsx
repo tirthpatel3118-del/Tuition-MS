@@ -6,14 +6,14 @@ import {
 import { createPlatformInvitation, listPlatformInstitutes, type PlatformInstitute } from "../services/platformAdminService";
 import {
   getWebsiteSummary, listWebsiteAccessRequests, listWebsiteInquiries, listWebsiteNotifications,
-  listWebsiteDemoRequests, listWebsiteDemoSessions, markWebsiteNotificationRead,
+  listWebsiteDemoRequests, listWebsiteDemoSessions, listWebsiteDemoActivity, markWebsiteNotificationRead,
   updateWebsiteAccessRequest, updateWebsiteInquiry, updateWebsiteDemoRequest,
   issueWebsiteDemoAccess, extendWebsiteDemoSession, revokeWebsiteDemoSession,
   type WebsiteAccessRequest, type WebsiteAccessStatus, type WebsiteInquiry, type WebsiteInquiryStatus,
-  type WebsiteDemoRequest, type WebsiteDemoSession, type WebsiteNotification, type WebsiteSummary,
+  type WebsiteDemoRequest, type WebsiteDemoSession, type WebsiteDemoActivity, type WebsiteNotification, type WebsiteSummary,
 } from "../services/websiteAdminService";
 
-type WebsiteView = "inquiries" | "demos" | "sessions" | "access" | "details" | "statuses" | "notifications";
+type WebsiteView = "inquiries" | "demos" | "sessions" | "activity" | "access" | "details" | "statuses" | "notifications";
 const emptySummary: WebsiteSummary = {
   total_inquiries: 0, new_inquiries: 0, open_inquiries: 0,
   total_access_requests: 0, new_access_requests: 0, unread_notifications: 0,
@@ -41,7 +41,7 @@ export function WebsiteManagementPanel() {
   const [view, setView] = useState<WebsiteView>("inquiries");
   const [summary, setSummary] = useState<WebsiteSummary>(emptySummary);
   const [inquiries, setInquiries] = useState<WebsiteInquiry[]>([]);
-  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);\n  const [demoRequests, setDemoRequests] = useState<WebsiteDemoRequest[]>([]);\n  const [demoSessions, setDemoSessions] = useState<WebsiteDemoSession[]>([]);\n  const [selectedDemo, setSelectedDemo] = useState<WebsiteDemoRequest | null>(null);\n  const [demoNotes, setDemoNotes] = useState("");\n  const [demoLink, setDemoLink] = useState("");
+  const [accessRequests, setAccessRequests] = useState<WebsiteAccessRequest[]>([]);\n  const [demoRequests, setDemoRequests] = useState<WebsiteDemoRequest[]>([]);\n  const [demoSessions, setDemoSessions] = useState<WebsiteDemoSession[]>([]);\n  const [demoActivity, setDemoActivity] = useState<WebsiteDemoActivity[]>([]);\n  const [selectedDemo, setSelectedDemo] = useState<WebsiteDemoRequest | null>(null);\n  const [demoNotes, setDemoNotes] = useState("");\n  const [demoLink, setDemoLink] = useState("");
   const [notifications, setNotifications] = useState<WebsiteNotification[]>([]);
   const [institutes, setInstitutes] = useState<PlatformInstitute[]>([]);
   const [search, setSearch] = useState("");
@@ -274,7 +274,7 @@ export function WebsiteManagementPanel() {
   const views: Array<{ id: WebsiteView; label: string; icon: typeof Globe; count?: number }> = [
     { id: "inquiries", label: "Website inquiries", icon: MessageSquareText, count: summary.new_inquiries },
     { id: "demos", label: "Demo requests", icon: ShieldCheck, count: demoRequests.filter(item => ["new","reviewing"].includes(item.demo_status)).length },
-    { id: "sessions", label: "Demo sessions", icon: Clock3, count: demoSessions.filter(item => item.status === "active").length },
+    { id: "sessions", label: "Demo sessions", icon: Clock3, count: demoSessions.filter(item => item.status === "active").length },\n    { id: "activity", label: "Activity history", icon: ClipboardList },
     { id: "access", label: "Access requests", icon: ShieldCheck, count: summary.new_access_requests },
     { id: "details", label: "Inquiry details", icon: ClipboardList },
     { id: "statuses", label: "Status management", icon: Check },
@@ -390,6 +390,20 @@ export function WebsiteManagementPanel() {
               <button type="button" disabled={busy || item.status !== "active" || Boolean(item.extended_at)} onClick={() => void extendDemoSession(item)} className="min-h-10 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-40">Extend 10 min</button>
               <button type="button" disabled={busy || item.status === "revoked" || item.status === "expired"} onClick={() => void revokeDemoSession(item)} className="min-h-10 rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-40">Revoke access</button>
             </div>
+          </article>)}</div>}
+      </div>}
+
+      {view === "activity" && <div className="space-y-3 p-3 sm:p-4">
+        <div><h3 className="text-sm font-bold text-slate-900">Demo activity history</h3><p className="mt-1 text-xs text-slate-500">A server-recorded audit trail of review decisions, invitation issuance, session activation, extensions and revocations.</p></div>
+        {loading ? <p className="py-8 text-center text-sm text-slate-500">Loading activity…</p>
+          : demoActivity.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">No demo activity has been recorded yet.</p>
+          : <div className="divide-y divide-slate-100">{demoActivity.map(item => <article key={item.id} className="py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2"><strong className="text-sm text-slate-900">{item.requester_name}</strong><StatusPill status={item.action.toLowerCase().replaceAll("_"," ")}/><span className="text-[10px] font-semibold text-slate-400">{item.reference_code}</span></div>
+              <time className="text-[10px] text-slate-400">{dateLabel(item.created_at)}</time>
+            </div>
+            <p className="mt-1 text-xs text-slate-600">{item.institute_name} · {item.action.replaceAll("_"," ")}</p>
+            <p className="mt-1 text-[10px] text-slate-400">{item.actor_email ? "By " + item.actor_email : "Visitor action"} · {Object.keys(item.details || {}).length ? Object.entries(item.details).map(([key,value]) => key.replaceAll("_"," ") + ": " + String(value)).join(" · ") : "No additional detail"}</p>
           </article>)}</div>}
       </div>}
 
