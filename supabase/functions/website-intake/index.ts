@@ -114,6 +114,25 @@ Deno.serve(async (request: Request) => {
   if (gatewayError || gatewayValid !== true) {
     return json({ error: "Website gateway authentication failed." }, 401, origin);
   }
+  if (body.type === "demo_request") {
+    const studentCountRaw = clean(form.studentCount, 12);
+    const studentCount = studentCountRaw ? Number(studentCountRaw) : null;
+    if (studentCount !== null && (!Number.isSafeInteger(studentCount) || studentCount < 0 || studentCount > 10000000)) {
+      return json({ error: "Please enter a valid approximate student count." }, 400, origin);
+    }
+    const { data, error } = await admin.rpc("website_submit_demo_request", {
+      p_requester_name: requesterName,
+      p_institute_name: instituteName,
+      p_email: email,
+      p_phone: phone || null,
+      p_student_count: studentCount,
+      p_message: message || null,
+      p_ip_hash: ipHash,
+    });
+    if (error) return json({ error: error.message }, error.message.toLowerCase().includes("too many") ? 429 : 400, origin);
+    return json({ success: true, reference: data?.reference ?? "" }, 201, origin);
+  }
+
   if (body.type === "access_request") {
     const requestedRole = clean(form.requestedRole, 20).toLowerCase();
     if (!["owner", "teacher", "accountant"].includes(requestedRole)) return json({ error: "Please select the account role you are requesting." }, 400, origin);
