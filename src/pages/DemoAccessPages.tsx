@@ -7,7 +7,7 @@ import {
   getDemoSessionToken,
   validateDemoSession,
 } from '../services/demoAccessClient';
-import { ClassBandhuMark } from '../components/ClassBandhuMark';
+import { ClassBandhuMark } from '../components/ClassBandhuMark';\n\nconst marketingSiteUrl = window.location.hostname.startsWith('development--')\n  ? 'https://development.classbandhu-website.pages.dev'\n  : 'https://classbandhu-website.pages.dev';
 
 export function DemoAccessPage() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export function DemoAccessPage() {
         </div>
         {failed && (
           <div className="mt-6 space-y-3">
-            <a href="https://classbandhu-website.pages.dev/#demo" className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">
+            <a href={marketingSiteUrl} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#6B1F38] px-4 py-3 text-sm font-semibold text-white">
               Request another demo <ArrowRight className="h-4 w-4" />
             </a>
             <Link to="/request-demo" className="block text-sm font-semibold text-[#6B1F38] hover:underline">More about demo access</Link>
