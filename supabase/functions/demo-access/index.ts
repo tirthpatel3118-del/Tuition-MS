@@ -94,9 +94,12 @@ Deno.serve(async (request: Request) => {
       return json({ valid: false }, 200, origin);
     }
     const sessionHash = await sha256(sessionToken);
+    // Validation requests are bucketed by visitor IP plus this opaque session,
+    // so shared NATs do not exhaust one common IP-only allowance.
+    const sessionRateHash = await sha256(serviceRoleKey + "|classbandhu-demo-validate|" + clientIp + "|" + sessionToken);
     const { data, error } = await admin.rpc("website_demo_validate", {
       p_session_hash: sessionHash,
-      p_ip_hash: ipHash,
+      p_ip_hash: sessionRateHash,
     });
     if (error) return json({ error: "Demo session could not be verified." }, 503, origin);
     return json({
