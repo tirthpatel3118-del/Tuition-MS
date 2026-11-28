@@ -56,7 +56,7 @@ assert.ok(app.includes('return (\n    <AuthProvider>'));
 // Demo mode starts with a non-configured AuthProvider and skips Supabase auth listeners.
 // New public account creation remains invitation-only.
 assert.ok(authContext.includes('const configured = isSupabaseConfigured;'));
-assert.ok(authContext.includes("setStatusState(configured ? 'loading' : 'demo')"));
+assert.ok(authContext.includes("useState<AuthStatus>(configured ? 'loading' : 'demo')"));
 assert.ok(authContext.includes('if (!configured) return;'));
 assert.ok(authPages.includes('Access is provided by invitation.'));
 assert.ok(authPages.includes("invitationFlow ? 'sign-up' : 'sign-in'"));
